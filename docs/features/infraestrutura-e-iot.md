@@ -35,22 +35,22 @@ Contrato esperado do responsável pela API: endpoint `/health`, lista de variáv
 
 ## Verificações e evidências
 
-Executado em 06/11/2026 numa VM Debian 13 (VirtualBox 7.2.6). Os testes abaixo foram feitos com a primeira versão da aplicação (um `/health` mínimo); **a página de status atual ainda não foi verificada na VM**:
+Executado em 06/11/2026 numa VM Debian 13 (VirtualBox 7.2.6). Resultados reais, com evidências em [`infra/evidencias/`](../../infra/evidencias/):
 
 - `01-infra.sh` e `02-app.sh`: concluídos sem erro; app respondeu em `:5000`; `02-app.sh` reexecutado com sucesso.
 - Provisionamento do zero: VM restaurada do snapshot limpo; `01-infra.sh` + `02-app.sh` concluídos em 24 s; serviços `active` e `curl localhost:5000` respondendo.
-- `falha-app.sh`: serviço recuperado pelo systemd após `kill -9` (PID 2256 → 2401).
+- `falha-app.sh`: serviço recuperado pelo systemd após `kill -9` (PID 3255 → 3603, em 6 s; `/health` voltou a responder).
+- Página de status (`/` e `/api/status`) servida pela VM: serviços `active`; durante o estresse as barras passaram de 80% e os alertas apareceram na página.
 - Alertas observados em `alertas.log`: `CPU alta: 100%`, `Memoria alta: 87%/88%`, `Disco cheio: 84%`.
 - Reinício da VM: serviços `active`, IP fixo e hostname preservados.
 
 **Não verificado:**
 - Aplicação real (API C#) e bancos na VM.
 - Circuito ESP32 e comunicação Wokwi ↔ API.
-- Vídeo de demonstração.
+- Publicação do vídeo de demonstração (gravado, 2 min 57 s; link ainda a adicionar).
 
 ## Riscos, pendências e próximos passos
 
 - Integrar a API real quando disponível (2 pts de "funcionamento completo").
-- Gravar o vídeo (até 7 min).
+- Publicar o vídeo e adicionar o link ao README.
 - Confirmar cedo a comunicação entre simulador e API; não representar simulação desconectada como integração concluída.
-- Adicionar prints em `infra/evidencias/`.

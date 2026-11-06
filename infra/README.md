@@ -2,7 +2,7 @@
 
 Entrega de **Operating Systems** (GS CitizenTech 2026.2). Provisiona, de forma automática, uma VM Linux que hospeda uma aplicação web, monitora CPU/memória/disco, gera logs de auditoria e se recupera de falhas.
 
-> **Estado:** a infraestrutura está implementada com uma **aplicação web própria da camada de infraestrutura** (`app/`): uma página de status do Nexo Cidadão com CPU, memória, disco, serviços e alertas em tempo real, mais os endpoints `/health` e `/api/status`. A API real do Nexo (C#/ASP.NET Core) ainda **não** foi integrada; a troca é descrita em [Integração com a API real](#integração-com-a-api-real).
+> **Estado:** a infraestrutura está implementada e verificada com uma **aplicação web própria da camada de infraestrutura** (`app/`): uma página de status do Nexo Cidadão com CPU, memória, disco, serviços e alertas em tempo real, mais os endpoints `/health` e `/api/status`. A API real do Nexo (C#/ASP.NET Core) ainda **não** foi integrada; a troca é descrita em [Integração com a API real](#integração-com-a-api-real).
 
 ## Ambiente testado
 
@@ -125,7 +125,8 @@ Rodar como `sudo`, na VM provisionada.
 
 | Teste | Comando | Resultado observado (06/11/2026) |
 |---|---|---|
-| Aplicação morta | `bash infra/tests/falha-app.sh` | `kill -9` no PID 2256; o systemd reiniciou o serviço (novo PID 2401) em até 6 s; alerta `Servico nexo-app FORA do ar` |
+| Aplicação morta | `bash infra/tests/falha-app.sh` | `kill -9` no PID 3255; o systemd reiniciou o serviço (novo PID 3603) em 6 s; `/health` voltou a responder; alerta `Servico nexo-app FORA do ar` |
+| Página de status | abrir `http://localhost:8080` | serviços `active`; durante o estresse, as barras passam de 80% e os alertas aparecem na página |
 | CPU | `bash infra/tests/falha-recursos.sh` | alertas `CPU alta: 100%` |
 | Memória | `stress-ng --vm 1 --vm-bytes 95% --timeout 40s` | alertas `Memoria alta: 87%` e `88%` |
 | Disco | `bash infra/tests/falha-disco.sh` | alerta `Disco cheio: 84%`; arquivo removido ao final |
@@ -149,4 +150,17 @@ Rodar como `sudo`, na VM provisionada.
 
 ## Evidências
 
-Capturas de tela e vídeo (até 7 min) devem ser adicionados em `infra/evidencias/` e referenciados aqui.
+Capturas de 06/11/2026, feitas numa VM restaurada do snapshot limpo, em [`evidencias/`](evidencias/):
+
+| Arquivo | Mostra |
+|---|---|
+| `01-repositorio-github.png` | pasta `infra/` no repositório |
+| `02-vm-limpa.png` | VM antes do provisionamento (`nexo-app` inexistente) |
+| `03-estrutura-infra.png` | estrutura de `infra/` copiada para a VM |
+| `06-servicos-e-monitor.png` | `nexo-app` e `nexo-monitor` ativos e leituras do monitor |
+| `07-pagina-status.png` | página de status no navegador |
+| `09-alertas-log.png` | alertas de CPU e memória registrados |
+| `10-falha-app-recuperacao.png` | `kill -9` e recuperação pelo systemd |
+| `11-logs-auditoria.png` | arquivos de log e execução dos scripts |
+
+Vídeo de demonstração (2 min 57 s): *link a adicionar após a publicação*.
