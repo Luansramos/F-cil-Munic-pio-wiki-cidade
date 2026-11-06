@@ -127,6 +127,7 @@ Rodar como `sudo`, na VM provisionada.
 | CPU | `bash infra/tests/falha-recursos.sh` | alertas `CPU alta: 100%` |
 | Memória | `stress-ng --vm 1 --vm-bytes 95% --timeout 40s` | alertas `Memoria alta: 87%` e `88%` |
 | Disco | `bash infra/tests/falha-disco.sh` | alerta `Disco cheio: 84%`; arquivo removido ao final |
+| Provisionamento do zero | restaurar o snapshot limpo e rodar `01-infra.sh` e `02-app.sh` | concluído sem erro em 24 s; serviços `active` e app respondendo em `:5000` |
 | Reinício da VM | `sudo reboot` | os dois serviços sobem `active`, IP `192.168.56.10/24` e hostname mantidos, monitor volta a logar |
 
 ## Integração com a API real
@@ -140,7 +141,7 @@ Rodar como `sudo`, na VM provisionada.
 ## Limitações e pendências
 
 - A aplicação hospedada é um **placeholder**; a API real e seus bancos ainda não foram integrados.
-- O provisionamento a partir de uma VM limpa (snapshot) ainda precisa ser reexecutado e cronometrado para o vídeo.
+- Falta gravar o vídeo de demonstração e anexar as capturas de tela.
 - Testado apenas em Debian 13 com VirtualBox 7.2.6; não foi validado em outras distribuições.
 - O monitor depende do formato de saída de `top` e `free` com `LC_ALL=C`.
 

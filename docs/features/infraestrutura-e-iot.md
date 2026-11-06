@@ -38,12 +38,12 @@ Contrato esperado do responsável pela API: endpoint `/health`, lista de variáv
 Executado em 06/11/2026 numa VM Debian 13 (VirtualBox 7.2.6), com a aplicação placeholder:
 
 - `01-infra.sh` e `02-app.sh`: concluídos sem erro; app respondeu em `:5000`; `02-app.sh` reexecutado com sucesso.
+- Provisionamento do zero: VM restaurada do snapshot limpo; `01-infra.sh` + `02-app.sh` concluídos em 24 s; serviços `active` e `curl localhost:5000` respondendo.
 - `falha-app.sh`: serviço recuperado pelo systemd após `kill -9` (PID 2256 → 2401).
 - Alertas observados em `alertas.log`: `CPU alta: 100%`, `Memoria alta: 87%/88%`, `Disco cheio: 84%`.
 - Reinício da VM: serviços `active`, IP fixo e hostname preservados.
 
 **Não verificado:**
-- Provisionamento a partir de snapshot limpo, de ponta a ponta (a repetir antes do vídeo).
 - Aplicação real (API C#) e bancos na VM.
 - Circuito ESP32 e comunicação Wokwi ↔ API.
 - Vídeo de demonstração.
@@ -51,6 +51,6 @@ Executado em 06/11/2026 numa VM Debian 13 (VirtualBox 7.2.6), com a aplicação 
 ## Riscos, pendências e próximos passos
 
 - Integrar a API real quando disponível (2 pts de "funcionamento completo").
-- Reensaiar o provisionamento do zero e gravar o vídeo (até 7 min).
+- Gravar o vídeo (até 7 min).
 - Confirmar cedo a comunicação entre simulador e API; não representar simulação desconectada como integração concluída.
 - Adicionar prints em `infra/evidencias/`.
