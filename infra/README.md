@@ -2,7 +2,7 @@
 
 Entrega de **Operating Systems** (GS CitizenTech 2026.2). Provisiona, de forma automática, uma VM Linux que hospeda uma aplicação web, monitora CPU/memória/disco, gera logs de auditoria e se recupera de falhas.
 
-> **Estado:** a infraestrutura está implementada e verificada com uma **aplicação placeholder** (`app/app.py`, responde JSON em `:5000`). A API real do Nexo (C#/ASP.NET Core) ainda **não** foi integrada; a troca é descrita em [Integração com a API real](#integração-com-a-api-real).
+> **Estado:** a infraestrutura está implementada com uma **aplicação web própria da camada de infraestrutura** (`app/`): uma página de status do Nexo Cidadão com CPU, memória, disco, serviços e alertas em tempo real, mais os endpoints `/health` e `/api/status`. A API real do Nexo (C#/ASP.NET Core) ainda **não** foi integrada; a troca é descrita em [Integração com a API real](#integração-com-a-api-real).
 
 ## Ambiente testado
 
@@ -25,7 +25,9 @@ infra/
 ├── provision/
 │   ├── 01-infra.sh               # hostname, IP fixo, DNS, firewall
 │   └── 02-app.sh                 # dependências, usuário, variáveis, serviços
-├── app/app.py                    # aplicação web placeholder
+├── app/
+│   ├── app.py                    # servidor web (stdlib) com /health e /api/status
+│   └── static/index.html         # página de status
 ├── monitor/monitor.sh            # monitor de CPU, memória e disco
 ├── systemd/
 │   ├── nexo-app.service          # aplicação (Restart=always)
@@ -71,7 +73,7 @@ sudo bash infra/provision/02-app.sh     # dependências, usuário, serviços
 Verificar:
 ```bash
 systemctl status nexo-app nexo-monitor --no-pager
-curl localhost:5000                      # no host: http://localhost:8080
+curl localhost:5000/health               # no host, abrir http://localhost:8080
 tail -n 5 /var/log/nexo/monitor.log
 ```
 Os scripts podem ser reexecutados: o `02-app.sh` não sobrescreve `/etc/nexo/nexo.env` e reinicia os serviços.
@@ -106,7 +108,7 @@ Não há segredos neste repositório. Valores sensíveis da API real devem ficar
 | Monitoramento com alertas | `monitor.sh`: lê CPU, memória e disco a cada `INTERVAL` s; acima do limite registra `ALERT` e grava em `alertas.log`; também alerta se `nexo-app` estiver fora do ar |
 | Monitor como serviço tolerante a falhas | `nexo-monitor.service` com `Restart=always` e sem limite de reinícios |
 | Logs de auditoria e execução | `lib/log.sh`: timestamp, nível e script de origem, em `/var/log/nexo/` |
-| Funcionamento completo | aplicação placeholder servida como serviço; troca pela API real descrita abaixo |
+| Funcionamento completo | aplicação web servida como serviço systemd (`:5000`, no host `:8080`), lendo o estado real da VM; troca pela API real descrita abaixo |
 
 ## Logs
 
@@ -140,7 +142,7 @@ Rodar como `sudo`, na VM provisionada.
 
 ## Limitações e pendências
 
-- A aplicação hospedada é um **placeholder**; a API real e seus bancos ainda não foram integrados.
+- A aplicação hospedada é uma página de status da infraestrutura, **não** a plataforma Nexo; a API real e seus bancos ainda não foram integrados.
 - Falta gravar o vídeo de demonstração e anexar as capturas de tela.
 - Testado apenas em Debian 13 com VirtualBox 7.2.6; não foi validado em outras distribuições.
 - O monitor depende do formato de saída de `top` e `free` com `LC_ALL=C`.

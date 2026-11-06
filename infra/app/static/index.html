@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nexo Cidadão — Infraestrutura</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --card:#ffffff; --texto:#14202b; --suave:#5b6b7a; --borda:#dde3e9;
+    --marca:#0b6b5c; --ok:#1a8a4a; --alerta:#c2410c; --trilho:#e6ebf0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0e1419; --card:#161e26; --texto:#e8eef3; --suave:#93a3b2; --borda:#26323d;
+           --marca:#3ec3a8; --ok:#4ade80; --alerta:#fb923c; --trilho:#26323d; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--texto);
+       font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 16px 48px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .logo{width:40px;height:40px;border-radius:10px;background:var(--marca);
+        display:grid;place-items:center;color:#fff;font-weight:700}
+  h1{font-size:1.4rem;margin:0}
+  .sub{color:var(--suave);margin:0 0 24px}
+  .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .card{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:16px}
+  .card h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;
+           color:var(--suave);margin:0 0 12px}
+  .valor{font-size:2rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .trilho{height:10px;border-radius:99px;background:var(--trilho);overflow:hidden;margin-top:8px}
+  .barra{height:100%;width:0;background:var(--ok);transition:width .4s,background .3s}
+  .barra.alto{background:var(--alerta)}
+  .lim{font-size:.8rem;color:var(--suave);margin-top:6px}
+  dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px}
+  dt{color:var(--suave)} dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.85rem;font-weight:600;
+        background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+  .pill.fora{background:color-mix(in srgb,var(--alerta) 18%,transparent);color:var(--alerta)}
+  ul{margin:0;padding:0;list-style:none}
+  li{padding:6px 0;border-bottom:1px solid var(--borda);font-size:.9rem}
+  li:last-child{border-bottom:0}
+  .mono{font-family:ui-monospace,Consolas,monospace;font-size:.82rem}
+  .vazio{color:var(--suave)}
+  .wide{grid-column:1/-1}
+  footer{margin-top:24px;color:var(--suave);font-size:.85rem}
+  #erro{display:none;margin-bottom:16px;padding:10px 14px;border-radius:10px;
+        background:color-mix(in srgb,var(--alerta) 15%,transparent);color:var(--alerta)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true">N</div>
+    <h1>Nexo Cidadão</h1>
+  </header>
+  <p class="sub">Infraestrutura Linux que hospeda a plataforma — status em tempo real.</p>
+  <div id="erro" role="alert">Sem resposta do servidor. Tentando novamente…</div>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="t-cpu">
+      <h2 id="t-cpu">CPU</h2>
+      <div class="valor" id="v-cpu">–</div>
+      <div class="trilho"><div class="barra" id="b-cpu"></div></div>
+      <div class="lim" id="l-cpu"></div>
+    </section>
+    <section class="card" aria-labelledby="t-mem">
+      <h2 id="t-mem">Memória</h2>
+      <div class="valor" id="v-mem">–</div>
+      <div class="trilho"><div class="barra" id="b-mem"></div></div>
+      <div class="lim" id="l-mem"></div>
+    </section>
+    <section class="card" aria-labelledby="t-disco">
+      <h2 id="t-disco">Disco</h2>
+      <div class="valor" id="v-disco">–</div>
+      <div class="trilho"><div class="barra" id="b-disco"></div></div>
+      <div class="lim" id="l-disco"></div>
+    </section>
+
+    <section class="card" aria-labelledby="t-srv">
+      <h2 id="t-srv">Serviços</h2>
+      <dl id="servicos"><dt>–</dt><dd>–</dd></dl>
+    </section>
+    <section class="card" aria-labelledby="t-srvdr">
+      <h2 id="t-srvdr">Servidor</h2>
+      <dl>
+        <dt>Hostname</dt><dd id="hostname">–</dd>
+        <dt>Em execução há</dt><dd id="uptime">–</dd>
+        <dt>Atualizado</dt><dd id="agora">–</dd>
+      </dl>
+    </section>
+    <section class="card wide" aria-labelledby="t-alertas">
+      <h2 id="t-alertas">Últimos alertas do monitor</h2>
+      <ul id="alertas"><li class="vazio">Nenhum alerta registrado.</li></ul>
+    </section>
+  </div>
+
+  <footer>
+    Camada de infraestrutura do projeto Nexo Cidadão (GS CitizenTech 2026.2). A plataforma
+    completa — API, grafo de conhecimento e aplicativo — está em desenvolvimento.
+  </footer>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  function medidor(nome, valor, limite){
+    $("v-" + nome).textContent = valor + "%";
+    const b = $("b-" + nome);
+    b.style.width = Math.min(valor, 100) + "%";
+    b.classList.toggle("alto", valor > limite);
+    $("l-" + nome).textContent = "Alerta acima de " + limite + "%";
+  }
+
+  function duracao(s){
+    const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+    return (d ? d + "d " : "") + (h || d ? h + "h " : "") + m + "min";
+  }
+
+  function texto(el, valor){ el.textContent = valor; return el; }
+
+  async function atualizar(){
+    try{
+      const r = await fetch("/api/status", {cache: "no-store"});
+      if(!r.ok) throw new Error(r.status);
+      const s = await r.json();
+      $("erro").style.display = "none";
+
+      medidor("cpu", s.cpu, s.limites.cpu);
+      medidor("mem", s.mem, s.limites.mem);
+      medidor("disco", s.disco, s.limites.disco);
+
+      $("hostname").textContent = s.hostname;
+      $("uptime").textContent = duracao(s.uptime_s);
+      $("agora").textContent = s.agora;
+
+      const dl = $("servicos"); dl.replaceChildren();
+      for(const [nome, estado] of Object.entries(s.servicos)){
+        const dt = texto(document.createElement("dt"), nome);
+        const dd = document.createElement("dd");
+        const p = texto(document.createElement("span"), estado);
+        p.className = "pill" + (estado === "active" ? "" : " fora");
+        dd.appendChild(p); dl.append(dt, dd);
+      }
+
+      const ul = $("alertas"); ul.replaceChildren();
+      if(!s.alertas.length){
+        ul.appendChild(texto(Object.assign(document.createElement("li"), {className:"vazio"}),
+                             "Nenhum alerta registrado."));
+      } else {
+        for(const a of s.alertas.slice().reverse()){
+          const li = texto(document.createElement("li"), a); li.className = "mono"; ul.appendChild(li);
+        }
+      }
+    }catch(e){
+      $("erro").style.display = "block";
+    }
+  }
+  atualizar();
+  setInterval(atualizar, 5000);
+</script>
+</body>
+</html>

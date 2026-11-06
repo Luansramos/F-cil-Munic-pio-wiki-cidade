@@ -1,6 +1,6 @@
 # Feature — Infraestrutura e IoT
 
-- Status: **em andamento** — infraestrutura Linux (G1–G4) implementada com aplicação placeholder; IoT (G5–G7) planejado, integração Wokwi a comprovar
+- Status: **em andamento** — infraestrutura Linux (G1–G4) implementada com uma aplicação web de status da infraestrutura; IoT (G5–G7) planejado, integração Wokwi a comprovar
 - Responsável e colaboradores: Matheus (Operating Systems); apoio P1; Physical Computing a confirmar com o grupo
 - Itens do backlog / issue: G1–G7
 - Componentes e disciplinas afetados: `infra/`, Operating Systems, Physical Computing
@@ -13,7 +13,7 @@ Provisionar uma aplicação em Linux, monitorar recursos e falhas e demonstrar u
 ## Escopo e limites
 
 - **Operating Systems (feito):** scripts Bash de provisionamento (rede, DNS, IP, aplicação), monitor de CPU/memória/disco com alertas, serviços systemd com `Restart=always`, logs de auditoria, testes de falha. Documentação em [infra/README.md](../../infra/README.md).
-- **Limite atual:** a aplicação hospedada é um placeholder; a API C# e os bancos ainda não foram integrados.
+- **Limite atual:** a aplicação hospedada é uma página de status da infraestrutura (`/`, `/health`, `/api/status`), não a plataforma Nexo; a API C# e os bancos ainda não foram integrados.
 - **Physical Computing:** não iniciado nesta branch.
 
 ## Fluxo e contratos de integração
@@ -35,7 +35,7 @@ Contrato esperado do responsável pela API: endpoint `/health`, lista de variáv
 
 ## Verificações e evidências
 
-Executado em 06/11/2026 numa VM Debian 13 (VirtualBox 7.2.6), com a aplicação placeholder:
+Executado em 06/11/2026 numa VM Debian 13 (VirtualBox 7.2.6). Os testes abaixo foram feitos com a primeira versão da aplicação (um `/health` mínimo); **a página de status atual ainda não foi verificada na VM**:
 
 - `01-infra.sh` e `02-app.sh`: concluídos sem erro; app respondeu em `:5000`; `02-app.sh` reexecutado com sucesso.
 - Provisionamento do zero: VM restaurada do snapshot limpo; `01-infra.sh` + `02-app.sh` concluídos em 24 s; serviços `active` e `curl localhost:5000` respondendo.
