@@ -3,6 +3,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 source "$ROOT/lib/log.sh"
+habilitar_trap_erro
 [ "$EUID" -eq 0 ] || { echo "rode com sudo"; exit 1; }
 
 log INFO "Instalando dependencias"
