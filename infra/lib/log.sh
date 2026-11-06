@@ -7,3 +7,8 @@ log() {
   local nivel="$1"; shift
   echo "$(date '+%F %T') [$nivel] [$(basename "$0")] $*" | tee -a "$LOG_FILE"
 }
+
+habilitar_trap_erro() {
+  set -o errtrace
+  trap 'rc=$?; log ERROR "falha (codigo $rc) na linha $LINENO: $BASH_COMMAND"' ERR
+}
