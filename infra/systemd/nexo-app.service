@@ -1,0 +1,15 @@
+[Unit]
+Description=Nexo Cidadao - aplicacao web
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=nexo
+EnvironmentFile=/etc/nexo/nexo.env
+WorkingDirectory=/opt/nexo/app
+ExecStart=/usr/bin/python3 /opt/nexo/app/app.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
