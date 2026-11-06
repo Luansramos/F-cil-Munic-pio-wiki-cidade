@@ -10,7 +10,7 @@ sleep 6
 novo=$(systemctl show -p MainPID --value nexo-app)
 if systemctl is-active --quiet nexo-app; then
   log INFO "RECUPERADO: systemd reiniciou o servico (PID antigo $pid, novo $novo)"
-  curl -s http://localhost:5000/; echo
+  curl -s http://localhost:5000/health; echo
 else
   log ERROR "Servico NAO recuperou"
 fi
