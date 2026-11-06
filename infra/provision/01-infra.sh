@@ -2,6 +2,7 @@
 # Provisionamento de infraestrutura: hostname, IP fixo, DNS e firewall
 set -euo pipefail
 source "$(dirname "$0")/../lib/log.sh"
+habilitar_trap_erro
 [ "$EUID" -eq 0 ] || { echo "rode com sudo"; exit 1; }
 
 HOSTNAME_NEW="${HOSTNAME_NEW:-nexo-srv}"
