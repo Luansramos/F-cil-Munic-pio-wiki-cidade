@@ -6,6 +6,13 @@ export type Troca = RespostaConversa & {
   criadoEm: string;
 };
 
+export type ResumoConversa = {
+  id: string;
+  municipioId: string;
+  titulo: string;
+  atualizadoEm: string;
+};
+
 export type Conversa = {
   id: string;
   municipioId: string;

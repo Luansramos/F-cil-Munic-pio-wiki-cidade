@@ -8,11 +8,11 @@ describe('apiMock', () => {
     it('lista os dois municípios do mock', async () => {
       const municipios = await api.listarMunicipios();
 
-      expect(municipios.map((municipio) => municipio.id)).toEqual(['poa', 'exemplo']);
+      expect(municipios.map((municipio) => municipio.id)).toEqual(['sao-paulo', 'exemplo']);
     });
 
-    it('lista os três serviços do piloto em Poá', async () => {
-      const servicos = await api.listarServicos('poa');
+    it('lista os três serviços do piloto em São Paulo', async () => {
+      const servicos = await api.listarServicos('sao-paulo');
 
       expect(servicos).toEqual([
         { id: 'coleta-de-lixo', nome: 'Coleta de lixo' },
@@ -45,13 +45,13 @@ describe('apiMock', () => {
 
       const segunda = await api.listarMunicipios();
 
-      expect(segunda[0].nome).toBe('Poá');
+      expect(segunda[0].nome).toBe('São Paulo');
     });
   });
 
   describe('resposta com informação suficiente', () => {
     it('responde sobre o Cata Treco com texto marcado como exemplo e lista numerada', async () => {
-      const resposta = await api.enviarPergunta('poa', {
+      const resposta = await api.enviarPergunta('sao-paulo', {
         pergunta: 'Como solicito a retirada de um sofá?',
       });
 
@@ -70,13 +70,13 @@ describe('apiMock', () => {
       ];
 
       for (const [pergunta, servicoId] of perguntas) {
-        const resposta = await api.enviarPergunta('poa', { pergunta });
+        const resposta = await api.enviarPergunta('sao-paulo', { pergunta });
         expect(resposta.servicosRelacionados).toEqual([servicoId]);
       }
     });
 
     it('não inventa links: nenhuma fonte tem URL e não há canal oficial', async () => {
-      const resposta = await api.enviarPergunta('poa', { pergunta: 'retirada de sofá' });
+      const resposta = await api.enviarPergunta('sao-paulo', { pergunta: 'retirada de sofá' });
 
       expect(resposta.fontes.length).toBeGreaterThan(0);
       expect(resposta.fontes.every((fonte) => fonte.url === '')).toBe(true);
@@ -84,7 +84,7 @@ describe('apiMock', () => {
     });
 
     it('devolve uma fonte com data e outra sem data', async () => {
-      const resposta = await api.enviarPergunta('poa', { pergunta: 'retirada de sofá' });
+      const resposta = await api.enviarPergunta('sao-paulo', { pergunta: 'retirada de sofá' });
 
       expect(resposta.fontes[0].dataConsulta).toBeDefined();
       expect(resposta.fontes[1].dataConsulta).toBeUndefined();
@@ -93,7 +93,7 @@ describe('apiMock', () => {
 
   describe('informação insuficiente', () => {
     it('informa insuficiência em tema fora da cobertura, sem fontes nem serviços', async () => {
-      const resposta = await api.enviarPergunta('poa', {
+      const resposta = await api.enviarPergunta('sao-paulo', {
         pergunta: 'Posso levar o lixo eletrônico no sábado?',
       });
 
@@ -104,16 +104,16 @@ describe('apiMock', () => {
     });
 
     it('informa insuficiência quando a pergunta não casa com nenhum serviço', async () => {
-      const resposta = await api.enviarPergunta('poa', { pergunta: 'Qual a capital da França?' });
+      const resposta = await api.enviarPergunta('sao-paulo', { pergunta: 'Qual a capital da França?' });
 
       expect(resposta.informacaoSuficiente).toBe(false);
     });
 
-    it('isola municípios: serviço de Poá não responde no município de exemplo', async () => {
-      const emPoa = await api.enviarPergunta('poa', { pergunta: 'retirada de sofá' });
+    it('isola municípios: serviço de São Paulo não responde no município de exemplo', async () => {
+      const emSaoPaulo = await api.enviarPergunta('sao-paulo', { pergunta: 'retirada de sofá' });
       const emExemplo = await api.enviarPergunta('exemplo', { pergunta: 'retirada de sofá' });
 
-      expect(emPoa.informacaoSuficiente).toBe(true);
+      expect(emSaoPaulo.informacaoSuficiente).toBe(true);
       expect(emExemplo.informacaoSuficiente).toBe(false);
       expect(emExemplo.fontes).toEqual([]);
     });
@@ -125,13 +125,13 @@ describe('apiMock', () => {
     ];
 
     it('sem histórico, uma pergunta de seguimento não tem contexto', async () => {
-      const resposta = await api.enviarPergunta('poa', { pergunta: 'e se for domingo?' });
+      const resposta = await api.enviarPergunta('sao-paulo', { pergunta: 'e se for domingo?' });
 
       expect(resposta.informacaoSuficiente).toBe(false);
     });
 
     it('com histórico, interpreta a pergunta de seguimento pelo serviço anterior', async () => {
-      const resposta = await api.enviarPergunta('poa', {
+      const resposta = await api.enviarPergunta('sao-paulo', {
         pergunta: 'e se for domingo?',
         historico: umaTroca,
       });
@@ -142,8 +142,8 @@ describe('apiMock', () => {
     });
 
     it('varia a resposta quando o histórico vem preenchido', async () => {
-      const semContexto = await api.enviarPergunta('poa', { pergunta: 'retirada de sofá' });
-      const comContexto = await api.enviarPergunta('poa', {
+      const semContexto = await api.enviarPergunta('sao-paulo', { pergunta: 'retirada de sofá' });
+      const comContexto = await api.enviarPergunta('sao-paulo', {
         pergunta: 'retirada de sofá',
         historico: umaTroca,
       });
@@ -154,7 +154,7 @@ describe('apiMock', () => {
     it('descreve a quantidade de trocas de contexto', async () => {
       const tres = [...umaTroca, ...umaTroca, ...umaTroca];
 
-      const resposta = await api.enviarPergunta('poa', {
+      const resposta = await api.enviarPergunta('sao-paulo', {
         pergunta: 'e se for domingo?',
         historico: tres,
       });
@@ -174,7 +174,7 @@ describe('apiMock', () => {
 
   describe('validação', () => {
     it('rejeita pergunta vazia', async () => {
-      await expect(api.enviarPergunta('poa', { pergunta: '   ' })).rejects.toMatchObject({
+      await expect(api.enviarPergunta('sao-paulo', { pergunta: '   ' })).rejects.toMatchObject({
         tipo: 'desconhecido',
       });
     });

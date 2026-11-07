@@ -11,7 +11,7 @@ export type ServicoMock = Servico & {
 };
 
 export const MUNICIPIOS_MOCK: Municipio[] = [
-  { id: 'poa', nome: 'Poá', uf: 'SP' },
+  { id: 'sao-paulo', nome: 'São Paulo', uf: 'SP' },
   { id: 'exemplo', nome: 'Município Exemplo', uf: 'XX' },
 ];
 
@@ -63,7 +63,7 @@ export const SERVICOS_MOCK: ServicoMock[] = [
 ];
 
 const SERVICOS_POR_MUNICIPIO: Record<string, string[]> = {
-  poa: ['coleta-de-lixo', 'iluminacao-publica', 'cata-treco'],
+  'sao-paulo': ['coleta-de-lixo', 'iluminacao-publica', 'cata-treco'],
   exemplo: ['coleta-de-lixo', 'iluminacao-publica'],
 };
 

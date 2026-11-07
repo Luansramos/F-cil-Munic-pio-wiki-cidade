@@ -6,4 +6,4 @@ export type {
   Servico,
   TrocaResumida,
 } from './contrato';
-export type { Conversa, Troca } from './dominio';
+export type { Conversa, ResumoConversa, Troca } from './dominio';

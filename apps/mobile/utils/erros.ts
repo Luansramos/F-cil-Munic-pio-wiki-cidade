@@ -1,4 +1,7 @@
 import { ErroApi } from '@/services/api/erros';
+import { ErroBanco } from '@/services/banco/erros';
+
+const MENSAGEM_PADRAO = 'Algo deu errado. Tente de novo.';
 
 export function mensagemDeErro(erro: unknown): string {
   if (erro instanceof ErroApi) {
@@ -10,8 +13,20 @@ export function mensagemDeErro(erro: unknown): string {
       case 'configuracao':
         return 'O aplicativo não está configurado para acessar o serviço.';
       default:
-        return 'Algo deu errado. Tente de novo.';
+        return MENSAGEM_PADRAO;
     }
   }
-  return 'Algo deu errado. Tente de novo.';
+
+  if (erro instanceof ErroBanco) {
+    switch (erro.tipo) {
+      case 'abertura':
+        return 'Não foi possível abrir os dados salvos neste celular. Tente de novo.';
+      case 'migracao':
+        return 'Os dados salvos neste celular não podem ser usados por esta versão do aplicativo.';
+      default:
+        return MENSAGEM_PADRAO;
+    }
+  }
+
+  return MENSAGEM_PADRAO;
 }

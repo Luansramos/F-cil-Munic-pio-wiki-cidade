@@ -1,51 +1,10 @@
 import type { EnvioPergunta, Municipio, RespostaConversa, Servico } from '@/types';
+import { ehMunicipio, ehRespostaConversa, ehServico } from '@/types/guardas';
 
 import type { ApiClient } from './ApiClient';
 import { ErroApi } from './erros';
 
 const TEMPO_LIMITE_MS = 15000;
-
-function ehObjeto(valor: unknown): valor is Record<string, unknown> {
-  return typeof valor === 'object' && valor !== null;
-}
-
-function ehListaDeStrings(valor: unknown): valor is string[] {
-  return Array.isArray(valor) && valor.every((item) => typeof item === 'string');
-}
-
-function ehMunicipio(valor: unknown): valor is Municipio {
-  return (
-    ehObjeto(valor) &&
-    typeof valor.id === 'string' &&
-    typeof valor.nome === 'string' &&
-    typeof valor.uf === 'string'
-  );
-}
-
-function ehServico(valor: unknown): valor is Servico {
-  return ehObjeto(valor) && typeof valor.id === 'string' && typeof valor.nome === 'string';
-}
-
-function ehFonte(valor: unknown): boolean {
-  return (
-    ehObjeto(valor) &&
-    typeof valor.titulo === 'string' &&
-    typeof valor.url === 'string' &&
-    (valor.dataConsulta === undefined || typeof valor.dataConsulta === 'string')
-  );
-}
-
-function ehRespostaConversa(valor: unknown): valor is RespostaConversa {
-  return (
-    ehObjeto(valor) &&
-    typeof valor.resposta === 'string' &&
-    ehListaDeStrings(valor.servicosRelacionados) &&
-    Array.isArray(valor.fontes) &&
-    valor.fontes.every(ehFonte) &&
-    typeof valor.informacaoSuficiente === 'boolean' &&
-    (valor.canalOficialUrl === undefined || typeof valor.canalOficialUrl === 'string')
-  );
-}
 
 function formatoInesperado(): ErroApi {
   return new ErroApi('indisponivel', 'A API respondeu em um formato inesperado.');

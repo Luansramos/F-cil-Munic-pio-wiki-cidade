@@ -1,11 +1,11 @@
 # Feature — Aplicativo mobile do cidadão (Expo)
 
-- Status: em desenvolvimento (tarefa 1 do plano concluída; as demais estão planejadas)
+- Status: em desenvolvimento (tarefas 1+2, 3 e 4+5 commitadas em `09380e5`, sem PR; tarefa 6 implementada no working tree, sem commit)
 - Responsável e colaboradores: Matheus (mobile e Cybersecurity); API P1; LLM P3
 - Itens do backlog / issue: D4, D5, D6, D7, D8 (apoio em D1–D3 para o contrato)
 - Componentes e disciplinas afetados: `apps/mobile`; Mobile Development & IoT (integração com a API de SOA e C#)
 - Última atualização: 07/11/2026
-- Observação: o backlog (`planejamento/04-backlog.md`) e `consulta-e-aplicativo.md` ainda atribuem o app a P1/P2. O responsável pelo mobile é Matheus. A atualização desses documentos será combinada com o grupo e não foi feita aqui.
+- Observação: o backlog (`planejamento/04-backlog.md`) e `consulta-e-aplicativo.md` atribuem o app a P1/P2. O responsável pelo mobile é Matheus. A atualização desses documentos será combinada com o grupo.
 
 ## Problema e objetivo
 
@@ -34,7 +34,7 @@ Fora do escopo (conforme a especificação do MVP):
 
 ## Estado atual do repositório
 
-`apps/mobile` existe desde 07/11/2026 (branch `feat/mobile-scaffold-theme`) com o esqueleto do projeto, `theme/`, `types/` e `config/`. Desde então entraram o componente `Icon`, a camada de API com dados mockados (`services/api/`), testes com Jest e a tarefa 4+5: componentes base, navegação por três abas com o Expo Router, contexto de município, hooks de carregamento e a tela de Início completa sobre o mock. Histórico, Preferências e Conversa existem só como telas provisórias. Ainda não há SQLite (o município escolhido não é salvo e volta ao primeiro da lista ao reiniciar), conversa funcional, histórico real nem preferências. A API não existe: nenhuma rota, esquema ou versão dela foi confirmada. Os tipos em `types/` seguem a proposta deste documento e continuam a acordar com P1.
+`apps/mobile` existe desde 07/11/2026 (branch `feat/mobile-scaffold-theme`) com o esqueleto do projeto, `theme/`, `types/` e `config/`, o componente `Icon`, a camada de API com dados mockados (`services/api/`), testes com Jest e a tarefa 4+5: componentes base, navegação por três abas com o Expo Router, contexto de município, hooks de carregamento e a tela de Início completa sobre o mock. Histórico, Preferências e Conversa existem só como telas provisórias. A tarefa 6 acrescentou o banco local SQLite (`services/banco/`), usado hoje só para guardar o município escolhido; os repositórios de conversas e do nível de texto existem e têm testes, mas nenhuma tela os usa ainda. Ainda não há conversa funcional, histórico real nem tela de preferências. A API não existe: nenhuma rota, esquema ou versão dela foi confirmada. Os tipos em `types/` seguem a proposta deste documento e continuam a acordar com P1.
 
 ### Versões fixadas (SDK 58)
 
@@ -44,6 +44,7 @@ Criado com `create-expo-app@5.0.0` (template padrão do SDK 58), Node v22.22.0 e
 |---|---|
 | `expo` | ~58.0.23 |
 | `expo-router` | ~58.0.30 |
+| `expo-sqlite` | ~58.0.15 |
 | `react` | 19.3.0 |
 | `react-native` | 0.88.1 |
 | `expo-constants`, `expo-linking`, `expo-splash-screen`, `expo-status-bar`, `expo-system-ui` | ~58.0.x (conforme `package.json`) |
@@ -57,12 +58,14 @@ Criado com `create-expo-app@5.0.0` (template padrão do SDK 58), Node v22.22.0 e
 
 Compatibilidade com o Expo Go: a API pública de versões da Expo (`api.expo.dev/v2/versions/latest`) lista o SDK 58 com Expo Go 58.0.7 (iOS) e 58.0.5 (Android). Essa consulta foi feita em 07/11/2026; a versão do Expo Go instalada no celular de teste ainda precisa ser conferida.
 
+Node.js: o `package.json` declara em `engines` `^22.13.0 || ^24.3.0 || ^26.0.0 || >=27.0.0`, que é a faixa exigida por `expo@58.0.23` (lida com `npm view expo@58.0.23 engines.node`); `react-native@0.88.1` exige `^22.13.0 || ^24.3.0 || >= 26.0.0`. O mínimo é 22.13.0. O `node:sqlite` usado nos testes também depende dessa versão sem flag. Somente a 22.22.0 foi executada.
+
 Adicionar bibliotecas sempre com `npx expo install <pacote>`, para resolver a versão compatível com o SDK.
 
 ### Ajustes feitos sobre o template
 
 - Estrutura reorganizada para a raiz de `apps/mobile` (sem `src/`), conforme a arquitetura abaixo. O alias `@/` aponta para a raiz.
-- Removidos itens que o template trazia e que o projeto não usa: `AGENTS.md` local (apontava para `src/app` e conflita com esta estrutura), `.claude/settings.json` (habilitava um plugin de terceiros), `.vscode/`, `LICENSE`, README genérico, script `reset-project` e as dependências `@expo/ui`, `expo-glass-effect`, `expo-symbols`, `expo-device`, `expo-image`, `expo-web-browser`, `react-native-gesture-handler`, `react-native-reanimated` e `react-native-worklets`. O suporte web foi removido e depois reativado a pedido (ver "Execução na web"). `expo-doctor` não apontou problema depois da remoção.
+- Removidos itens que o template trazia e que o projeto não usa: `AGENTS.md` local (apontava para `src/app` e conflita com esta estrutura), `.claude/settings.json` (habilitava um plugin de terceiros), `.vscode/`, `LICENSE`, README genérico, script `reset-project` e as dependências `@expo/ui`, `expo-glass-effect`, `expo-symbols`, `expo-device`, `expo-image`, `expo-web-browser`, `react-native-gesture-handler`, `react-native-reanimated` e `react-native-worklets`. `expo-doctor` não apontou problema depois da remoção.
 - `app.json`: nome "Fácil Município", slug `facil-municipio`, esquema `facilmunicipio`, `userInterfaceStyle` fixo em `light` (o mockup só tem tema claro e o contraste do escuro não foi verificado) e `reactCompiler` desativado, para reduzir o comportamento implícito.
 - Os ícones e a tela de abertura ainda são os do template. Falta definir os próprios.
 
@@ -79,13 +82,13 @@ O mockup está publicado como canvas de design em https://claude.ai/artifact/Ut2
 | `05 · Histórico@1x.png` | Histórico, com a faixa "Disponível sem internet" |
 | `06 · Preferências@1x.png` | Preferências |
 
-Tokens extraídos do mockup para `theme/`: fundo `#F7FBFA`, texto `#12201D`, texto secundário `#3D4F4A`, verde principal `#0B6B5E`, perigo `#B42318`, as superfícies e bordas em tons de verde claro, o aviso âmbar da informação insuficiente (fundo `#FFF4E0`, borda `#E3B866`, ícone `#6B4300`, título `#4A2E00`, texto `#3A2500`), o fundo escuro do painel de fontes (`rgba(18, 32, 29, 0.55)`) e a alça do painel (`#B7CCC6`). Contrastes do âmbar medidos: título 11,46:1, texto 13,34:1 e ícone 7,94:1 sobre `#FFF4E0`. As bordas do âmbar e a alça (1,7:1) são só decoração, e o aviso também tem ícone e título. O mockup usa a fonte Inter; o app usa a fonte do sistema, para não depender de pacote de fontes. Os ícones do mockup são traços SVG simples; a biblioteca de ícones do app ainda será escolhida (o `@expo/vector-icons` consta nos módulos empacotados do SDK 58, mas não está instalado).
+Tokens extraídos do mockup para `theme/`: fundo `#F7FBFA`, texto `#12201D`, texto secundário `#3D4F4A`, verde principal `#0B6B5E`, perigo `#B42318`, as superfícies e bordas em tons de verde claro, o aviso âmbar da informação insuficiente (fundo `#FFF4E0`, borda `#E3B866`, ícone `#6B4300`, título `#4A2E00`, texto `#3A2500`), o fundo escuro do painel de fontes (`rgba(18, 32, 29, 0.55)`) e a alça do painel (`#B7CCC6`). Contrastes do âmbar medidos: título 11,46:1, texto 13,34:1 e ícone 7,94:1 sobre `#FFF4E0`. As bordas do âmbar e a alça (1,7:1) são só decoração, e o aviso também tem ícone e título. O mockup usa a fonte Inter; o app usa a fonte do sistema, para não depender de pacote de fontes. Os ícones do app vêm do `@expo/vector-icons` (item 9 abaixo).
 
 Divergência registrada: a borda do campo de pergunta no mockup (`#8FB3AB`) tem contraste de 2,19:1 sobre o fundo, abaixo dos 3:1 que o WCAG 1.4.11 pede para componentes de interface. O token `borderStrong` usa `#5F8D82` (3,58:1 sobre o fundo, 3,74:1 sobre branco e 3,26:1 sobre `#E3F3EF`). O mesmo token vale para a borda do botão A− em Preferências. O texto das respostas no mockup é exemplo. Nenhum conteúdo dele deve ser tratado como informação real de Poá. O mockup mostra uma única troca por tela, mas a tela de conversa deve acomodar várias trocas em sequência.
 
 ### Divergências e lacunas do mockup
 
-Conferido em 07/11/2026 contra este documento e o contrato. Itens marcados "decidir" não têm resposta ainda e nada foi implementado a partir deles.
+Conferido em 07/11/2026 contra este documento e o contrato. Itens marcados "decidir" não têm resposta e não foram implementados. Os demais registram a decisão tomada.
 
 1. **Canal oficial sem origem no contrato (decidido para o mock, a acordar com P1).** O botão "Abrir canal oficial" da tela 04 precisa de uma URL, mas `RespostaConversa` não tinha campo para isso. `types/contrato.ts` ganhou o campo opcional `canalOficialUrl?: string`, que é compatível com o contrato original. O mock nunca o preenche (sem link): a interface deve tratar a ausência sem inventar URL e sem navegação. O nome e a existência do campo ainda dependem de P1.
 2. **Cartão "Fonte oficial" (decidir).** O mockup mostra "Consultar orientação ↗" além de "Ver fontes". Assume-se que o link abre `fontes[0]`, mas o mockup não diz. No mock, as fontes não têm URL, então o cartão não terá destino por enquanto.
@@ -207,7 +210,7 @@ Roteamento com Expo Router e organização por responsabilidade, seguindo a orde
 - `config/`: URL da API e flag de mock, lidas de variáveis de ambiente.
 - `utils/`: funções puras (formatação de data, corte de texto, montagem do `historico`).
 
-A pasta `navigation/` do repositório do professor não entra, porque o Expo Router assume a navegação. Se o professor esperar essa pasta, confirmar com ele antes. Só vi a listagem de pastas dos trabalhos anteriores, não o código nem o README.
+A pasta `navigation/` do repositório do professor não entra, porque o Expo Router assume a navegação. Se o professor esperar essa pasta, confirmar com ele antes. Foi consultada apenas a listagem de pastas dos trabalhos anteriores, não o código nem o README.
 
 ### Princípio de reutilização
 
@@ -240,18 +243,24 @@ Componentes previstos, a validar ao implementar:
 
 ### Banco local
 
-Três tabelas, a acordar na implementação:
+Esquema versão 1 (`PRAGMA user_version`), implementado em `services/banco/migracoes.ts`:
 
-- `conversas`: id, município, título, criado em, atualizado em.
-- `trocas`: id, conversa, ordem, pergunta, resposta, fontes serializadas, serviços relacionados, indicador de informação suficiente, criado em.
-- `preferencias`: chave e valor. Guarda o município escolhido e o nível de tamanho do texto. Decidido: não usar `AsyncStorage`, para não adicionar dependência.
+- `conversas`: `id` (PK), `municipio_id`, `titulo`, `criado_em`, `atualizado_em` (ISO 8601 UTC), com índice em (`municipio_id`, `atualizado_em` DESC). Sem chave estrangeira para município, porque os municípios vêm da API e não são guardados.
+- `trocas`: `id` (PK), `conversa_id` (FK para `conversas`, `ON DELETE CASCADE`), `ordem`, `pergunta`, `resposta`, `fontes_json`, `servicos_relacionados_json`, `informacao_suficiente` (0 ou 1, com `CHECK`), `canal_oficial_url` (nulo), `criado_em`, e `UNIQUE (conversa_id, ordem)`.
+- `preferencias`: `chave` (PK) e `valor`. Chaves usadas: `municipio_id` e `nivel_texto` (0 a 3). Decidido: não usar `AsyncStorage`, para não adicionar dependência.
 
-Deve existir a opção de apagar uma conversa (com suas trocas) e de apagar tudo.
+Apagar uma conversa remove as suas trocas; apagar tudo remove conversas e trocas e preserva as preferências.
 
-Regras definidas:
+Regras:
 
-- O SQLite abre com `PRAGMA foreign_keys = ON`, necessário para o `ON DELETE CASCADE` de `trocas` funcionar. Isso será coberto por um teste do caso "apagar conversa remove as trocas".
-- O id da conversa é gerado no app ao abrir uma conversa nova, mas a conversa só é gravada depois da primeira troca bem-sucedida. Assim o Histórico nunca mostra conversas vazias nem conversas cuja primeira pergunta falhou.
+- Os repositórios recebem `Pick<SQLiteDatabase, 'execAsync' | 'runAsync' | 'getAllAsync' | 'getFirstAsync' | 'withTransactionAsync'>` do próprio `expo-sqlite`. Não há interface própria nem adaptador de produção. Nos testes, um adaptador sobre `node:sqlite` implementa esses mesmos cinco métodos.
+- A abertura liga `PRAGMA foreign_keys = ON` e `PRAGMA secure_delete = ON` fora da transação de migração, e só depois migra. Se a migração falha, é desfeita por completo. Um banco de versão mais nova que a do app é recusado, sem alteração.
+- Todas as gravações passam por uma fila compartilhada pelos dois repositórios, que executa uma por vez. É necessária porque `withTransactionAsync` não é exclusivo: consultas disparadas em outro ponto na mesma conexão entram na transação. `withExclusiveTransactionAsync` não foi usado porque não existe na web e abre outra conexão, na qual o `PRAGMA foreign_keys` não valeria.
+- O id da conversa é gerado no app ao abrir uma conversa nova, mas a conversa só é gravada com a primeira troca bem-sucedida, na mesma transação da troca. Assim o Histórico nunca mostra conversas vazias nem conversas cuja primeira pergunta falhou. O município é fixo: gravar em uma conversa existente com outro município é erro.
+- `secure_delete` sobrescreve o conteúdo apagado no arquivo. O texto de privacidade não deve prometer que os dados apagados sejam irrecuperáveis.
+- Os dados ficam sem criptografia, protegidos apenas pelo isolamento do aplicativo pelo sistema operacional. SQLCipher exige build nativo próprio e não existe no Expo Go nem na web.
+- `android.allowBackup: false` em `app.json`. A propriedade existe no esquema instalado (`@expo/config-types`), que a descreve como o que impede o backup e a restauração automáticos. Vale só para Android: o backup do iOS não foi configurado. Não foi verificado em Android.
+- Falha ao abrir o banco bloqueia o app com "Não foi possível abrir seus dados" e "Tentar novamente".
 
 ### Decisões previstas
 
@@ -324,6 +333,27 @@ Enviar o link do repositório no Teams até 19/11, às 23h55, por um único inte
 
 ## Verificações e evidências
 
+### Resumo: verificado e não verificado (07/11/2026)
+
+**Verificado**, executado nesta máquina (Windows, Node 22.22.0, Chrome 156):
+
+- Jest: 11 suítes e 84 testes passando. Os testes de banco rodam SQLite real em memória (`node:sqlite`, SQLite 3.50.4), não o `expo-sqlite` nativo.
+- `npm run typecheck` e `npx expo lint` com código de saída 0; `npx expo-doctor` com 20/20.
+- `npx expo export` para Android, iOS e web, com código de saída 0. Isso confirma só que o bundle compila.
+- Chrome (web, `npm run web`, janela de 393 × 852, controlado pelo protocolo de depuração): telas de Início, seletor de município, lista de serviços, navegação pelas abas, estado de erro, papéis de acessibilidade e a persistência do banco local (abrir, reabrir o banco existente, recarregar a página, abrir uma aba nova).
+
+**Não verificado:**
+
+- **Android:** nenhuma execução (Expo Go, emulador ou aparelho). Também não foram verificados o efeito de `allowBackup: false`, o `package` do `app.json` e o passo a passo do README.
+- **iOS:** nenhuma execução. O backup do iOS não foi configurado.
+- **Expo Go**, em qualquer plataforma, inclusive a compatibilidade da versão instalada no celular com o SDK 58.
+- **`expo-sqlite` nativo** (Android e iOS): abertura, `PRAGMA`s, migração, `withTransactionAsync`, fila de gravações e persistência depois de reiniciar o app no aparelho. No Jest o motor é outro.
+- **Web:** `crossOriginIsolated` é falso (detalhes na seção do banco); Safari e Firefox; hospedagem de produção.
+- **Telas:** `Modal`, toque, teclado, áreas seguras, TalkBack e VoiceOver; a fonte do mockup (Inter) contra a do sistema; níveis de texto e escala de fonte do sistema; estado "carregando" e rolagem em telas pequenas; contraste final de `Notice` e botões.
+- **Conversas:** a gravação pela interface (a tela de Conversa ainda não existe). Os repositórios só foram exercitados pelo Jest.
+- **API:** cliente real contra um servidor (a API não existe); só com `fetch` simulado.
+- **Outros:** testes de renderização de componentes e hooks (não há `@testing-library/react-native`); as 5 vulnerabilidades moderadas que o `npm install` relata, não investigadas.
+
 ### Tarefa 1+2 — esqueleto, tema, tipos e configuração (07/11/2026)
 
 Executado em `apps/mobile`:
@@ -351,8 +381,8 @@ Código em `apps/mobile/services/api/`:
 
 Dados do mock (`mock/dados.ts`), todos de exemplo e sem valor factual:
 
-- Municípios `poa` (Poá · SP) e `exemplo` (Município Exemplo, UF `XX`, fictício). Os ids são do mock, não do contrato.
-- Serviços: Poá oferece Coleta de lixo, Iluminação pública e Cata Treco; o município de exemplo oferece só os dois primeiros, o que permite testar o isolamento entre municípios (a mesma pergunta sobre sofá responde em Poá e informa insuficiência no município de exemplo).
+- Municípios `sao-paulo` (São Paulo · SP) e `exemplo` (Município Exemplo, UF `XX`, fictício). Os ids são do mock, não do contrato. Poá continua sendo a referência do piloto no restante do projeto; o mock usa São Paulo como município de exemplo por decisão do responsável pelo mobile, e o texto do mock não tem valor factual sobre nenhum município.
+- Serviços: São Paulo oferece Coleta de lixo, Iluminação pública e Cata Treco; o município de exemplo oferece só os dois primeiros, o que permite testar o isolamento entre municípios (a mesma pergunta sobre sofá responde em São Paulo e informa insuficiência no município de exemplo).
 - A resposta é escolhida por palavras-chave da pergunta, sem acento e sem diferença de maiúsculas. Todo texto começa com `(Exemplo)` e traz passos genéricos, sem horários, endereços ou prazos.
 - Temas fora da cobertura (por exemplo "lixo eletrônico") e perguntas sem serviço reconhecido devolvem `informacaoSuficiente: false`, sem fontes nem serviços.
 - Quando `historico` vem preenchido, a resposta muda: cita a quantidade de trocas de contexto e, numa pergunta de seguimento sem palavra-chave própria ("e se for domingo?"), usa o serviço da conversa. Sem histórico, a mesma pergunta informa insuficiência. O contexto não atravessa municípios.
@@ -373,7 +403,7 @@ Implementado em `apps/mobile`:
 Provisório nesta etapa, a substituir nas tarefas seguintes:
 
 - Histórico e Preferências mostram só o título e um aviso. A Conversa mostra o cabeçalho (voltar, município, selo "Demonstração") e a pergunta sugerida recebida, sem enviar nada.
-- O município escolhido fica em memória. A persistência na tabela `preferencias` do SQLite entra na tarefa 6.
+- O município escolhido é salvo na tabela `preferencias` (tarefa 6). Se a gravação da preferência falhar, o erro é ignorado sem aviso e a escolha vale só até o app fechar.
 - `iconeDoServico` mapeia os três ids do mock; qualquer outro id usa o ícone de conversa. Quando a API real definir os ids, o mapa precisa ser revisto.
 - `perguntaSugerida` monta "Quero saber sobre <serviço em minúsculas>." O texto exato não está no mockup nem no contrato.
 
@@ -387,13 +417,13 @@ Provisório nesta etapa, a substituir nas tarefas seguintes:
 | `npx expo-doctor` | 20/20 verificações sem problemas |
 | `npx expo export` para `android` e `web` | Código de saída 0 nos dois |
 | Tela de Início no Chrome, com a janela emulada em 393 × 852 e o servidor `expo start --web` | Conferida por captura de tela contra `01 · Início@1x.png`: cabeçalho, título, seletor, botão, três serviços, aviso e barra de abas com o item ativo destacado |
-| Fluxo no navegador (cliques reais) | Abrir o seletor mostra Poá marcado; escolher "Município Exemplo" troca a lista para dois serviços (sem Cata Treco); tocar em "Coleta de lixo" abre `/conversa/<id>?municipioId=exemplo&perguntaSugerida=...` com o município e a pergunta; "Voltar" retorna a `/`; as abas Histórico e Preferências abrem |
+| Fluxo no navegador (cliques reais) | Abrir o seletor mostra o município de exemplo da época (Poá, hoje São Paulo) marcado; escolher "Município Exemplo" troca a lista para dois serviços (sem Cata Treco); tocar em "Coleta de lixo" abre `/conversa/<id>?municipioId=exemplo&perguntaSugerida=...` com o município e a pergunta; "Voltar" retorna a `/`; as abas Histórico e Preferências abrem |
 | Estado de erro, servidor com `EXPO_PUBLIC_USAR_MOCK=false` e sem URL | Aviso âmbar "Não foi possível carregar os municípios", mensagem de configuração e botão "Tentar novamente" |
 | Papéis de acessibilidade na web | Botões e abas com rótulo; `tablist` presente; dois títulos (`heading`) na tela de Início |
 
-Problema encontrado e corrigido: na web os ícones apareciam para leitores de tela como caracteres soltos, porque `accessibilityElementsHidden` e `importantForAccessibility` não viram atributos no navegador. O `Icon` agora usa `aria-hidden`, e a conferência no DOM mostrou 14 ícones, 0 expostos. Outro ajuste: `StyleSheet.absoluteFillObject` não existe no React Native 0.88 (usado posicionamento explícito).
+Correções feitas durante a verificação: na web os ícones apareciam para leitores de tela como caracteres soltos, porque `accessibilityElementsHidden` e `importantForAccessibility` não viram atributos no navegador. O `Icon` agora usa `aria-hidden`, e a conferência no DOM mostrou 14 ícones, 0 expostos. Outro ajuste: `StyleSheet.absoluteFillObject` não existe no React Native 0.88 (usado posicionamento explícito).
 
-Observação sobre uma captura de tela enviada no desenvolvimento: ela mostrava o texto de apoio cortado na borda direita. Medido com a janela emulada em exatos 393 px, todos os contêineres têm 393 px e o texto quebra corretamente ("…da sua / cidade."). Não consegui reproduzir o corte. A captura enviada estava ampliada em cerca de 20% em relação à medida, o que sugere zoom da página no navegador. Se persistir após recarga forçada, reportar com nova captura.
+Medição de layout: com a janela emulada em 393 px, todos os contêineres do texto de apoio medem 393 px e o texto quebra em "…da sua / cidade.".
 
 Não verificado nesta etapa:
 
@@ -404,9 +434,32 @@ Não verificado nesta etapa:
 - Os hooks e os componentes não têm testes de renderização (não há `@testing-library/react-native`). Cobertos por teste só as funções puras de `utils/` e a camada de API.
 - Contraste de `Notice` e dos botões foi derivado dos tokens já medidos, mas a combinação final na tela não foi medida com ferramenta.
 
+### Banco local e persistência (tarefa 6, 07/11/2026)
+
+Código em `apps/mobile/services/banco/` (`tipos`, `erros`, `fila`, `migracoes`, `abrirBanco`, `repositorioConversas`, `repositorioPreferencias`, `index`) e `contexts/BancoContext.tsx`. O `MunicipioContext` lê e grava o município escolhido. Também foram feitos: `types/guardas.ts` (validadores de formato, antes dentro de `apiReal.ts`), `utils/titulo.ts`, `metro.config.js`, `engines` no `package.json`, `android.allowBackup: false` no `app.json` e a troca do município de exemplo do mock.
+
+| Comando ou cenário | Resultado |
+|---|---|
+| `npx expo install expo-sqlite` | `expo-sqlite ~58.0.15` em `dependencies`; o plugin `expo-sqlite` foi adicionado ao `app.json` |
+| `npx jest` | 11 suítes, 84 testes passando. Cobrem: migração (banco novo, idempotência, versão futura recusada sem alterar nada, migração que falha desfeita por completo), chaves estrangeiras (com controle: sem o `PRAGMA` a restrição não é aplicada), conversa criada só com a primeira troca, ordem das trocas, rollback quando a troca falha, município fixo, gravações simultâneas com a fila (e controle: sem a fila colidem), leitura completa com fontes com e sem data e com e sem `canalOficialUrl`, filtro e ordenação, JSON corrompido, apagar uma conversa e apagar tudo (preservando preferências), mensagens de erro sem texto da pergunta, preferências (padrões, sobrescrita, valor inválido), ordem de abertura (PRAGMAs antes da migração), fechamento do banco em falha e abertura memorizada |
+| `npm run typecheck` | Código de saída 0 (o adaptador de teste é aceito como `Pick<SQLiteDatabase, ...>` sem conversão de tipo) |
+| `npx expo lint` | Código de saída 0 |
+| `npx expo-doctor` | 20/20 verificações sem problemas |
+| `npx expo export` para `android`, `ios` e `web` | Código de saída 0 nos três; a web inclui `wa-sqlite.wasm` (641 KB) |
+| Chrome, `expo start --web` em porta própria (8083) com `--clear` | O app abre e a pasta `expo-sqlite` aparece no OPFS do navegador |
+| Chrome: escolher "Município Exemplo", recarregar a página | Depois do reload o seletor continua em "Município Exemplo · XX" e a lista mostra os 2 serviços desse município |
+| Chrome: aba nova, aberta depois de fechar a anterior | O seletor abre em "Município Exemplo · XX", lido do banco |
+
+Achados registrados:
+
+- O `node:sqlite` liga as chaves estrangeiras por padrão, e a documentação do `expo-sqlite` manda ligá-las a cada conexão. O adaptador de teste abre o banco com `enableForeignKeyConstraints: false`; sem isso, os testes de chave estrangeira passariam mesmo sem o `PRAGMA`.
+- Na web, `crossOriginIsolated` é falso e `SharedArrayBuffer` não existe. O `metro.config.js` segue o guia do pacote (`.wasm` em `assetExts` e os cabeçalhos `Cross-Origin-Embedder-Policy: credentialless` e `Cross-Origin-Opener-Policy: same-origin`), e `curl` mostrou os cabeçalhos na resposta do bundle, mas não na do documento HTML `/`, que o servidor da Expo entrega por outro caminho. O app só usa a API assíncrona do `expo-sqlite`, e ela funcionou assim. As APIs síncronas, que o guia diz exigirem `SharedArrayBuffer`, não devem ser usadas na web sem resolver o cabeçalho do documento. Não resolvido.
+- Na web, duas abas abertas ao mesmo tempo: a segunda mostrou "Não foi possível abrir seus dados" com "Tentar novamente". Foi observado por acidente durante a verificação (abas do próprio teste ficaram abertas) e some quando a primeira é fechada. A causa foi inferida; não foi investigada a fundo.
+- Os cabeçalhos do Metro valem só para o servidor de desenvolvimento. Para hospedar a web em produção seria preciso enviá-los pelo servidor, o que não foi feito nem é entregável do projeto.
+
 ### Execução na web (07/11/2026)
 
-A web é um alvo de desenvolvimento e de demonstração, não de entrega: o produto é um app mobile. Foram reinstalados `react-dom` 19.3.0 e `react-native-web` ^0.21.4 com `npx expo install`, adicionado o script `npm run web` (`expo start --web`) e o bloco `web` em `app.json` (Metro, saída `single`). `npx expo run` não serve para a web; `expo run:android` e `expo run:ios` geram o app nativo.
+A web é um alvo de desenvolvimento e de demonstração, não de entrega: o produto é um app mobile. Configuração: `react-dom` 19.3.0 e `react-native-web` ^0.21.4 (instalados com `npx expo install`), script `npm run web` (`expo start --web`) e bloco `web` em `app.json` (Metro, saída `single`). `expo run:android` e `expo run:ios` geram o app nativo e não se aplicam à web.
 
 | Comando | Resultado |
 |---|---|
@@ -414,7 +467,7 @@ A web é um alvo de desenvolvimento e de demonstração, não de entrega: o prod
 | `npx expo-doctor` | 20/20 verificações sem problemas |
 | `npx expo export --platform web` | Código de saída 0; bundle de 1,1 MB com o texto da tela de Início |
 
-Depois do `npm install` refeito, o servidor `expo start --web` foi iniciado na porta 8081: a página respondeu 200 e o bundle de desenvolvimento (4 MB) foi gerado com o texto da tela de Início; o servidor foi encerrado em seguida.
+`expo start --web` na porta 8081: `GET /` respondeu 200 e o bundle de desenvolvimento (4 MB) foi gerado com o texto da tela de Início.
 
 ### Verificações da camada de API, ícones e testes (07/11/2026)
 
@@ -428,17 +481,9 @@ Depois do `npm install` refeito, o servidor `expo start --web` foi iniciado na p
 
 Limitações: os testes cobrem a lógica, não a renderização (não há `@testing-library/react-native`). O `Icon` só foi verificado por tipos e por bundle, não visto na tela. O cliente real só foi testado com `fetch` simulado.
 
-Ressalvas da web: o servidor de desenvolvimento (`npm run web`) não foi aberto em navegador nesta verificação. O `expo-sqlite` na web é experimental e exige configuração própria. Ao chegar na tarefa 6, o histórico local deve ser testado no celular ou no Expo Go, e a web só será tratada se o `expo-sqlite` funcionar nela.
+O comportamento do `expo-sqlite` na web foi verificado na seção "Banco local e persistência". Os itens não verificados estão no "Resumo: verificado e não verificado".
 
-Não verificado:
-
-- A execução no Expo Go e em emulador. Este ambiente não abriu o app em dispositivo; a tela de Início provisória só foi compilada e empacotada, não vista renderizada.
-- O bundle iOS (só Android foi exportado).
-- Compatibilidade da versão do Expo Go instalada no celular de teste.
-- Testes de interface: o Jest foi adicionado depois (ver "Verificações da camada de API"), mas só cobre lógica; nada de renderização.
-- `npm install` relata 5 vulnerabilidades moderadas em dependências transitivas do template. Não foram investigadas.
-
-Guardar aqui, nas próximas tarefas, os comandos e resultados, os prints das telas e o vídeo de até 3 minutos.
+Registrar aqui, nas próximas tarefas, os comandos e resultados reais, os prints das telas e o vídeo de até 3 minutos.
 
 ## Riscos, pendências e próximos passos
 
@@ -455,13 +500,14 @@ Uma branch curta por tarefa, com PR pequeno revisado por outro integrante. Acess
 
 | # | Branch | Entrega | Backlog | Estado |
 |---|---|---|---|---|
-| 1+2 | `feat/mobile-scaffold-theme` | `apps/mobile` com Expo, TypeScript e Expo Router; versões fixadas; `theme/`, `types/`, `config/` | D4 | Concluída, sem PR aberto |
-| 3 | `feat/mobile-api-mock` | Interface do cliente da API, mock com os três serviços do piloto que aceita e varia com `historico`, marcado como exemplo | D4, D5 | Implementada no working tree, junto com a tarefa 1+2 (mesma branch), sem commit nem PR |
-| 4+5 | `feat/mobile-componentes-abas-inicio` | Componentes base, abas e Início com seletor de município, serviços e estados | D4 | Implementada no working tree, na mesma branch das tarefas anteriores (`feat/mobile-scaffold-theme`), sem commit nem PR |
-| 6 | `feat/mobile-banco-local` | SQLite com `PRAGMA foreign_keys = ON`, migração, repositório de conversas e tabela `preferencias` | D6 | Planejada |
+| 1+2 | `feat/mobile-scaffold-theme` | `apps/mobile` com Expo, TypeScript e Expo Router; versões fixadas; `theme/`, `types/`, `config/` | D4 | Implementada, commit `09380e5`, sem PR |
+| 3 | `feat/mobile-scaffold-theme` | Interface do cliente da API, mock com os três serviços do piloto que aceita e varia com `historico`, marcado como exemplo | D4, D5 | Implementada, commit `09380e5`, sem PR |
+| 4+5 | `feat/mobile-scaffold-theme` | Componentes base, abas e Início com seletor de município, serviços e estados | D4 | Implementada, commit `09380e5`, sem PR. Histórico, Preferências e Conversa são telas provisórias |
+| 6 | `feat/mobile-scaffold-theme` | SQLite com `PRAGMA foreign_keys = ON`, migração, repositório de conversas e tabela `preferencias` | D6 | Implementada no working tree, sem commit nem PR. Falta ligar os repositórios às telas (Conversa na tarefa 7, Histórico e Preferências na 8+9) |
 | 7 | `feat/mobile-conversa` | Conversa com várias trocas, `historico`, painel de fontes em `Modal`, informação insuficiente | D4, D5 | Planejada |
 | 8+9 | `feat/mobile-historico-preferencias` | Histórico (listar, filtrar, reabrir, apagar) e Preferências | D6, D7 | Planejada |
 | 10 | `feat/mobile-acessibilidade` | Revisão final de acessibilidade | D7 | Planejada |
 | 11 | `feat/mobile-docs-entrega` | README com a Ficha da CitizenTech, prints, vídeo | D8 | Planejada |
 
-- Próximo passo: abrir o PR da tarefa 1+2 para revisão e seguir para a tarefa 3.
+- As tarefas 1+2, 3 e 4+5 estão no commit `09380e5` (`feat: implement mobile structure`), na branch `feat/mobile-scaffold-theme`. Nenhum PR foi aberto.
+- Próximo passo: tarefa 7 (conversa), que usa `salvarTroca` e o contexto de `historico`.
