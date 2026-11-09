@@ -29,7 +29,11 @@ builder.Services.AddSingleton<IDriver>(_ => GraphDatabase.Driver(builder.Configu
     AuthTokens.Basic(builder.Configuration["Neo4j:User"] ?? "neo4j", builder.Configuration["Neo4j:Password"] ?? ""),
     c => c.WithConnectionTimeout(TimeSpan.FromSeconds(3)).WithMaxTransactionRetryTime(TimeSpan.FromSeconds(1))));
 builder.Services.AddSingleton<IKnowledgeGraph, Neo4jKnowledgeGraph>();
-builder.Services.AddScoped<ILlmWiki, LlmUnavailable>();
+// The demonstration mode only repeats published and reviewed text; it is NOT an LLM.
+if (string.Equals(builder.Configuration["Llm:Mode"], "demo", StringComparison.OrdinalIgnoreCase))
+    builder.Services.AddScoped<ILlmWiki, DemoGroundedWiki>();
+else
+    builder.Services.AddScoped<ILlmWiki, LlmUnavailable>();
 builder.Services.AddScoped<ConversationService>();
 builder.Services.AddScoped<PublicationService>();
 builder.Services.AddHttpContextAccessor();
