@@ -1,26 +1,29 @@
-# Feature — Grafo e publicação
+# Grafo e publicação
 
-- Status: **API implementada na branch, testes de integração com PostgreSQL/Neo4j passaram em CI em 09/11/2026**
-- Backlog: C1–C4, H3
+**Status:** implementado e testado na API.
 
-## Escopo
+**Backlog:** C1–C4 e H3.
 
-`Neo4jKnowledgeGraph` utiliza chaves de serviço combinando município + versão + serviço; a consulta recebe explicitamente município/versão e recupera apenas nós publicados dessa versão. As etapas, requisitos, órgão e canal são vinculados à fonte revisada. A API grava primeiro no grafo, depois atualiza `versaoAtivaId` no PostgreSQL. `PublicationService` usa transação, bloqueio advisory por município e a revisão como identificador idempotente.
+## Implementação
 
-## Cenários de aceite
+Os dados administrativos ficam no PostgreSQL. Quando um rascunho é aprovado, `PublicationService` monta a nova versão do serviço e grava o conteúdo no Neo4j com município, versão e fonte.
 
-- Rascunho não aprovado não publica
-- Repetição da mesma publicação não duplica nem reativa versão antiga
-- Falha ao gravar no Neo4j não ativa uma versão quebrada
-- A versão anterior segue visível até o commit
-- Outro município não lê serviço de Poá
+A API só ativa a nova versão no PostgreSQL depois de conseguir gravar o grafo. Dessa forma, se a gravação falhar, a versão anterior continua disponível ao cidadão. O mesmo rascunho aprovado também pode ser publicado novamente sem gerar uma segunda versão.
 
-Os cenários são cobertos em `tests/Api.Tests/IntegrationTests.cs` e dependem da passagem efetiva do workflow para serem considerados verificados.
+No Neo4j, as consultas usam o município e a versão ativa. Isso evita que um cidadão receba serviços de outra cidade ou conteúdo ainda em revisão.
 
-## Limitações
+## Testes realizados
 
-Não existe transação distribuída entre os bancos: tentativa falha pode deixar versão órfã no grafo, sem visibilidade pública. Monitoramento e limpeza futura de órfãos são evolução.
+Os testes cobrem:
 
-## Validação adicional do fluxo do backend (09/11/2026)
+- bloqueio de rascunho não aprovado;
+- repetição de publicação;
+- manutenção da versão anterior após falha simulada no grafo;
+- isolamento entre municípios;
+- leitura do serviço e de sua fonte após publicação.
 
-O script `scripts/demo_fluxo_http.py` executa cadastro da fonte municipal, revisão humana por API, publicação no Neo4j, consulta e pergunta com referência. O cenário com bancos reais no GitHub Actions foi aprovado ([execução de CI](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42717752982)), incluindo repetição segura e isolamento de município. Este teste não representa publicação originada por LLM real nem integração visual com Expo.
+Esses testes passaram no [GitHub Actions](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42718137116), com PostgreSQL e Neo4j. O cenário HTTP de Cata Treco também confirmou publicação e consulta.
+
+## Limitação conhecida
+
+Não há transação distribuída entre os bancos. Uma falha pode deixar uma versão órfã no Neo4j, mas ela não fica ativa nem aparece nas consultas públicas. Limpeza automática dessas versões fica para uma melhoria posterior.
