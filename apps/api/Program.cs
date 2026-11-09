@@ -61,7 +61,7 @@ app.Use(async (context, next) =>
     {
         var status = e switch
         {
-            ApiException a => a.Status,
+            ApiException apiError => apiError.Status,
             DbUpdateConcurrencyException => 409,
             DbUpdateException => 409,
             LlmUnavailableException or OperationCanceledException or Neo4jException or Npgsql.NpgsqlException => 503,
@@ -71,7 +71,7 @@ app.Use(async (context, next) =>
         app.Logger.LogWarning("Requisição falhou. Status={Status} Tipo={Tipo}", status, e.GetType().Name);
         context.Response.StatusCode = status;
         await context.Response.WriteAsJsonAsync(new ProblemDetails { Status = status,
-            Title = e is ApiException a ? a.Message : status == 503 ? "Serviço temporariamente indisponível." : "Não foi possível concluir a operação." });
+            Title = e is ApiException apiErrorDetail ? apiErrorDetail.Message : status == 503 ? "Serviço temporariamente indisponível." : "Não foi possível concluir a operação." });
     }
 });
 app.UseCors(); app.UseRateLimiter(); app.UseAuthentication(); app.UseAuthorization();
