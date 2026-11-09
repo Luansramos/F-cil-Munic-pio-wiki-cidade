@@ -20,3 +20,7 @@ Os cenários são cobertos em `tests/Api.Tests/IntegrationTests.cs` e dependem d
 ## Limitações
 
 Não existe transação distribuída entre os bancos: tentativa falha pode deixar versão órfã no grafo, sem visibilidade pública. Monitoramento e limpeza futura de órfãos são evolução.
+
+## Validação adicional do fluxo do backend (09/11/2026)
+
+O script `scripts/demo_fluxo_http.py` executa cadastro da fonte municipal, revisão humana por API, publicação no Neo4j, consulta e pergunta com referência. O cenário com bancos reais no GitHub Actions foi aprovado ([execução de CI](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42717752982)), incluindo repetição segura e isolamento de município. Este teste não representa publicação originada por LLM real nem integração visual com Expo.
