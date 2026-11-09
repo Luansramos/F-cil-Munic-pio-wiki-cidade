@@ -49,6 +49,20 @@ jobs:
           exit 1
       - name: Unit and integration tests (real PostgreSQL and Neo4j)
         run: dotnet test tests/Api.Tests/Api.Tests.csproj -c Release --logger 'trx;LogFileName=api.trx' --results-directory test-results
+      - name: Collect runnable API evidence
+        run: |
+          mkdir -p test-results
+          dotnet run --project apps/api -c Release --no-build -- --urls http://127.0.0.1:5055 >/tmp/facil-api-smoke.log 2>&1 &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:5055/health -o test-results/health.json; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/facil-api-smoke.log; exit 1; fi
+          curl -fsS http://127.0.0.1:5055/api/v1/municipios -o test-results/municipios.json
+          curl -fsS http://127.0.0.1:5055/swagger/v1/swagger.json -o test-results/openapi.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

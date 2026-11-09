@@ -15,4 +15,4 @@
 
 ## Verificação e pendências
 
-Testes unitários do respondedor e teste HTTP/Neo4j no CI; integração visual com Expo, fontes reais do piloto, LLM real e histórico SQLite permanecem com as respectivas features.
+Testes unitários do respondedor e teste HTTP/Neo4j: 14 testes automatizados passaram no CI de 09/11/2026; integração visual com Expo, fontes reais do piloto, LLM real e histórico SQLite permanecem com as respectivas features.

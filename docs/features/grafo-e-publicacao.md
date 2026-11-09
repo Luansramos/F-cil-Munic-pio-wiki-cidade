@@ -1,6 +1,6 @@
 # Feature — Grafo e publicação
 
-- Status: **API implementada na branch, execução integrada em verificação**
+- Status: **API implementada na branch, testes de integração com PostgreSQL/Neo4j passaram em CI em 09/11/2026**
 - Backlog: C1–C4, H3
 
 ## Escopo
