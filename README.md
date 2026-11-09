@@ -49,7 +49,7 @@ Ela já permite cadastrar fontes, criar e revisar rascunhos manualmente, publica
 
 Para a demonstração, usamos `Llm__Mode=demo`. Nesse modo a API organiza a resposta a partir do serviço revisado, sem chamar uma LLM. A extração por LLM real, o painel e a integração da conversa no Expo continuam com as frentes responsáveis. Portanto, o fluxo está validado **no backend**, mas ainda não no aplicativo completo.
 
-As instruções para executar a API, os endpoints e os testes estão em [apps/api/README.md](apps/api/README.md). Os registros de execução ficam em [docs/evidencias-soa-csharp.md](docs/evidencias-soa-csharp.md).
+As instruções para executar a API estão em [apps/api/README.md](apps/api/README.md). O [relatório de SOA e C#](docs/entrega-soa-csharp.md) relaciona cada critério do professor ao código. As capturas e os testes estão em [docs/evidencias-soa-csharp.md](docs/evidencias-soa-csharp.md).
 
 ## Estrutura do repositório
 
