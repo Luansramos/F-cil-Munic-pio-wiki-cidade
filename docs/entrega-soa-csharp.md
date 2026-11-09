@@ -75,7 +75,7 @@ Como PostgreSQL e Neo4j não compartilham uma transação distribuída, uma falh
 
 ## 5. APIs REST
 
-As rotas são documentadas pelo Swagger e seguem o prefixo `/api/v1`. A API retorna JSON em camelCase.
+As rotas são documentadas pelo Swagger e seguem o prefixo `/api/v1`. A API retorna JSON em camelCase. O OpenAPI contém o esquema **Bearer JWT** apenas nas operações administrativas; o teste HTTP confere que a listagem de municípios e o login permanecem públicos. No Swagger, o token obtido no login pode ser informado pelo botão **Authorize**.
 
 | Método | Endpoint | Acesso |
 |---|---|---|
