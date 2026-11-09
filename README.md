@@ -1,110 +1,83 @@
 # Fácil Município — Wiki Cidade
 
-Plataforma configurável para prefeituras organizarem informações oficiais de serviços públicos e oferecerem orientação conversacional aos cidadãos. Projeto acadêmico da Global Solution FIAP. O backend das disciplinas **SOA e C#** está implementado na branch de desenvolvimento; os demais componentes seguem em trabalhos separados.
+O Fácil Município é um projeto da Global Solution 2026 da FIAP. A ideia é facilitar a busca por informações de serviços municipais: o morador faz uma pergunta e recebe uma orientação com o link da fonte consultada.
 
-O nome usado anteriormente nos documentos é **Nexo Cidadão**. A equipe pode padronizar o nome de produto posteriormente.
+O projeto começou com o nome Nexo Cidadão, que ainda aparece em alguns documentos de planejamento.
 
-## Ficha da CitizenTech — apresentação comum
+## Ficha do projeto
 
-| Campo | Informação |
+| Item | Descrição |
 |---|---|
-| Nome da solução | Fácil Município — Wiki Cidade |
-| Cidade piloto | Poá, São Paulo; referências a serviços urbanos, sem parceria declarada com a prefeitura |
-| Cidadãos beneficiados | Moradores que precisam encontrar orientações e canais de serviços urbanos |
-| Problema | Informações públicas estão distribuídas e pode ser difícil localizar o serviço e o contato correto |
-| Funcionamento | Administrador cadastra a fonte, revisa um serviço, publica no grafo e o cidadão consulta uma resposta com fonte |
-| Componentes | API C#/.NET + PostgreSQL para revisão + Neo4j para conhecimento publicado; Expo e React previstos para as interfaces; LLM real pendente |
-| Indicadores de impacto propostos | Proporção de respostas com fonte verificável e acerto das orientações em perguntas de avaliação |
-| ODS 11 | Facilitar o acesso a serviços urbanos e a informação sobre a cidade |
-| ODS 16 | Contribuir para transparência, acesso à informação pública e orientação cidadã |
-| Equipe | **Integrantes ainda não confirmados neste repositório. Preencher nomes verdadeiros antes do envio.** |
+| Cidade do piloto | Poá (SP) |
+| Público | Moradores que precisam encontrar informações sobre serviços urbanos |
+| Problema | É difícil saber qual serviço procurar e onde encontrar orientações confiáveis |
+| Solução | Organizar fontes municipais em uma base revisada e permitir consultas em linguagem simples |
+| Serviços escolhidos | Cata Treco, coleta de lixo e iluminação pública |
+| Indicadores previstos | Respostas acompanhadas de fonte e acerto das orientações nos testes do grupo |
+| ODS 11 | Facilitar o acesso a informações sobre serviços urbanos |
+| ODS 16 | Incentivar o acesso à informação pública e a transparência |
+| Integrantes | A equipe precisa confirmar os nomes para o README final |
 
-Os indicadores são **propostos** e ainda não representam impacto medido. O cenário automatizado do backend não comprova a integração com a interface Expo ou com uma LLM real.
+A Prefeitura de Poá é uma referência para o piloto, não uma parceira do projeto. Os indicadores são propostas para avaliar o protótipo; ainda não são resultados de impacto.
 
-## Problema e proposta
+## Como a solução funciona
 
-O cidadão pode ter dificuldade para descobrir o serviço certo, compreender requisitos e encontrar o canal adequado. O produto ajuda a prefeitura a manter uma wiki de serviços e o cidadão a consultar seu conteúdo em linguagem natural.
+O administrador cadastra uma fonte com título, endereço, texto e data da consulta. Depois, revisa as informações do serviço e publica uma versão aprovada. No aplicativo, o cidadão escolhe o município, faz a pergunta e recebe uma resposta associada à fonte.
 
-O administrador cadastra uma fonte oficial com seu texto e URL. A LLM sugere entidades e relações; uma pessoa revisa e publica. O cidadão escolhe o município, pergunta e recebe uma orientação fundamentada com as fontes. Se a base não tiver informações suficientes, o sistema informa essa limitação.
-
-Poá é a referência inicial para coleta de lixo, iluminação pública e Cata Treco. Usaremos fontes públicas; **não há parceria declarada com a prefeitura**. Um segundo município fictício demonstrará configuração e isolamento.
-
-## Estado atual
-
-O repositório contém planejamento, infraestrutura Linux e uma API ASP.NET Core desenvolvida em branch de feature. O backend implementa cadastros, autenticação, revisão, publicação versionada no Neo4j e contratos públicos; a integração com uma LLM real e o aplicativo completo são trabalhos separados. Confira sempre a branch e os testes antes de afirmar que houve integração ponta a ponta.
-
-O primeiro marco é uma fatia completa: fonte → proposta → revisão → publicação no grafo → pergunta no aplicativo → resposta com fonte. O backend já tem uma demonstração automatizada com fonte oficial, **rascunho manual**, revisão, grafo e resposta REST com fonte; o aplicativo e a LLM real ainda dependem dos responsáveis pelas respectivas frentes.
-
-## Arquitetura planejada
+A arquitetura foi dividida assim:
 
 ```text
-Administrador ── Painel React ──┐
+Painel administrativo (React) ──┐
                                 ├── API ASP.NET Core ── PostgreSQL
-Cidadão ──────── App Expo ──────┘         ├──────────── Neo4j
-                                          └──────────── Provedor de LLM
+Aplicativo do cidadão (Expo) ───┘          ├────── Neo4j
+                                           └────── LLM (integração pendente)
 ```
 
-- **PostgreSQL + EF Core:** municípios, usuários, fontes, rascunhos e versões administrativas.
-- **Neo4j:** conhecimento publicado, suas relações, município e versão.
-- **API:** autorização, regras, publicação, consulta e integração com a LLM.
-- **Painel React:** cadastro, revisão e publicação da wiki.
-- **App Expo:** seleção de município, conversa, fontes e histórico local com SQLite.
-- **LLM:** sugere estrutura e formula respostas com o contexto recuperado; não publica sem revisão humana nem executa consultas livres no grafo.
+- **PostgreSQL e EF Core:** municípios, usuários, fontes, rascunhos e versões.
+- **Neo4j:** serviços publicados, vínculos entre as informações e suas fontes.
+- **API C#:** cadastro, autorização, revisão, publicação e consulta.
+- **Painel React:** interface prevista para cadastro e revisão.
+- **Expo:** interface prevista para perguntas, fontes e histórico salvo no celular.
 
-A API é um monólito modular. A publicação entre bancos deve ter versão ativa, preservação da versão anterior em caso de falha e repetição segura. Consulte [arquitetura](planejamento/03-arquitetura-e-tecnologias.md) e [contratos](docs/contratos-de-integracao.md).
+O piloto começa com Poá. Um segundo município fictício é usado nos testes para verificar se os dados não se misturam.
 
-## Monorepo
+## O que já foi desenvolvido
 
-```text
-.
-├── AGENTS.md                   # Guia canônico para agentes
-├── CLAUDE.md                   # Entrada para Claude
-├── .github/                    # Instruções Copilot e modelo de PR
-├── planejamento/               # Visão, spec, arquitetura, backlog e disciplinas
-├── docs/                       # Contratos, features e decisões
-├── apps/                       # Planejado: api/, admin/, mobile/
-├── ml/                         # Planejado: notebook e documentação de dados
-├── infra/                      # Planejado: ambiente e scripts Linux
-├── iot/                        # Planejado: circuito e evidências Wokwi
-└── prompts.md                  # Registro de usos relevantes de IA
-```
+A API de SOA e C# está na branch `feat/soa-csharp-api`, no [PR #2](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/pull/2), ainda sem merge na `main`.
 
-Os diretórios de implementação serão criados pelas respectivas features. A existência de várias pastas não implica microsserviços. Cada área terá suas dependências, mas compartilhará contratos e documentação na raiz.
+Ela já permite cadastrar fontes, criar e revisar rascunhos manualmente, publicar serviços no Neo4j e consultá-los pelas rotas públicas. Há testes automatizados com PostgreSQL e Neo4j. Também foi executado um roteiro HTTP que faz o caminho de uma fonte municipal até uma resposta com o link correspondente.
 
-## Documentos
+Para a demonstração, usamos `Llm__Mode=demo`. Nesse modo a API organiza a resposta a partir do serviço revisado, sem chamar uma LLM. A extração por LLM real, o painel e a integração da conversa no Expo continuam com as frentes responsáveis. Portanto, o fluxo está validado **no backend**, mas ainda não no aplicativo completo.
 
-- [Índice do planejamento](planejamento/README.md)
+As instruções para executar a API, os endpoints e os testes estão em [apps/api/README.md](apps/api/README.md). Os registros de execução ficam em [docs/evidencias-soa-csharp.md](docs/evidencias-soa-csharp.md).
+
+## Estrutura do repositório
+
+| Pasta ou arquivo | Conteúdo |
+|---|---|
+| `planejamento/` | Visão, especificação, arquitetura, backlog e plano |
+| `docs/` | Contratos de integração, decisões e documentação das features |
+| `apps/api/` | API ASP.NET Core (na branch de SOA/C#) |
+| `apps/mobile/` | Aplicativo Expo (na branch de desenvolvimento mobile) |
+| `infra/` | Scripts e registros de infraestrutura Linux |
+| `tests/Api.Tests/` | Testes da API |
+| `scripts/` | Roteiro de demonstração HTTP |
+| `prompts.md` | Registro do uso de ferramentas de IA |
+
+As pastas de cada frente entram na `main` após seus respectivos PRs. A estrutura pode variar entre branches durante o desenvolvimento.
+
+## Planejamento e documentação
+
 - [Visão do produto](planejamento/01-visao-do-produto.md)
 - [Especificação do MVP](planejamento/02-especificacao-mvp.md)
-- [Arquitetura e tecnologias](planejamento/03-arquitetura-e-tecnologias.md)
-- [Backlog priorizado](planejamento/04-backlog.md)
+- [Arquitetura](planejamento/03-arquitetura-e-tecnologias.md)
+- [Backlog](planejamento/04-backlog.md)
 - [Plano de execução](planejamento/05-plano-de-execucao.md)
 - [Entregas por disciplina](planejamento/06-entregas-por-disciplina.md)
-- [Contratos de integração](docs/contratos-de-integracao.md)
-- [Features e modelo](docs/features/README.md)
-- [Decisões arquiteturais](docs/decisoes/README.md)
-- [Guia para agentes](AGENTS.md)
+- [Contratos da API](docs/contratos-de-integracao.md)
+- [Documentação por feature](docs/features/README.md)
+- [Orientações para o grupo](AGENTS.md)
 
-## Como o time trabalha com IA
+Cada integrante trabalha em uma branch, registra o que fez na documentação da feature e abre um PR para revisão de outro integrante. Alterações nos contratos devem ser combinadas com as outras frentes.
 
-O projeto é **AI-first**, com responsabilidade humana: agentes investigam, implementam e documentam; o integrante responsável entende a mudança, revisa decisões e verifica os resultados. Antes de trabalhar, cada agente lê [AGENTS.md](AGENTS.md), a spec, a arquitetura e a feature afetada.
-
-Cada feature registra problema, escopo, contratos, dependências, critérios de aceite, verificações realizadas e limitações. Mudanças de contrato ou arquitetura são documentadas e coordenadas com os componentes afetados. Usos relevantes de IA são registrados em [prompts.md](prompts.md), sem segredos ou dados pessoais.
-
-## Como começar
-
-1. Leia a [spec](planejamento/02-especificacao-mvp.md) e o [backlog](planejamento/04-backlog.md).
-2. Assuma uma tarefa e leia seu registro em [docs/features](docs/features/README.md).
-3. Combine contratos e versões ainda pendentes com os responsáveis.
-4. Implemente uma fatia pequena e atualize a feature com evidências reais.
-5. Peça revisão a outro integrante antes de integrar à branch principal.
-
-**Execução local da API:** consulte [apps/api/README.md](apps/api/README.md) para variáveis de ambiente, PostgreSQL, Neo4j, migrações, bootstrap do operador, endpoints e testes. Os comandos foram documentados; a validação depende do CI e do ambiente usado.
-
-## Evidências de SOA e C#
-
-O teste automatizado [demo_fluxo_http.py](scripts/demo_fluxo_http.py) registra a sequência HTTP fonte → rascunho manual → revisão → publicação no Neo4j → pergunta → resposta fundamentada; as evidências do GitHub Actions ficam documentadas em [evidências SOA/C#](docs/evidencias-soa-csharp.md). A especificação completa e os detalhes de execução constam em [apps/api/README.md](apps/api/README.md).
-
-## Disciplinas
-
-A solução apoia C#, SOA, Mobile, IA & ML, Cybersecurity, Operating Systems, Physical Computing e Testing. A LLM do produto não substitui o experimento de ML com dados públicos reais. Consulte [entregas por disciplina](planejamento/06-entregas-por-disciplina.md). Responsáveis P1–P5 e prazos no planejamento são sugestões a confirmar pelo grupo.
+A FIAP permite ferramentas de IA como apoio. O uso é registrado em [prompts.md](prompts.md), e o grupo precisa revisar, testar e saber explicar o código antes da entrega.
