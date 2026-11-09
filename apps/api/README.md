@@ -46,7 +46,7 @@ dotnet run --project apps/api -- --bootstrap
 dotnet run --project apps/api
 ```
 
-O terminal informa a porta da API. O Swagger fica em `/swagger` e a rota de verificação em `/health`.
+O terminal informa a porta da API. O Swagger fica em `/swagger` e a rota de verificação em `/health`. Para testar rotas administrativas, faça o login em `/api/v1/auth/login`, copie o `token` da resposta e use o botão **Authorize** no Swagger. As rotas públicas não exigem JWT.
 
 ## Endpoints
 
@@ -107,7 +107,7 @@ Com PostgreSQL e Neo4j configurados, execute:
 dotnet test tests/Api.Tests/Api.Tests.csproj -c Release
 ```
 
-O GitHub Actions executa esses testes com os bancos, valida as migrações e roda o roteiro HTTP. A [execução de 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42721825544) passou com 37 testes aprovados e o cenário HTTP concluído.
+O GitHub Actions executa esses testes com os bancos, valida as migrações e roda o roteiro HTTP. A [execução de 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42722547143) passou com 37 testes aprovados e o cenário HTTP concluído.
 
 As evidências e a relação com a rubrica estão em [docs/evidencias-soa-csharp.md](../../docs/evidencias-soa-csharp.md). A explicação da arquitetura e dos critérios da avaliação está no [relatório técnico](../../docs/entrega-soa-csharp.md). Os detalhes do contrato com o aplicativo estão em [docs/contratos-de-integracao.md](../../docs/contratos-de-integracao.md).
 
