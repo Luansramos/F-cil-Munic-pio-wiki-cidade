@@ -1,0 +1,65 @@
+name: API SOA e CSharp
+on:
+  push:
+    branches: [feat/soa-csharp-api]
+  pull_request:
+    paths: ['apps/api/**', 'tests/Api.Tests/**', '.github/workflows/api.yml']
+permissions:
+  contents: read
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: facil_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: integration-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 20
+      neo4j:
+        image: neo4j:5.26-community
+        env:
+          NEO4J_AUTH: neo4j/integration-only
+        ports: ['7687:7687', '7474:7474']
+    env:
+      ConnectionStrings__Postgres: Host=localhost;Database=facil_test;Username=test;Password=integration-only
+      Neo4j__Uri: bolt://localhost:7687
+      Neo4j__Password: integration-only
+      Jwt__Key: ephemeral-ci-only-key-not-for-deployment-42
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore and build
+        run: dotnet build tests/Api.Tests/Api.Tests.csproj -c Release
+      - name: Generate initial migration if absent
+        run: |
+          dotnet tool install --global dotnet-ef --version 10.0.4
+          if ! find apps/api/Data/Migrations -name '*Initial*.cs' | grep -q .; then
+            dotnet ef migrations add Initial --project apps/api --output-dir Data/Migrations
+          fi
+          python3 - <<'PY'
+          import pathlib,base64
+          for p in pathlib.Path('apps/api/Data/Migrations').glob('*.cs'):
+              print('MIGRATION_FILE',str(p),base64.b64encode(p.read_bytes()).decode())
+          PY
+      - name: Wait for Neo4j
+        run: |
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://localhost:7474 >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Unit and integration tests (real PostgreSQL and Neo4j)
+        run: dotnet test tests/Api.Tests/Api.Tests.csproj -c Release --logger 'trx;LogFileName=api.trx' --results-directory test-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-test-results
+          path: |
+            test-results
+            apps/api/Data/Migrations
