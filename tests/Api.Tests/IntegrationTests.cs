@@ -15,7 +15,9 @@ public class IntegrationTests
         if (!r.IsSuccessStatusCode)
         {
             var exception = r.Headers.TryGetValues("X-Test-Error-Type", out var values) ? string.Join(",", values) : "unknown";
-            throw new InvalidOperationException($"Unexpected HTTP {(int)r.StatusCode}; exception type: {exception}.");
+            var detail = r.Headers.TryGetValues("X-Test-Error-Detail", out var messages)
+                ? System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(messages.First())) : "unknown";
+            throw new InvalidOperationException($"Unexpected HTTP {(int)r.StatusCode}; exception: {exception}. Detail: {detail}");
         }
         return (await JsonDocument.ParseAsync(await r.Content.ReadAsStreamAsync())).RootElement.Clone();
     }
