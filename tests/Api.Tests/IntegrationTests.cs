@@ -26,6 +26,10 @@ public class IntegrationTests
         foreach (var id in new[] { city, other })
             await Json(await admin.PostAsJsonAsync("/api/v1/municipios", new { id, nome = "Município fictício de teste", uf = "SP" }));
         Assert.Equal(HttpStatusCode.Unauthorized, (await citizen.PostAsJsonAsync("/api/v1/municipios", new { id = "x", nome = "x", uf = "SP" })).StatusCode);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity,
+            (await admin.PostAsJsonAsync("/api/v1/municipios", new { id = "Cidade Invalida", nome = "Teste", uf = "SP" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict,
+            (await admin.PostAsJsonAsync("/api/v1/municipios", new { id = city, nome = "Duplicada", uf = "SP" })).StatusCode);
         Assert.Empty(await citizen.GetFromJsonAsync<ServicoDto[]>($"/api/v1/municipios/{city}/servicos") ?? []);
         Assert.Equal(HttpStatusCode.NotFound, (await citizen.GetAsync("/api/v1/municipios/unknown/servicos")).StatusCode);
         var insufficient = await Json(await citizen.PostAsJsonAsync($"/api/v1/municipios/{city}/conversas", new { pergunta = "Como funciona?" }));
@@ -36,6 +40,16 @@ public class IntegrationTests
         var source = await Json(await admin.PostAsJsonAsync($"/api/v1/municipios/{city}/fontes", new {
             titulo = "Fonte fictícia para teste", url = "https://example.org/servico", texto = "Teste: consulte o canal de demonstração.", dataConsulta = "2026-01-01" }));
         var sourceId = source.GetProperty("id").GetGuid();
+        Assert.Equal(HttpStatusCode.UnprocessableEntity,
+            (await admin.PostAsJsonAsync($"/api/v1/municipios/{city}/fontes", new {
+                titulo = "Fonte insegura", url = "http://example.org/inseguro",
+                texto = "Conteúdo fictício de teste", dataConsulta = "2026-01-01"
+            })).StatusCode);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity,
+            (await admin.PostAsJsonAsync($"/api/v1/municipios/{city}/fontes", new {
+                titulo = "Consulta futura", url = "https://example.org/futuro",
+                texto = "Conteúdo fictício de teste", dataConsulta = "2099-01-01"
+            })).StatusCode);
         Assert.Equal(HttpStatusCode.ServiceUnavailable, (await admin.PostAsync($"/api/v1/fontes/{sourceId}/extracoes", null)).StatusCode);
         var service = new ServicoRevisado("cata-treco", "Cata Treco", "Orientação fictícia para teste.", "Órgão fictício", ["Consulte o canal de demonstração."], [], null, ["sofá"]);
         var draft = await Json(await admin.PostAsJsonAsync($"/api/v1/fontes/{sourceId}/rascunhos", new CriarRascunho(service)));
@@ -66,6 +80,8 @@ public class IntegrationTests
         var municipalLogin = await Json(await municipal.PostAsJsonAsync("/api/v1/auth/login", new { email, senha = "OnlyForIntegration42!" }));
         municipal.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", municipalLogin.GetProperty("token").GetString());
         Assert.Equal(HttpStatusCode.Forbidden, (await municipal.GetAsync($"/api/v1/rascunhos/{draftId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden,
+            (await municipal.GetAsync($"/api/v1/municipios/{city}/fontes")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await municipal.PostAsync($"/api/v1/rascunhos/{draftId}/publicacao", null)).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await municipal.PostAsJsonAsync("/api/v1/municipios", new { id = "denied", nome = "Denied", uf = "SP" })).StatusCode);
         // Revise, inject graph outage, and prove old active version survives the rolled-back transaction.
