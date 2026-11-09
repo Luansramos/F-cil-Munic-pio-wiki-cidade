@@ -4,8 +4,8 @@ Aqui estão os registros das verificações da API do Fácil Município. Os prin
 
 ## Resultado dos testes
 
-- **Execução:** [GitHub Actions — 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42718137116).
-- **Resultado:** compilação e verificação de migrações concluídas; 14 testes aprovados, sem falhas.
+- **Execução:** [GitHub Actions — 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42721825544).
+- **Resultado:** compilação e verificação de migrações concluídas; 37 testes aprovados, sem falhas.
 - **Ambiente de testes:** PostgreSQL 17 e Neo4j 5.26 Community.
 - **Arquivos:** resultados dos testes, OpenAPI do Swagger, respostas HTTP e capturas do navegador ficam nos artefatos da execução.
 
@@ -21,7 +21,7 @@ Também verifica que:
 - uma pergunta sem informação suficiente não recebe uma afirmação inventada;
 - um município não recebe o conteúdo de outro.
 
-O cenário terminou com sucesso. Seu resultado é salvo como `demo-fluxo-http.json`.
+O cenário terminou com sucesso, assim como os 37 testes automatizados. Seu resultado é salvo como `demo-fluxo-http.json`.
 
 ## Onde encontrar cada requisito
 
