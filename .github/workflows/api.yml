@@ -54,7 +54,7 @@ jobs:
       - name: Collect runnable API evidence
         run: |
           mkdir -p test-results
-          export Bootstrap__Email="operador@example.test"
+          export Bootstrap__Email="operador-ci@example.test"
           export Bootstrap__Password="$(openssl rand -hex 20)"
           dotnet run --project apps/api -c Release --no-build -- --bootstrap
           export Llm__Mode=demo
