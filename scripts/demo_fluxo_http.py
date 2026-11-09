@@ -128,6 +128,8 @@ def main():
             "Link da fonte oficial não retornou.")
     require("(11) 4636-3270" in answer["resposta"],
             "Resposta não usa a etapa revisada do serviço.")
+    require(answer.get("canalOficialUrl") == SERVICE_URL,
+            "Canal oficial revisado no grafo não foi devolvido no contrato mobile.")
 
     _, without_evidence = http("POST", f"/api/v1/municipios/{poa}/conversas",
                                {"pergunta": "Posso retirar um sofá no sábado?"})
