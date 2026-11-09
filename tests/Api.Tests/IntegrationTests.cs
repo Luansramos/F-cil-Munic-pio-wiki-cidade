@@ -12,7 +12,12 @@ public class IntegrationTests
 {
     private static async Task<JsonElement> Json(HttpResponseMessage r)
     {
-        r.EnsureSuccessStatusCode(); return (await JsonDocument.ParseAsync(await r.Content.ReadAsStreamAsync())).RootElement.Clone();
+        if (!r.IsSuccessStatusCode)
+        {
+            var exception = r.Headers.TryGetValues("X-Test-Error-Type", out var values) ? string.Join(",", values) : "unknown";
+            throw new InvalidOperationException($"Unexpected HTTP {(int)r.StatusCode}; exception type: {exception}.");
+        }
+        return (await JsonDocument.ParseAsync(await r.Content.ReadAsStreamAsync())).RootElement.Clone();
     }
     [Fact]
     public async Task RealDatabases_PublicationIsolationAuthorizationAndMobileContract()

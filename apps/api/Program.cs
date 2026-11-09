@@ -69,6 +69,7 @@ app.Use(async (context, next) =>
         };
         // No exception message, body, question, history, SQL parameters or sensitive source text in logs.
         app.Logger.LogWarning("Requisição falhou. Status={Status} Tipo={Tipo}", status, e.GetType().Name);
+        if (app.Environment.IsEnvironment("Testing")) context.Response.Headers["X-Test-Error-Type"] = e.GetType().Name;
         context.Response.StatusCode = status;
         await context.Response.WriteAsJsonAsync(new ProblemDetails { Status = status,
             Title = e is ApiException apiErrorDetail ? apiErrorDetail.Message : status == 503 ? "Serviço temporariamente indisponível." : "Não foi possível concluir a operação." });
