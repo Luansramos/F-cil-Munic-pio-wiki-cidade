@@ -22,7 +22,7 @@ Os testes cobrem:
 - isolamento entre municípios;
 - leitura do serviço e de sua fonte após publicação.
 
-Esses testes passaram no [GitHub Actions](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42718137116), com PostgreSQL e Neo4j. O cenário HTTP de Cata Treco também confirmou publicação e consulta.
+Esses testes passaram no [GitHub Actions](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42721825544), com PostgreSQL e Neo4j. O cenário HTTP de Cata Treco também confirmou publicação e consulta.
 
 ## Limitação conhecida
 
