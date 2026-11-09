@@ -4,25 +4,60 @@ using FacilMunicipio.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+
 namespace FacilMunicipio.Api.Controllers;
-[ApiController, Route("api/v1/municipios")]
-public class PublicController(AppDbContext db, IKnowledgeGraph graph, ConversationService conversation) : ControllerBase
+
+[ApiController]
+[Route("api/v1/municipios")]
+public class PublicController(
+    AppDbContext db,
+    IKnowledgeGraph graph,
+    ConversationService conversation) : ControllerBase
 {
-    /// <summary>Municípios cadastrados; cidades sem versão publicada têm lista de serviços vazia.</summary>
+    /// <summary>Lista os municípios cadastrados.</summary>
     [HttpGet]
-    public async Task<ActionResult<MunicipioDto[]>> List(CancellationToken ct) => await db.Municipios.AsNoTracking()
-        .OrderBy(x => x.Nome).Select(x => new MunicipioDto(x.Id, x.Nome, x.Uf)).ToArrayAsync(ct);
+    public async Task<ActionResult<MunicipioDto[]>> List(CancellationToken ct)
+    {
+        return await db.Municipios
+            .AsNoTracking()
+            .OrderBy(m => m.Nome)
+            .Select(m => new MunicipioDto(m.Id, m.Nome, m.Uf))
+            .ToArrayAsync(ct);
+    }
+
+    /// <summary>Lista apenas os serviços publicados do município informado.</summary>
     [HttpGet("{id}/servicos")]
     public async Task<ActionResult<ServicoDto[]>> Services(string id, CancellationToken ct)
     {
-        var m = await db.Municipios.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
-        if (m is null) return NotFound();
-        if (m.VersaoAtivaId is not Guid v) return Array.Empty<ServicoDto>();
-        return (await graph.ReadAsync(id, v, ct)).Select(x => new ServicoDto(x.Servico.Id, x.Servico.Nome)).ToArray();
+        var municipio = await db.Municipios
+            .AsNoTracking()
+            .SingleOrDefaultAsync(m => m.Id == id, ct);
+
+        if (municipio is null)
+            return NotFound();
+
+        if (municipio.VersaoAtivaId is not Guid versao)
+            return Array.Empty<ServicoDto>();
+
+        var servicos = await graph.ReadAsync(id, versao, ct);
+
+        return servicos
+            .Select(item => new ServicoDto(item.Servico.Id, item.Servico.Nome))
+            .ToArray();
     }
-    /// <summary>Consulta pública sem persistência de pergunta ou histórico; contexto limitado a três trocas.</summary>
-    [HttpPost("{id}/conversas"), EnableRateLimiting("conversation")]
-    [ProducesResponseType<RespostaConversa>(200), ProducesResponseType(422), ProducesResponseType(429), ProducesResponseType(503)]
-    public async Task<ActionResult<RespostaConversa>> Ask(string id, EnvioPergunta request, CancellationToken ct)
-        => await conversation.AskAsync(id, request, ct);
+
+    /// <summary>Consulta o conhecimento publicado sem salvar a pergunta no servidor.</summary>
+    [HttpPost("{id}/conversas")]
+    [EnableRateLimiting("conversation")]
+    [ProducesResponseType<RespostaConversa>(200)]
+    [ProducesResponseType(422)]
+    [ProducesResponseType(429)]
+    [ProducesResponseType(503)]
+    public async Task<ActionResult<RespostaConversa>> Ask(
+        string id,
+        EnvioPergunta request,
+        CancellationToken ct)
+    {
+        return await conversation.AskAsync(id, request, ct);
+    }
 }
