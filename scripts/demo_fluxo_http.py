@@ -24,7 +24,7 @@ SOURCE_URL = (
     "https://poa.sp.gov.br/"
     "programa-cata-treco-reforca-limpeza-urbana-e-evita-descarte-irregular-em-poa/"
 )
-SERVICE_URL = "https://poa.sp.gov.br/cidade/servicos-urbanos/"
+SERVICE_URL = "https://poa.sp.gov.br/telefones-uteis/"
 
 
 def http(method: str, path: str, payload: dict | None = None, token: str | None = None):
@@ -74,7 +74,7 @@ def main():
             "Conforme notícia da Prefeitura de Poá de 24/07/2025, o programa Cata Treco, "
             "da Secretaria de Serviços Urbanos, recolhe materiais em desuso, incluindo "
             "móveis. A solicitação pode ser feita pelo telefone (11) 4636-3270. "
-            "O município orienta o morador a deixar os itens na calçada e indica "
+            "A Prefeitura orienta deixar os itens na calçada apenas no dia marcado e indica "
             "atendimento conforme cronograma por bairro. "
             "Não foi identificada nesta fonte uma confirmação de atendimento aos sábados."
         ),
@@ -93,7 +93,7 @@ def main():
         "etapas": [
             "Solicite informações e a coleta pelo telefone (11) 4636-3270.",
             "Confirme o cronograma do seu bairro com o atendimento oficial.",
-            "Siga a orientação de colocar os materiais na calçada em frente à residência."
+            "Deixe os materiais na calçada em frente à residência apenas no dia marcado para a coleta."
         ],
         "requisitos": [],
         "canalUrl": SERVICE_URL,
