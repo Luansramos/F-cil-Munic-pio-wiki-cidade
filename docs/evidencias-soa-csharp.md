@@ -1,45 +1,45 @@
-# Evidências técnicas — SOA e C#
+# Evidências — SOA e C#
 
-## Execução automatizada confirmada
+Aqui estão os registros das verificações da API do Fácil Município. Os prints e os arquivos JSON foram obtidos da execução do GitHub Actions, não de telas simuladas do aplicativo.
 
-- Data: 09/11/2026.
-- Branch: `feat/soa-csharp-api`.
-- Workflow GitHub Actions: [execução com sucesso](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42703817512).
-- Resultado confirmado do comando `dotnet test tests/Api.Tests/Api.Tests.csproj -c Release` no CI: **14 testes aprovados, zero falhas**, com PostgreSQL 17 e Neo4j 5.26 Community em serviços reais da execução. `dotnet build` também passou.
-- As migrações EF Core geradas a partir do modelo estão versionadas em `apps/api/Data/Migrations`. O workflow seguinte verifica se o modelo alterou sem migração e coleta artefatos HTTP em `api-test-results`.
+## Resultado dos testes
 
-## Cenário adicional: fonte oficial → revisão → grafo → resposta
+- **Execução:** [GitHub Actions — 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42718137116).
+- **Resultado:** compilação e verificação de migrações concluídas; 14 testes aprovados, sem falhas.
+- **Ambiente de testes:** PostgreSQL 17 e Neo4j 5.26 Community.
+- **Arquivos:** resultados dos testes, OpenAPI do Swagger, respostas HTTP e capturas do navegador ficam nos artefatos da execução.
 
-O arquivo [`scripts/demo_fluxo_http.py`](../scripts/demo_fluxo_http.py) realiza uma prova via HTTP com PostgreSQL e Neo4j reais no GitHub Actions:
+## Demonstração com uma fonte de Poá
 
-1. Faz login com conta **fictícia** criada no ambiente efêmero.
-2. Cadastra fonte da Prefeitura de Poá: notícia sobre Cata Treco de 24/07/2025, com URL e data de consulta.
-3. Cria rascunho **manual** e confirma que ele não estava publicado.
-4. Revisa e aprova, publica no Neo4j e confirma a repetição segura.
-5. Envia pelo endpoint público a pergunta sobre retirada de sofá.
-6. Verifica serviço identificado, telefone informado, link de fonte e link do canal oficial.
-7. Pergunta sobre sábado (não documentado na fonte utilizada), esperando informação insuficiente.
-8. Verifica que outro município não recebe conteúdo de Poá.
+O script [`scripts/demo_fluxo_http.py`](../scripts/demo_fluxo_http.py) usa uma [notícia da Prefeitura de Poá sobre o Cata Treco](https://poa.sp.gov.br/programa-cata-treco-reforca-limpeza-urbana-e-evita-descarte-irregular-em-poa/) para testar o caminho da informação dentro do backend.
 
-O arquivo `test-results/demo-fluxo-http.json`, incluído nos artefatos após execução bem-sucedida, é um **registro real** das requisições. Não é screenshot do app mobile, não representa extração por LLM e não contém token ou senha.
+O roteiro faz login com um operador de teste, cadastra a fonte, cria e aprova um rascunho manual, publica o serviço no Neo4j e pergunta como solicitar a retirada de um sofá. Ele confere se a resposta menciona a orientação cadastrada e se apresenta o link da fonte e o canal oficial.
 
-**Observação:** o fluxo do backend já demonstra a passagem por fonte, revisão e grafo; a etapa de interface Expo depende do responsável pelo mobile. A fonte oficial utilizada foi encontrada em [publicação da Prefeitura de Poá](https://poa.sp.gov.br/programa-cata-treco-reforca-limpeza-urbana-e-evita-descarte-irregular-em-poa/). O serviço é cadastrado em município de demonstração, sem representar operação municipal de produção.
+Também verifica que:
+- um rascunho não aprovado não é disponibilizado;
+- publicar novamente não cria outra versão;
+- uma pergunta sem informação suficiente não recebe uma afirmação inventada;
+- um município não recebe o conteúdo de outro.
 
-## Requisitos comprovados pelo código e pelos testes
+O cenário terminou com sucesso. Seu resultado é salvo como `demo-fluxo-http.json`.
 
-| Rubrica | Onde verificar |
-|---|---|
-| SOA — domínio | `apps/api/Domain/Entities.cs`, regras do `Rascunho` e `PublicationService` |
-| SOA — banco | `apps/api/Data/AppDbContext.cs`, EF Core/Npgsql |
-| SOA — migrações | `apps/api/Data/Migrations/` e verificação `dotnet ef migrations has-pending-model-changes` |
-| SOA — documentação | Swagger disponível em `/swagger/v1/swagger.json` e `/swagger` |
-| SOA — testes | `tests/Api.Tests/` e workflow GitHub Actions |
-| C# — POO, interfaces e DI | `Domain/Entities.cs`, `Services/Interfaces.cs`, `Program.cs` |
-| C# — Web API | `apps/api/Controllers/` |
-| C# — EF Core + LINQ | `Data/AppDbContext.cs`, consultas e serviços |
-| C# — async/await | Controllers, `ConversationService`, `PublicationService`, `Neo4jKnowledgeGraph` |
-| C# — qualidade | separação de camadas, validação, tratamento de erros, controle de concorrência, testes |
+## Onde encontrar cada requisito
 
-## Limites da evidência
+| Disciplina | Requisito | Código ou evidência |
+|---|---|---|
+| SOA | Domínio | `apps/api/Domain/Entities.cs` e `Services/PublicationService.cs` |
+| SOA | Banco de dados | `apps/api/Data/AppDbContext.cs` |
+| SOA | Migrações | `apps/api/Data/Migrations/` |
+| SOA | Documentação automática | `/swagger` e `/swagger/v1/swagger.json` |
+| SOA | Testes | `tests/Api.Tests/` e execução no GitHub Actions |
+| C# | POO e interfaces | `Domain/` e `Services/Interfaces.cs` |
+| C# | Web API | `Controllers/` |
+| C# | EF Core e LINQ | `Data/AppDbContext.cs` e consultas dos serviços |
+| C# | Programação assíncrona | `ConversationService.cs`, `PublicationService.cs` e controllers |
+| C# | Organização e qualidade | Separação em camadas, tratamento de erros, validação e testes |
 
-O resultado automático comprova funcionamento da API nos cenários testados, **não** comprova operação end-to-end com aplicativo Expo, painel React e provedor LLM real. Os screenshots fornecidos pela equipe representam **protótipo de interface**, e não devem ser apresentados como tela de API efetivamente executada. Para o material visual da disciplina, após subir a API localmente, registrar tela real do Swagger, chamada de endpoint, consulta a serviços publicados e retorno com fonte, usando dados públicos oficiais verificados ou conteúdo claramente fictício de demonstração. A equipe deve revisar estes registros antes de enviá-los no Teams.
+## O que as evidências não mostram
+
+O roteiro usa uma rotina de resposta demonstrativa e cria o rascunho manualmente. Ele não demonstra extração por LLM real, interface React nem conversa realizada dentro do Expo. Essas integrações ainda precisam ser testadas pelo grupo.
+
+As imagens do protótipo do aplicativo são referências de design e não devem ser usadas como prova de uma tela executada. As capturas da API podem ser usadas na apresentação de SOA e C#, com a indicação de que foram feitas no ambiente de CI.
