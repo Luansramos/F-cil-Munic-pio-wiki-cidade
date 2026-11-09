@@ -18,10 +18,12 @@ As requisições e respostas usam JSON em camelCase. O contrato completo está e
 
 ## Como verificamos
 
-No [GitHub Actions](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42721825544), o projeto compilou, passou na checagem das migrações e concluiu 37 testes com PostgreSQL e Neo4j. O roteiro HTTP também passou, desde o cadastro de uma fonte até a resposta com seu link.
+No [GitHub Actions](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42722547143), o projeto compilou, passou na checagem das migrações e concluiu 37 testes com PostgreSQL e Neo4j. O roteiro HTTP também passou, desde o cadastro de uma fonte até a resposta com seu link.
 
 Comandos de desenvolvimento e configuração estão em [apps/api/README.md](../../apps/api/README.md). Os registros ficam em [evidências de SOA/C#](../evidencias-soa-csharp.md).
 
 ## Pendente
 
 Combinar a URL da API com quem desenvolve o Expo e conectar a tela de conversa. A extração automática por LLM precisa ser implementada pela frente responsável.
+
+O Swagger inclui autenticação JWT apenas nas operações protegidas. Há testes HTTP no CI para verificar o esquema de autorização e para garantir que o login e a consulta pública não sejam marcados como privados.
