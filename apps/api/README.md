@@ -107,8 +107,8 @@ Com PostgreSQL e Neo4j configurados, execute:
 dotnet test tests/Api.Tests/Api.Tests.csproj -c Release
 ```
 
-O GitHub Actions executa esses testes com os bancos, valida as migrações e roda o roteiro HTTP. A [execução de 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42718137116) passou com 14 testes aprovados e o cenário HTTP concluído.
+O GitHub Actions executa esses testes com os bancos, valida as migrações e roda o roteiro HTTP. A [execução de 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42721825544) passou com 37 testes aprovados e o cenário HTTP concluído.
 
-As evidências e a relação com a rubrica estão em [docs/evidencias-soa-csharp.md](../../docs/evidencias-soa-csharp.md). Os detalhes do contrato com o aplicativo estão em [docs/contratos-de-integracao.md](../../docs/contratos-de-integracao.md).
+As evidências e a relação com a rubrica estão em [docs/evidencias-soa-csharp.md](../../docs/evidencias-soa-csharp.md). A explicação da arquitetura e dos critérios da avaliação está no [relatório técnico](../../docs/entrega-soa-csharp.md). Os detalhes do contrato com o aplicativo estão em [docs/contratos-de-integracao.md](../../docs/contratos-de-integracao.md).
 
 A API foi testada no ambiente automatizado. A equipe ainda precisa testar a integração com o Expo, adicionar os nomes dos integrantes no README principal e conferir as fontes antes da apresentação.
