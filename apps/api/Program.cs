@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using FacilMunicipio.Api.OpenApi;
 using Neo4j.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +25,18 @@ builder.Services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions.De
 builder.Services.Configure<ApiBehaviorOptions>(o => o.InvalidModelStateResponseFactory = _ => new UnprocessableEntityObjectResult(
     new ProblemDetails { Status = 422, Title = "Dados inválidos. Confira os campos e limites documentados." }));
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(o => o.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "FacilMunicipio.Api.xml")));
+builder.Services.AddSwaggerGen(o =>
+{
+    o.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "FacilMunicipio.Api.xml"));
+    o.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "Token JWT obtido em POST /api/v1/auth/login."
+    });
+    o.OperationFilter<BearerAuthOperationFilter>();
+});
 builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 builder.Services.AddSingleton<IDriver>(_ => GraphDatabase.Driver(builder.Configuration["Neo4j:Uri"] ?? "bolt://localhost:7687",
     AuthTokens.Basic(builder.Configuration["Neo4j:User"] ?? "neo4j", builder.Configuration["Neo4j:Password"] ?? ""),
