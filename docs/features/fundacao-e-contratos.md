@@ -1,20 +1,27 @@
-# Feature — Fundação e contratos
+# Fundação da API e contratos
 
-- Status: **implementação na branch `feat/soa-csharp-api`; 14 testes passaram no CI (09/11/2026); validação do pacote documental no CI**
-- Backlog: A2, A3, B1, B2, H3, H5
+**Status:** API implementada na branch `feat/soa-csharp-api`. Integração com Expo e painel administrativo ainda pendente.
 
-## Entrega SOA e C#
+**Backlog:** A2, A3, B1, B2, H3 e H5.
 
-A API em `apps/api/` utiliza ASP.NET Core 10, EF Core PostgreSQL, interfaces/DI, async/await, JWT, Swagger e testes. A migração inicial está versionada em `apps/api/Data/Migrations`. Bancos locais em `compose.yaml`.
+## Implementação
 
-## Integração e segurança
+Criamos uma API ASP.NET Core 10 para atender às disciplinas de SOA e C#. Os cadastros administrativos usam EF Core com PostgreSQL; os serviços publicados ficam no Neo4j. A migração inicial está versionada em `apps/api/Data/Migrations/`.
 
-Rotas públicas `/api/v1/municipios`, `/api/v1/municipios/{id}/servicos` e `/api/v1/municipios/{id}/conversas`, camelCase. Administrador utiliza bearer JWT e isolamento por município no backend. Contratos em [contratos](../contratos-de-integracao.md).
+O login administrativo usa JWT. A autorização é conferida no servidor e restringe o administrador ao município associado à sua conta. As rotas públicas são:
 
-## Verificação e pendências
+- `GET /api/v1/municipios`
+- `GET /api/v1/municipios/{id}/servicos`
+- `POST /api/v1/municipios/{id}/conversas`
 
-`dotnet build tests/Api.Tests/Api.Tests.csproj -c Release`; `dotnet test tests/Api.Tests/Api.Tests.csproj -c Release` com PostgreSQL/Neo4j configurados. 14 testes passaram no workflow com PostgreSQL/Neo4j reais ([execução do GitHub Actions](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42703817512)). Evidências e pendências em [evidencias-soa-csharp](../evidencias-soa-csharp.md). Provedor real de LLM e integração com consumidores ainda pendentes; não há segredos no repositório.
+As requisições e respostas usam JSON em camelCase. O contrato completo está em [contratos de integração](../contratos-de-integracao.md).
 
-## Atualização de integração e evidência (09/11/2026)
+## Como verificamos
 
-A execução do [workflow com prova de ponta a ponta HTTP](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42717752982) aprovou os 14 testes automatizados e o cenário adicional de fonte oficial de Poá → rascunho manual → revisão → Neo4j → resposta com fonte. A API envia `canalOficialUrl` quando o canal está explicitamente no serviço aprovado. Não foram gravadas credenciais no artefato. Dependem de outra frente: LLM real, painel React e aplicativo Expo.
+No [GitHub Actions](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42718137116), o projeto compilou, passou na checagem das migrações e concluiu 14 testes com PostgreSQL e Neo4j. O roteiro HTTP também passou, desde o cadastro de uma fonte até a resposta com seu link.
+
+Comandos de desenvolvimento e configuração estão em [apps/api/README.md](../../apps/api/README.md). Os registros ficam em [evidências de SOA/C#](../evidencias-soa-csharp.md).
+
+## Pendente
+
+Combinar a URL da API com quem desenvolve o Expo e conectar a tela de conversa. A extração automática por LLM precisa ser implementada pela frente responsável.
