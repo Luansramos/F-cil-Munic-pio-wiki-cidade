@@ -1,20 +1,16 @@
 # Feature — Fontes e revisão da wiki
 
-- Status: planejada
-- Responsáveis sugeridos: P5 e P1; extração P3
+- Status: **API implementada na branch, painel web e LLM real pendentes**
 - Backlog: B1–B8
 
-## Objetivo e escopo
+## O que foi implementado
 
-Permitir que administrador autorizado informe URL, texto e data de uma fonte, receba proposta estruturada e revise antes de publicar. Extração automática de PDF e URL é opcional.
+Admin autorizado cadastra fonte com URL HTTPS, título, texto e data; fonte pertence a um único município. Pode gerar rascunho manual de serviço, consultar e editar rascunho com `revisaoEsperada` (controle de concorrência), marcar como aprovado e publicar somente após revisão. `ExtrairAsync` está isolado por interface; sem provedor de LLM retorna indisponibilidade, não simula extração como se fosse IA real.
 
-## Integração e critérios de aceite
+## Critérios e verificação
 
-- Painel → API → PostgreSQL e LLM, conforme [contratos](../contratos-de-integracao.md).
-- Administrador gerencia apenas seu município.
-- Proposta é editável e continua rascunho até aprovação.
-- Campos sem evidência não viram fatos; fonte e revisão são registradas.
+Testar login, acesso de outro município (403), validação de URL, estado não aprovado (409), atualização com revisão vencida (409), texto de fonte não publicado automaticamente. Teste de integração está em `tests/Api.Tests/IntegrationTests.cs`, dependente dos bancos reais do CI.
 
-## Verificações e pendências
+## Pendências
 
-Não implementado nem verificado. Registrar cenários de extração inválida, revisão e autorização quando executados.
+Integração do painel, escolha do provedor de LLM e teste de extração com fonte pública realmente verificada de Poá.

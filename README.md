@@ -1,6 +1,6 @@
 # Fácil Município — Wiki Cidade
 
-Plataforma configurável para prefeituras organizarem informações oficiais de serviços públicos e oferecerem orientação conversacional aos cidadãos. Projeto acadêmico da Global Solution FIAP em **fase de planejamento**.
+Plataforma configurável para prefeituras organizarem informações oficiais de serviços públicos e oferecerem orientação conversacional aos cidadãos. Projeto acadêmico da Global Solution FIAP. O backend das disciplinas **SOA e C#** está implementado na branch de desenvolvimento; os demais componentes seguem em trabalhos separados.
 
 O nome usado anteriormente nos documentos é **Nexo Cidadão**. A equipe pode padronizar o nome de produto posteriormente.
 
@@ -14,7 +14,7 @@ Poá é a referência inicial para coleta de lixo, iluminação pública e Cata 
 
 ## Estado atual
 
-O repositório contém planejamento e instruções de colaboração. **A aplicação ainda não foi implementada.** Pastas de código, rotas e integrações abaixo são planejadas. Comandos e versões serão documentados após implementação e verificação.
+O repositório contém planejamento, infraestrutura Linux e uma API ASP.NET Core desenvolvida em branch de feature. O backend implementa cadastros, autenticação, revisão, publicação versionada no Neo4j e contratos públicos; a integração com uma LLM real e o aplicativo completo são trabalhos separados. Confira sempre a branch e os testes antes de afirmar que houve integração ponta a ponta.
 
 O primeiro marco é uma fatia completa: fonte → proposta → revisão → publicação no grafo → pergunta no aplicativo → resposta com fonte.
 
@@ -82,7 +82,7 @@ Cada feature registra problema, escopo, contratos, dependências, critérios de 
 4. Implemente uma fatia pequena e atualize a feature com evidências reais.
 5. Peça revisão a outro integrante antes de integrar à branch principal.
 
-**Execução local:** ainda não existem comandos verificados. A primeira feature de infraestrutura deve documentar pré-requisitos, variáveis, migrações, inicialização e comandos reais depois de implementados.
+**Execução local da API:** consulte [apps/api/README.md](apps/api/README.md) para variáveis de ambiente, PostgreSQL, Neo4j, migrações, bootstrap do operador, endpoints e testes. Os comandos foram documentados; a validação depende do CI e do ambiente usado.
 
 ## Disciplinas
 

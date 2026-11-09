@@ -36,17 +36,10 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Restore and build
         run: dotnet build tests/Api.Tests/Api.Tests.csproj -c Release
-      - name: Generate initial migration if absent
+      - name: Verify committed EF migrations
         run: |
           dotnet tool install --global dotnet-ef --version 10.0.4
-          if ! find apps/api/Data/Migrations -name '*Initial*.cs' | grep -q .; then
-            dotnet ef migrations add Initial --project apps/api --output-dir Data/Migrations
-          fi
-          python3 - <<'PY'
-          import pathlib,base64
-          for p in pathlib.Path('apps/api/Data/Migrations').glob('*.cs'):
-              print('MIGRATION_FILE',str(p),base64.b64encode(p.read_bytes()).decode())
-          PY
+          dotnet ef migrations has-pending-model-changes --project apps/api
       - name: Wait for Neo4j
         run: |
           for i in $(seq 1 30); do

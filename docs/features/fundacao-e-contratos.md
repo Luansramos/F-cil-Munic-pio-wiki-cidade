@@ -1,19 +1,16 @@
 # Feature — Fundação e contratos
 
-- Status: planejada
-- Responsável sugerido: P1; apoio P3 e P5
-- Backlog: A1–A6
+- Status: **implementação na branch `feat/soa-csharp-api`; verificação no GitHub Actions em andamento**
+- Backlog: A2, A3, B1, B2, H3, H5
 
-## Objetivo e escopo
+## Entrega SOA e C#
 
-Preparar monorepo, ambiente local, contratos, ficha da CitizenTech e registro de prompts. Definir acesso à LLM e versões compatíveis sem expor credenciais.
+A API em `apps/api/` utiliza ASP.NET Core 10, EF Core PostgreSQL, interfaces/DI, async/await, JWT, Swagger e testes. A migração inicial está versionada em `apps/api/Data/Migrations`. Bancos locais em `compose.yaml`.
 
-## Integração e critérios de aceite
+## Integração e segurança
 
-- Bancos iniciam com instruções reproduzíveis e a API conecta.
-- Esquemas compartilhados são definidos; exemplo de LLM segue o contrato.
-- README, ficha, configuração sem segredos e registro de prompts são atualizados.
+Rotas públicas `/api/v1/municipios`, `/api/v1/municipios/{id}/servicos` e `/api/v1/municipios/{id}/conversas`, camelCase. Administrador utiliza bearer JWT e isolamento por município no backend. Contratos em [contratos](../contratos-de-integracao.md).
 
-## Verificações e pendências
+## Verificação e pendências
 
-Não implementado nem verificado. Selecionar provedor da LLM e versões; registrar comandos e resultados reais.
+`dotnet build tests/Api.Tests/Api.Tests.csproj -c Release`; `dotnet test tests/Api.Tests/Api.Tests.csproj -c Release` com PostgreSQL/Neo4j configurados. Registrar resultado final de CI após execução. Provedor real de LLM e integração com consumidores ainda pendentes; não há segredos no repositório.

@@ -1,19 +1,18 @@
 # Feature — Consulta e aplicativo do cidadão
 
-- Status: planejada
-- Responsável sugerido: P2; API P1 e LLM P3
-- Backlog: D1–D8
+- Status: **API pública criada; Expo ainda depende de integração do time**
+- Backlog: D1–D3 e contratos de D5
 
-## Objetivo e integração
+## Contrato de leitura
 
-Selecionar município, perguntar em linguagem natural e receber orientação com fontes da wiki publicada. App Expo → API → grafo → LLM com contexto recuperado. O app mantém histórico local e não abre protocolos municipais.
+`GET /api/v1/municipios`, `GET /api/v1/municipios/{id}/servicos` e `POST /api/v1/municipios/{id}/conversas` (sem autenticação) estão na API. O app deve salvar histórico somente no dispositivo. Resposta devolve fontes realmente guardadas no grafo; na falta de evidência informa insuficiência.
 
-## Critérios de aceite
+`ConversationService` restringe o grafo à cidade/versão ativa, higieniza texto transitório para CPF/e-mail/senha, aplica timeout, valida IDs que o respondedor tenta citar e retorna fontes do grafo, nunca do texto gerado.
 
-- Os três temas do piloto podem ser consultados e a fonte aberta.
-- Conteúdo de outro município não aparece.
-- Sem evidência, o usuário é informado; histórico persiste após reiniciar.
+## Modo de demonstração
 
-## Verificações e pendências
+`Llm__Mode=demo` ativa `DemoGroundedWiki`, um algoritmo determinístico que usa apenas texto revisado. Não é LLM real e não implementa `ExtrairAsync`. Foi pensado para os protótipos de tela que mostram status **Demonstração**. Perguntas com detalhes específicos ausentes na evidência retornam `informacaoSuficiente=false`.
 
-Não implementado nem verificado. Registrar perguntas, fontes, falhas e vídeo do app de até 3 minutos.
+## Verificação e pendências
+
+Testes unitários do respondedor e teste HTTP/Neo4j no CI; integração visual com Expo, fontes reais do piloto, LLM real e histórico SQLite permanecem com as respectivas features.
