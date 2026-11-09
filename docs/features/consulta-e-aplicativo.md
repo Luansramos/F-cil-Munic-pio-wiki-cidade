@@ -1,22 +1,29 @@
-# Feature — Consulta e aplicativo do cidadão
+# Consulta de serviços e integração com o aplicativo
 
-- Status: **API pública criada; Expo ainda depende de integração do time**
-- Backlog: D1–D3 e contratos de D5
+**Status:** endpoints públicos implementados; ligação com a tela de conversa do Expo pendente.
 
-## Contrato de leitura
+**Backlog:** D1–D3 e contrato da D5.
 
-`GET /api/v1/municipios`, `GET /api/v1/municipios/{id}/servicos` e `POST /api/v1/municipios/{id}/conversas` (sem autenticação) estão na API. O app deve salvar histórico somente no dispositivo. Resposta devolve fontes realmente guardadas no grafo; na falta de evidência informa insuficiência.
+## O que a API oferece
 
-`ConversationService` restringe o grafo à cidade/versão ativa, higieniza texto transitório para CPF/e-mail/senha, aplica timeout, valida IDs que o respondedor tenta citar e retorna fontes do grafo, nunca do texto gerado.
+O aplicativo pode listar municípios, consultar os serviços publicados e enviar perguntas pelas rotas:
 
-## Modo de demonstração
+- `GET /api/v1/municipios`
+- `GET /api/v1/municipios/{id}/servicos`
+- `POST /api/v1/municipios/{id}/conversas`
 
-`Llm__Mode=demo` ativa `DemoGroundedWiki`, um algoritmo determinístico que usa apenas texto revisado. Não é LLM real e não implementa `ExtrairAsync`. Foi pensado para os protótipos de tela que mostram status **Demonstração**. Perguntas com detalhes específicos ausentes na evidência retornam `informacaoSuficiente=false`.
+A resposta inclui o texto, os serviços relacionados, as fontes e `informacaoSuficiente`. Se o serviço tiver um canal cadastrado, a API também informa `canalOficialUrl`.
 
-## Verificação e pendências
+A consulta recupera somente serviços da versão ativa do município escolhido. O texto enviado é tratado para não repassar alguns padrões de CPF, e-mail e senha ao respondedor. A API não grava perguntas nem histórico.
 
-Testes unitários do respondedor e teste HTTP/Neo4j: 14 testes automatizados passaram no CI de 09/11/2026; integração visual com Expo, LLM real e histórico SQLite permanecem com as respectivas features.
+## Demonstração e testes
 
-## Ajuste do contrato de integração (09/11/2026)
+Enquanto não há LLM real, `Llm__Mode=demo` permite consultar o conteúdo publicado por uma rotina determinística. Ela usa apenas a descrição, as etapas e os requisitos revisados. Se a fonte não sustentar um detalhe da pergunta, a API informa que não há dados suficientes.
 
-Quando há um único canal do serviço publicado, a API retorna `canalOficialUrl` a partir do serviço revisado no grafo, inclusive no modo demonstrativo. O teste real por HTTP com uma fonte de Poá validou esse campo, o texto fundamentado e a URL da fonte. Para o mobile, definir `EXPO_PUBLIC_API_URL` com sufixo **`/api/v1`** e `EXPO_PUBLIC_USAR_MOCK=false` quando houver backend acessível; isso **ainda não foi executado no app**.
+O [workflow de 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42718137116) passou com 14 testes e com o roteiro HTTP que retorna uma orientação sobre Cata Treco acompanhada da fonte. O roteiro também pergunta sobre atendimento aos sábados, que não está confirmado nas informações usadas.
+
+## Para conectar com o Expo
+
+O cliente do mobile monta caminhos como `/municipios`. Por isso, quando ele estiver apontando para a API real, a variável `EXPO_PUBLIC_API_URL` deve terminar em `/api/v1`, e `EXPO_PUBLIC_USAR_MOCK` deve estar em `false`.
+
+A integração precisa ser feita e testada pelo responsável pelo aplicativo. O funcionamento do endpoint no CI não comprova que a tela Expo já esteja consumindo a API.
