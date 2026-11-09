@@ -35,7 +35,9 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - name: Restore and build
-        run: dotnet build tests/Api.Tests/Api.Tests.csproj -c Release
+        run: |
+          dotnet build tests/Api.Tests/Api.Tests.csproj -c Release
+          python3 -m py_compile scripts/demo_fluxo_http.py
       - name: Verify committed EF migrations
         run: |
           dotnet tool install --global dotnet-ef --version 10.0.4
@@ -52,6 +54,10 @@ jobs:
       - name: Collect runnable API evidence
         run: |
           mkdir -p test-results
+          export Bootstrap__Email="operador@example.test"
+          export Bootstrap__Password="$(openssl rand -hex 20)"
+          dotnet run --project apps/api -c Release --no-build -- --bootstrap
+          export Llm__Mode=demo
           dotnet run --project apps/api -c Release --no-build -- --urls http://127.0.0.1:5055 >/tmp/facil-api-smoke.log 2>&1 &
           api_pid=$!
           trap 'kill "$api_pid" 2>/dev/null || true' EXIT
@@ -63,6 +69,7 @@ jobs:
           if [ "$ready" -ne 1 ]; then cat /tmp/facil-api-smoke.log; exit 1; fi
           curl -fsS http://127.0.0.1:5055/api/v1/municipios -o test-results/municipios.json
           curl -fsS http://127.0.0.1:5055/swagger/v1/swagger.json -o test-results/openapi.json
+          python3 scripts/demo_fluxo_http.py
           # Real browser screenshots from the API running inside the CI runner.
           browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
           if [ -n "$browser" ]; then
