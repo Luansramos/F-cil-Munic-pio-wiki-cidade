@@ -20,7 +20,7 @@ A consulta recupera somente serviços da versão ativa do município escolhido. 
 
 Enquanto não há LLM real, `Llm__Mode=demo` permite consultar o conteúdo publicado por uma rotina determinística. Ela usa apenas a descrição, as etapas e os requisitos revisados. Se a fonte não sustentar um detalhe da pergunta, a API informa que não há dados suficientes.
 
-O [workflow de 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42718137116) passou com 14 testes e com o roteiro HTTP que retorna uma orientação sobre Cata Treco acompanhada da fonte. O roteiro também pergunta sobre atendimento aos sábados, que não está confirmado nas informações usadas.
+O [workflow de 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42721825544) passou com 37 testes e com o roteiro HTTP que retorna uma orientação sobre Cata Treco acompanhada da fonte. O roteiro também pergunta sobre atendimento aos sábados, que não está confirmado nas informações usadas.
 
 ## Para conectar com o Expo
 
