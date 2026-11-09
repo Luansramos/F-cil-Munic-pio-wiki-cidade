@@ -16,7 +16,7 @@ Também existe a rota de extração `POST /api/v1/fontes/{id}/extracoes`, mas ai
 
 O teste de integração em `tests/Api.Tests/IntegrationTests.cs` confere autorização, cadastro, revisão desatualizada e bloqueio de publicação antes da aprovação.
 
-O roteiro `scripts/demo_fluxo_http.py` usa uma fonte pública de Poá sobre Cata Treco, cria e aprova um rascunho e publica o serviço. Foi executado com sucesso no [GitHub Actions](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42718137116).
+O roteiro `scripts/demo_fluxo_http.py` usa uma fonte pública de Poá sobre Cata Treco, cria e aprova um rascunho e publica o serviço. Foi executado com sucesso no [GitHub Actions](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42721825544).
 
 ## Pendente
 
