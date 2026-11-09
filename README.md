@@ -4,6 +4,23 @@ Plataforma configurável para prefeituras organizarem informações oficiais de 
 
 O nome usado anteriormente nos documentos é **Nexo Cidadão**. A equipe pode padronizar o nome de produto posteriormente.
 
+## Ficha da CitizenTech — apresentação comum
+
+| Campo | Informação |
+|---|---|
+| Nome da solução | Fácil Município — Wiki Cidade |
+| Cidade piloto | Poá, São Paulo; referências a serviços urbanos, sem parceria declarada com a prefeitura |
+| Cidadãos beneficiados | Moradores que precisam encontrar orientações e canais de serviços urbanos |
+| Problema | Informações públicas estão distribuídas e pode ser difícil localizar o serviço e o contato correto |
+| Funcionamento | Administrador cadastra a fonte, revisa um serviço, publica no grafo e o cidadão consulta uma resposta com fonte |
+| Componentes | API C#/.NET + PostgreSQL para revisão + Neo4j para conhecimento publicado; Expo e React previstos para as interfaces; LLM real pendente |
+| Indicadores de impacto propostos | Proporção de respostas com fonte verificável e acerto das orientações em perguntas de avaliação |
+| ODS 11 | Facilitar o acesso a serviços urbanos e a informação sobre a cidade |
+| ODS 16 | Contribuir para transparência, acesso à informação pública e orientação cidadã |
+| Equipe | **Integrantes ainda não confirmados neste repositório. Preencher nomes verdadeiros antes do envio.** |
+
+Os indicadores são **propostos** e ainda não representam impacto medido. O cenário automatizado do backend não comprova a integração com a interface Expo ou com uma LLM real.
+
 ## Problema e proposta
 
 O cidadão pode ter dificuldade para descobrir o serviço certo, compreender requisitos e encontrar o canal adequado. O produto ajuda a prefeitura a manter uma wiki de serviços e o cidadão a consultar seu conteúdo em linguagem natural.
@@ -16,7 +33,7 @@ Poá é a referência inicial para coleta de lixo, iluminação pública e Cata 
 
 O repositório contém planejamento, infraestrutura Linux e uma API ASP.NET Core desenvolvida em branch de feature. O backend implementa cadastros, autenticação, revisão, publicação versionada no Neo4j e contratos públicos; a integração com uma LLM real e o aplicativo completo são trabalhos separados. Confira sempre a branch e os testes antes de afirmar que houve integração ponta a ponta.
 
-O primeiro marco é uma fatia completa: fonte → proposta → revisão → publicação no grafo → pergunta no aplicativo → resposta com fonte.
+O primeiro marco é uma fatia completa: fonte → proposta → revisão → publicação no grafo → pergunta no aplicativo → resposta com fonte. O backend já tem uma demonstração automatizada com fonte oficial, **rascunho manual**, revisão, grafo e resposta REST com fonte; o aplicativo e a LLM real ainda dependem dos responsáveis pelas respectivas frentes.
 
 ## Arquitetura planejada
 
@@ -83,6 +100,10 @@ Cada feature registra problema, escopo, contratos, dependências, critérios de 
 5. Peça revisão a outro integrante antes de integrar à branch principal.
 
 **Execução local da API:** consulte [apps/api/README.md](apps/api/README.md) para variáveis de ambiente, PostgreSQL, Neo4j, migrações, bootstrap do operador, endpoints e testes. Os comandos foram documentados; a validação depende do CI e do ambiente usado.
+
+## Evidências de SOA e C#
+
+O teste automatizado [demo_fluxo_http.py](scripts/demo_fluxo_http.py) registra a sequência HTTP fonte → rascunho manual → revisão → publicação no Neo4j → pergunta → resposta fundamentada; as evidências do GitHub Actions ficam documentadas em [evidências SOA/C#](docs/evidencias-soa-csharp.md). A especificação completa e os detalhes de execução constam em [apps/api/README.md](apps/api/README.md).
 
 ## Disciplinas
 
