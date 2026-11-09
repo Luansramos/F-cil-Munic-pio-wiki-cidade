@@ -1,16 +1,23 @@
-# Feature — Fontes e revisão da wiki
+# Cadastro de fontes e revisão
 
-- Status: **API implementada na branch, painel web e LLM real pendentes**
-- Backlog: B1–B8
+**Status:** endpoints administrativos implementados. A tela do painel e a extração por LLM ainda não foram integradas.
 
-## O que foi implementado
+**Backlog:** B1–B8, com foco nas etapas de API.
 
-Admin autorizado cadastra fonte com URL HTTPS, título, texto e data; fonte pertence a um único município. Pode gerar rascunho manual de serviço, consultar e editar rascunho com `revisaoEsperada` (controle de concorrência), marcar como aprovado e publicar somente após revisão. `ExtrairAsync` está isolado por interface; sem provedor de LLM retorna indisponibilidade, não simula extração como se fosse IA real.
+## O que foi feito
 
-## Critérios e verificação
+O administrador pode cadastrar uma fonte com município, título, URL, texto e data de consulta. O cadastro não publica nada automaticamente.
 
-Testar login, acesso de outro município (403), validação de URL, estado não aprovado (409), atualização com revisão vencida (409), texto de fonte não publicado automaticamente. Teste de integração está em `tests/Api.Tests/IntegrationTests.cs`, dependente dos bancos reais do CI.
+A API permite criar um rascunho de serviço, consultar seu conteúdo e salvar alterações. Cada revisão gera um identificador próprio; se alguém tentar salvar uma revisão antiga, a API recusa a alteração. Somente rascunhos aprovados podem ser publicados.
 
-## Pendências
+Também existe a rota de extração `POST /api/v1/fontes/{id}/extracoes`, mas ainda não há um provedor de LLM configurado. Por isso, no cenário de demonstração o rascunho é criado manualmente.
 
-Integração do painel, escolha do provedor de LLM e teste de extração com fonte pública realmente verificada de Poá.
+## Verificação
+
+O teste de integração em `tests/Api.Tests/IntegrationTests.cs` confere autorização, cadastro, revisão desatualizada e bloqueio de publicação antes da aprovação.
+
+O roteiro `scripts/demo_fluxo_http.py` usa uma fonte pública de Poá sobre Cata Treco, cria e aprova um rascunho e publica o serviço. Foi executado com sucesso no [GitHub Actions](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42718137116).
+
+## Pendente
+
+Construir o formulário e a tela de revisão no painel, configurar a LLM real e verificar as informações dos demais serviços do piloto.
