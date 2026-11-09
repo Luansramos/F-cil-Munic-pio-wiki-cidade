@@ -63,6 +63,16 @@ jobs:
           if [ "$ready" -ne 1 ]; then cat /tmp/facil-api-smoke.log; exit 1; fi
           curl -fsS http://127.0.0.1:5055/api/v1/municipios -o test-results/municipios.json
           curl -fsS http://127.0.0.1:5055/swagger/v1/swagger.json -o test-results/openapi.json
+          # Real browser screenshots from the API running inside the CI runner.
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$browser" ]; then
+            timeout 35s "$browser" --headless --no-sandbox --disable-gpu --hide-scrollbars --window-size=1440,1100 --virtual-time-budget=5000 --screenshot=test-results/swagger-ui.png http://127.0.0.1:5055/swagger/index.html
+            timeout 35s "$browser" --headless --no-sandbox --disable-gpu --hide-scrollbars --window-size=1100,850 --virtual-time-budget=1800 --screenshot=test-results/health-browser.png http://127.0.0.1:5055/health
+            test -s test-results/swagger-ui.png
+            test -s test-results/health-browser.png
+          else
+            echo "::warning::Browser not present; screenshots were not created"
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
