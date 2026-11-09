@@ -1,41 +1,43 @@
-# Fácil Município — API para SOA e C#
+# API — SOA e C#
 
-API REST ASP.NET Core (.NET 10) para o mesmo projeto CitizenTech do painel React e do aplicativo Expo. **Não é um serviço separado por disciplina:** uma implementação demonstra os conteúdos de SOA e C#.
+A API do Fácil Município foi desenvolvida em ASP.NET Core 10. Ela cuida das operações administrativas e permite que o aplicativo consulte os serviços publicados de cada cidade. É o mesmo backend usado nas entregas de SOA e C#.
 
-## O que está implementado
+## Organização
 
-- POO: entidades `Municipio`, `Usuario`, `Fonte`, `Rascunho` e `Versao`; revisão aprovada por método de domínio.
-- Interfaces/injeção de dependência: `IKnowledgeGraph`, `ILlmWiki`, `PublicationService`, `ConversationService`.
-- EF Core + LINQ + PostgreSQL para entidades administrativas, migração inicial versionada e consultas sem tracking.
-- Neo4j para serviços aprovados, etapas, requisitos, órgão, canal e vínculo à fonte.
-- Publicação versionada: grava primeiro uma versão do grafo e só depois ativa a versão no PostgreSQL; a anterior continua legível se a operação falhar.
-- ASP.NET Core Web API, autenticação JWT para administradores, autorização de município no servidor, Swagger e endpoints públicos sem autenticação.
-- Operações assíncronas com `async/await`, `CancellationToken` e limite de tempo para respostas.
-- Testes unitários e teste de integração concebido para PostgreSQL + Neo4j reais no GitHub Actions.
+O código fica em `apps/api/`:
 
-## Pré-requisitos
+- `Domain/`: entidades e regras de revisão.
+- `Data/`: `AppDbContext`, configurações do Entity Framework Core e migrações.
+- `Controllers/`: endpoints REST para autenticação, administração e consulta pública.
+- `Services/`: publicação no Neo4j, consulta e montagem das respostas.
+- `Security/`: identificação do administrador e tratamento básico de dados sensíveis.
+- `Contracts/`: objetos de requisição e resposta.
 
-.NET SDK **10**, Docker com Compose, Git. Instale o EF CLI se for criar novas migrações (`dotnet tool install --global dotnet-ef --version 10.0.4`). O código usa PostgreSQL 17 e Neo4j 5.26 Community como referência de desenvolvimento.
+O PostgreSQL guarda municípios, usuários, fontes, rascunhos e versões. O Neo4j guarda os serviços publicados e os vínculos com as fontes. Antes de disponibilizar um serviço, o administrador precisa aprovar o rascunho. Se a publicação falhar, a versão anterior continua ativa.
 
-## Configuração local
+A API usa interfaces, injeção de dependência, EF Core, LINQ, `async/await` e autenticação JWT nas rotas administrativas. As consultas do cidadão não exigem login.
 
-1. Na raiz: copie `.env.example` para `.env` e escolha senhas **locais fictícias**, exclusivas para o desenvolvimento. Nunca versione `.env`.
-2. Execute `docker compose up -d` para iniciar bancos. PostgreSQL fica em `localhost:5432` e Neo4j Bolt em `localhost:7687`.
-3. Defina as variáveis da API no terminal (exemplo com valores **substituídos** pelo ambiente):
+## Como executar
+
+Pré-requisitos: .NET SDK 10, Docker com Compose e Git.
+
+1. Na raiz, copie `.env.example` para `.env` e substitua as senhas de exemplo por senhas locais. O arquivo `.env` não deve ser enviado ao GitHub.
+2. Execute `docker compose up -d` para iniciar PostgreSQL e Neo4j.
+3. Configure as variáveis da API no terminal:
 
 ```bash
 export ConnectionStrings__Postgres="Host=localhost;Database=facil_municipio;Username=facil;Password=<SENHA_POSTGRES>"
 export Neo4j__Uri="bolt://localhost:7687"
 export Neo4j__User="neo4j"
 export Neo4j__Password="<SENHA_NEO4J>"
-export Jwt__Key="<CHAVE_ALEATORIA_DE_PELO_MENOS_32_BYTES>"
+export Jwt__Key="<CHAVE_ALEATORIA_COM_PELO_MENOS_32_BYTES>"
 export Bootstrap__Email="operador@example.test"
 export Bootstrap__Password="<SENHA_LOCAL_COM_12_OU_MAIS_CARACTERES>"
 ```
 
-Os dados acima são apenas **marcadores de configuração**, não credenciais prontas. Em Bash, `openssl rand -hex 32` gera uma chave de desenvolvimento adequada para `Jwt__Key`.
+Os valores entre `< >` são marcadores, não senhas funcionais. Para gerar uma chave JWT no terminal, pode ser usado `openssl rand -hex 32`.
 
-4. Com os serviços prontos, na raiz do repositório:
+4. Aplique a migração, crie o operador inicial e inicie a API:
 
 ```bash
 dotnet restore tests/Api.Tests/Api.Tests.csproj
@@ -44,74 +46,69 @@ dotnet run --project apps/api -- --bootstrap
 dotnet run --project apps/api
 ```
 
-A API documenta rotas em `/swagger`, disponibiliza `/health` e utiliza prefixo **`/api/v1`**. A URL/porta local é mostrada pelo comando `dotnet run`.
+O terminal informa a porta da API. O Swagger fica em `/swagger` e a rota de verificação em `/health`.
 
-Para executar a integração localmente, mantenha bancos ligados e execute `dotnet test tests/Api.Tests/Api.Tests.csproj`. Os testes precisam das variáveis de configuração acima; o cenário de CI configura seu próprio ambiente isolado. O teste cria apenas cidades, contas e serviços fictícios.
+## Endpoints
 
-## Contratos principais (camelCase)
+Todas as rotas abaixo, exceto `/swagger` e `/health`, começam com `/api/v1`.
 
-Públicos, **sem login**:
-- `GET /api/v1/municipios`
-- `GET /api/v1/municipios/{id}/servicos`
-- `POST /api/v1/municipios/{id}/conversas` — envia `{"pergunta":"Como solicito a retirada de um sofá?","historico":[]}`.
+| Método | Rota | Uso |
+|---|---|---|
+| POST | `/auth/login` | Login do administrador |
+| POST | `/municipios` | Cadastrar município (operador) |
+| POST | `/usuarios` | Cadastrar usuário (operador) |
+| POST | `/municipios/{id}/fontes` | Cadastrar fonte |
+| GET | `/municipios/{id}/fontes` | Consultar fontes cadastradas |
+| POST | `/fontes/{id}/rascunhos` | Criar rascunho manual |
+| POST | `/fontes/{id}/extracoes` | Solicitar extração (LLM real ainda não configurada) |
+| GET | `/rascunhos/{id}` | Consultar rascunho |
+| PUT | `/rascunhos/{id}` | Revisar rascunho |
+| POST | `/rascunhos/{id}/publicacao` | Publicar versão aprovada |
+| GET | `/municipios/{id}/versoes` | Consultar versões |
+| GET | `/municipios` | Listar municípios (pública) |
+| GET | `/municipios/{id}/servicos` | Listar serviços publicados (pública) |
+| POST | `/municipios/{id}/conversas` | Enviar pergunta (pública) |
 
-Resposta: `resposta`, `servicosRelacionados` (IDs), `fontes` (`titulo`, `url`, `dataConsulta`), `informacaoSuficiente` e `canalOficialUrl` quando conhecido. O sistema **não persiste** pergunta ou histórico; o aplicativo deve guardar o histórico localmente.
+A rota de conversa recebe, por exemplo:
 
-Administrativos, requerem `Authorization: Bearer <token>`:
-- `POST /api/v1/auth/login`
-- `POST /api/v1/municipios` e `POST /api/v1/usuarios` (somente operador)
-- `POST /api/v1/municipios/{id}/fontes`, `GET /api/v1/municipios/{id}/fontes`
-- `POST /api/v1/fontes/{id}/rascunhos` (rascunho manual para integração)
-- `POST /api/v1/fontes/{id}/extracoes` (depende de provedor real de LLM)
-- `GET /api/v1/rascunhos/{id}`, `PUT /api/v1/rascunhos/{id}`
-- `POST /api/v1/rascunhos/{id}/publicacao`
-- `GET /api/v1/municipios/{id}/versoes`
+```json
+{
+  "pergunta": "Como solicito a retirada de um sofá?",
+  "historico": []
+}
+```
 
-O operador inicial deve ser criado com o argumento `--bootstrap`; admins comuns só acessam o município autorizado.
+A resposta traz o texto de orientação, os serviços relacionados, as fontes, a indicação `informacaoSuficiente` e, quando cadastrado, o campo `canalOficialUrl`. A API não salva as perguntas dos cidadãos. O histórico fica sob responsabilidade do aplicativo.
 
-## Demonstração de consulta fundamentada
+## Demonstração com Cata Treco
 
-**Sem credenciais de provedor LLM:** a implementação padrão não inventa respostas e retorna indisponibilidade quando a base tem informações publicadas que precisariam de uma LLM. Para exibir a jornada de perguntas no protótipo sem depender de um serviço externo, configure `Llm__Mode=demo`: um respondedor **determinístico, não uma LLM**, seleciona o serviço a partir dos termos da pergunta e monta a orientação somente com descrição, etapas e requisitos publicados no grafo. Perguntas sobre detalhes não documentados (por exemplo, sábado ou lixo eletrônico) retornam `informacaoSuficiente: false`. As URLs devolvidas são recuperadas da fonte armazenada no grafo, nunca sugeridas pelo respondedor.
+Para testar o fluxo de SOA e C#, criamos o roteiro `scripts/demo_fluxo_http.py`. Ele usa informações de uma [publicação da Prefeitura de Poá sobre o Cata Treco](https://poa.sp.gov.br/programa-cata-treco-reforca-limpeza-urbana-e-evita-descarte-irregular-em-poa/).
 
-O modo demonstrativo **não** implementa extração por LLM: enquanto o provedor e a chave não forem definidos, cadastre a fonte, crie o rascunho manual, revise, aprove e publique. Para homologar a LLM real, integrar uma implementação de `ILlmWiki` e testar extração e geração sem fatos inventados.
+O roteiro cadastra a fonte, cria um rascunho manual, faz a revisão, publica no Neo4j e envia uma pergunta à API. Depois verifica se a resposta contém o serviço, a orientação e o link da fonte. Também testa a falta de informação sobre atendimento aos sábados e a separação entre municípios.
 
-## Demonstração do fluxo completo **no backend**
-
-O workflow de CI executa [scripts/demo_fluxo_http.py](../../scripts/demo_fluxo_http.py) após iniciar PostgreSQL, Neo4j e a API em modo demonstrativo.
-
-1. Cria um município de demonstração separado de municípios de produção.
-2. Cadastra uma fonte pública da Prefeitura de Poá: [Programa Cata Treco reforça limpeza urbana](https://poa.sp.gov.br/programa-cata-treco-reforca-limpeza-urbana-e-evita-descarte-irregular-em-poa/), notícia de 24/07/2025.
-3. Registra um **rascunho manual**, revisa e aprova por usuário administrador.
-4. Publica a versão aprovada no Neo4j e repete a publicação para verificar idempotência.
-5. Consulta o serviço e pergunta "Como solicito a retirada de um sofá?" pela API.
-6. Valida orientação fundamentada, link da fonte e URL do canal oficial vindos da base revisada.
-7. Confere que não há resposta sem publicação, que sábado não é afirmado sem evidência e que outro município não consegue ler os dados.
-
-As evidências são gravadas em `test-results/demo-fluxo-http.json` no artefato GitHub Actions. Não incluem senhas ou tokens.
-
-**Atenção:** o fluxo demonstra o **backend real**, mas a extração não é feita por LLM — o rascunho é inserido e revisado manualmente. A resposta usa `Llm__Mode=demo` (algoritmo determinístico). A conexão visual ao aplicativo Expo depende do outro integrante; não afirmar que já foi testada.
-
-Para repetir após configurar o banco, migrar e criar o operador:
+Para repetir localmente, configure `Llm__Mode=demo` **antes de iniciar a API**. Com os bancos e o operador preparados, rode:
 
 ```bash
-# Terminal 1 (na raiz)
+# Terminal 1
 export Llm__Mode=demo
 dotnet run --project apps/api -- --urls http://127.0.0.1:5055
 
-# Terminal 2 (na raiz, com Bootstrap__Email e Bootstrap__Password)
+# Terminal 2 (com Bootstrap__Email e Bootstrap__Password definidos)
 python3 scripts/demo_fluxo_http.py
 ```
 
-A demonstração utiliza apenas dados públicos documentados e IDs de município com sufixo aleatório para evitar confusão com cadastros reais. Antes de divulgar orientações ao público, o grupo deve conferir se a fonte municipal continua atual.
+O modo `demo` não chama uma LLM. Ele apenas monta a resposta usando as informações que já foram revisadas e publicadas. A extração com LLM real e a integração com a tela do Expo ainda não foram concluídas.
 
-## Verificação e pendências
+## Testes e evidências
 
-Os testes automatizados abrangem revisão, privacidade básica, validação, isolamento entre municípios, autorização, publicação idempotente, rollback em falha do grafo, fontes e Swagger. Consulte a execução real do workflow `API SOA e CSharp` e as features atualizadas antes de marcar uma entrega como validada. Não foram incluídas fontes oficiais fictícias de Poá, chave de LLM, integração pronta com o Expo, nem evidências de tela inventadas.
+Com PostgreSQL e Neo4j configurados, execute:
 
-## Rubrica das disciplinas
+```bash
+dotnet test tests/Api.Tests/Api.Tests.csproj -c Release
+```
 
-**SOA (10 pts):** estrutura de domínio (3), banco EF/Postgres (3), migrações (1,5), documentação automática (1,5), testes (1).
+O GitHub Actions executa esses testes com os bancos, valida as migrações e roda o roteiro HTTP. A [execução de 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42718137116) passou com 14 testes aprovados e o cenário HTTP concluído.
 
-**C# (10 pts):** POO (3), Web API (2,5), EF Core + LINQ (1,5), `async/await` (1), qualidade (2).
+As evidências e a relação com a rubrica estão em [docs/evidencias-soa-csharp.md](../../docs/evidencias-soa-csharp.md). Os detalhes do contrato com o aplicativo estão em [docs/contratos-de-integracao.md](../../docs/contratos-de-integracao.md).
 
-Veja também [contratos compartilhados](../../docs/contratos-de-integracao.md) e [documentação das features](../../docs/features/README.md).
+A API foi testada no ambiente automatizado. A equipe ainda precisa testar a integração com o Expo, adicionar os nomes dos integrantes no README principal e conferir as fontes antes da apresentação.
