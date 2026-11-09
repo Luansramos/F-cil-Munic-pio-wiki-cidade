@@ -104,7 +104,17 @@ public class IntegrationTests
         await Json(await admin.PostAsync($"/api/v1/rascunhos/{draftId}/publicacao", null));
         Assert.Single(await citizen.GetFromJsonAsync<ServicoDto[]>($"/api/v1/municipios/{city}/servicos") ?? []);
         // OpenAPI generation and rate-limit behavior are verified through actual HTTP middleware.
-        Assert.Equal(HttpStatusCode.OK, (await citizen.GetAsync("/swagger/v1/swagger.json")).StatusCode);
+        var openApi = await Json(await citizen.GetAsync("/swagger/v1/swagger.json"));
+        var authScheme = openApi.GetProperty("components")
+            .GetProperty("securitySchemes")
+            .GetProperty("bearer");
+        Assert.Equal("http", authScheme.GetProperty("type").GetString());
+        var paths = openApi.GetProperty("paths");
+        var cityOperations = paths.GetProperty("/api/v1/municipios");
+        Assert.False(cityOperations.GetProperty("get").TryGetProperty("security", out _));
+        Assert.True(cityOperations.GetProperty("post").TryGetProperty("security", out _));
+        Assert.False(paths.GetProperty("/api/v1/auth/login").GetProperty("post")
+            .TryGetProperty("security", out _));
         HttpResponseMessage? last = null;
         for (var i = 0; i < 12; i++) last = await citizen.PostAsJsonAsync($"/api/v1/municipios/{other}/conversas", new { pergunta = "Teste" });
         Assert.Equal(HttpStatusCode.TooManyRequests, last!.StatusCode);
