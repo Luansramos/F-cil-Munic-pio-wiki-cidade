@@ -13,38 +13,38 @@ public record RespostaConversa(string Resposta, string[] ServicosRelacionados, F
         [], [], false, canal);
 }
 public record TrocaResumida(
-    [property: Required, StringLength(1000, MinimumLength = 1)] string Pergunta,
-    [property: Required, StringLength(1000, MinimumLength = 1)] string Resposta);
+    [param: Required, StringLength(1000, MinimumLength = 1)] string Pergunta,
+    [param: Required, StringLength(1000, MinimumLength = 1)] string Resposta);
 public record EnvioPergunta(
-    [property: Required, StringLength(500, MinimumLength = 1)] string Pergunta,
-    [property: MaxLength(3)] TrocaResumida[]? Historico);
+    [param: Required, StringLength(500, MinimumLength = 1)] string Pergunta,
+    [param: MaxLength(3)] TrocaResumida[]? Historico);
 public record LoginRequest(
-    [property: Required, EmailAddress, StringLength(254)] string Email,
-    [property: Required, StringLength(200, MinimumLength = 1)] string Senha);
+    [param: Required, EmailAddress, StringLength(254)] string Email,
+    [param: Required, StringLength(200, MinimumLength = 1)] string Senha);
 public record CriarMunicipio(
-    [property: Required, RegularExpression("^[a-z0-9-]{1,60}$")] string Id,
-    [property: Required, StringLength(150, MinimumLength = 1)] string Nome,
-    [property: Required, RegularExpression("^[A-Z]{2}$")] string Uf,
-    [property: HttpsUrl] string? CanalOficialUrl);
+    [param: Required, RegularExpression("^[a-z0-9-]{1,60}$")] string Id,
+    [param: Required, StringLength(150, MinimumLength = 1)] string Nome,
+    [param: Required, RegularExpression("^[A-Z]{2}$")] string Uf,
+    [param: HttpsUrl] string? CanalOficialUrl);
 public record CriarUsuario(
-    [property: Required, EmailAddress, StringLength(254)] string Email,
-    [property: Required, StringLength(200, MinimumLength = 12)] string Senha,
-    [property: Required] string MunicipioId);
+    [param: Required, EmailAddress, StringLength(254)] string Email,
+    [param: Required, StringLength(200, MinimumLength = 12)] string Senha,
+    [param: Required] string MunicipioId);
 public record CriarFonte(
-    [property: Required, StringLength(200, MinimumLength = 1)] string Titulo,
-    [property: Required, HttpsUrl] string Url,
-    [property: Required, StringLength(30000, MinimumLength = 1)] string Texto,
+    [param: Required, StringLength(200, MinimumLength = 1)] string Titulo,
+    [param: Required, HttpsUrl] string Url,
+    [param: Required, StringLength(30000, MinimumLength = 1)] string Texto,
     DateOnly DataConsulta);
 // One reviewed source supports this service. The graph stores each component linked to it.
 public record ServicoRevisado(
-    [property: Required, RegularExpression("^[a-z0-9-]{1,60}$")] string Id,
-    [property: Required, StringLength(150, MinimumLength = 1)] string Nome,
-    [property: Required, StringLength(4000, MinimumLength = 1)] string Descricao,
-    [property: StringLength(200)] string? Orgao,
-    [property: Required, MaxLength(20)] string[] Etapas,
-    [property: Required, MaxLength(20)] string[] Requisitos,
-    [property: HttpsUrl] string? CanalUrl,
-    [property: Required, MaxLength(30)] string[] Termos) : IValidatableObject
+    [param: Required, RegularExpression("^[a-z0-9-]{1,60}$")] string Id,
+    [param: Required, StringLength(150, MinimumLength = 1)] string Nome,
+    [param: Required, StringLength(4000, MinimumLength = 1)] string Descricao,
+    [param: StringLength(200)] string? Orgao,
+    [param: Required, MaxLength(20)] string[] Etapas,
+    [param: Required, MaxLength(20)] string[] Requisitos,
+    [param: HttpsUrl] string? CanalUrl,
+    [param: Required, MaxLength(30)] string[] Termos) : IValidatableObject
 {
     public IEnumerable<ValidationResult> Validate(ValidationContext context)
     {
@@ -54,8 +54,8 @@ public record ServicoRevisado(
             yield return new("Termos devem ter de 1 a 100 caracteres.");
     }
 }
-public record RevisarRascunho([property: Required] ServicoRevisado Servico, bool Aprovado, Guid RevisaoEsperada);
-public record CriarRascunho([property: Required] ServicoRevisado Servico);
+public record RevisarRascunho([param: Required] ServicoRevisado Servico, bool Aprovado, Guid RevisaoEsperada);
+public record CriarRascunho([param: Required] ServicoRevisado Servico);
 public record Conhecimento(ServicoRevisado Servico, FonteDto Fonte);
 public record ResultadoLlm(string Resposta, string[] ServicoIds, bool InformacaoSuficiente);
 public sealed class HttpsUrlAttribute : ValidationAttribute

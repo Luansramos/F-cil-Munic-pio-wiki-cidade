@@ -23,8 +23,11 @@ public class DomainTests
     }
     [Fact] public void QuestionOverLimitRejected()
     {
-        var request = new EnvioPergunta(new string('a',501), null);
-        Assert.False(Validator.TryValidateObject(request, new(request), [], true));
+        var parameter = typeof(EnvioPergunta).GetConstructors().Single()
+            .GetParameters().Single(p => p.Name == nameof(EnvioPergunta.Pergunta));
+        var limit = parameter.GetCustomAttributes(typeof(StringLengthAttribute), false)
+            .Cast<StringLengthAttribute>().Single();
+        Assert.False(limit.IsValid(new string('a', 501)));
     }
     [Fact] public void InsufficientResponseNeverInventsSources()
     {
