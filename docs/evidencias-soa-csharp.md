@@ -1,10 +1,10 @@
 # Evidências — SOA e C#
 
-Aqui estão os registros das verificações da API do Fácil Município. Os prints e os arquivos JSON foram obtidos da execução do GitHub Actions, não de telas simuladas do aplicativo.
+Aqui estão os registros das verificações da API do Fácil Município. Os prints e os arquivos JSON foram obtidos da execução do GitHub Actions, não de telas simuladas do aplicativo. O Swagger também identifica a autenticação Bearer JWT nas rotas administrativas, mantendo públicas as consultas do cidadão.
 
 ## Resultado dos testes
 
-- **Execução:** [GitHub Actions — 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42721825544).
+- **Execução:** [GitHub Actions — 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42722547143).
 - **Resultado:** compilação e verificação de migrações concluídas; 37 testes aprovados, sem falhas.
 - **Ambiente de testes:** PostgreSQL 17 e Neo4j 5.26 Community.
 - **Arquivos:** resultados dos testes, OpenAPI do Swagger, respostas HTTP e capturas do navegador ficam nos artefatos da execução.
