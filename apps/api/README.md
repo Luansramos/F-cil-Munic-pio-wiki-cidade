@@ -75,6 +75,35 @@ O operador inicial deve ser criado com o argumento `--bootstrap`; admins comuns 
 
 O modo demonstrativo **não** implementa extração por LLM: enquanto o provedor e a chave não forem definidos, cadastre a fonte, crie o rascunho manual, revise, aprove e publique. Para homologar a LLM real, integrar uma implementação de `ILlmWiki` e testar extração e geração sem fatos inventados.
 
+## Demonstração do fluxo completo **no backend**
+
+O workflow de CI executa [scripts/demo_fluxo_http.py](../../scripts/demo_fluxo_http.py) após iniciar PostgreSQL, Neo4j e a API em modo demonstrativo.
+
+1. Cria um município de demonstração separado de municípios de produção.
+2. Cadastra uma fonte pública da Prefeitura de Poá: [Programa Cata Treco reforça limpeza urbana](https://poa.sp.gov.br/programa-cata-treco-reforca-limpeza-urbana-e-evita-descarte-irregular-em-poa/), notícia de 24/07/2025.
+3. Registra um **rascunho manual**, revisa e aprova por usuário administrador.
+4. Publica a versão aprovada no Neo4j e repete a publicação para verificar idempotência.
+5. Consulta o serviço e pergunta "Como solicito a retirada de um sofá?" pela API.
+6. Valida orientação fundamentada, link da fonte e URL do canal oficial vindos da base revisada.
+7. Confere que não há resposta sem publicação, que sábado não é afirmado sem evidência e que outro município não consegue ler os dados.
+
+As evidências são gravadas em `test-results/demo-fluxo-http.json` no artefato GitHub Actions. Não incluem senhas ou tokens.
+
+**Atenção:** o fluxo demonstra o **backend real**, mas a extração não é feita por LLM — o rascunho é inserido e revisado manualmente. A resposta usa `Llm__Mode=demo` (algoritmo determinístico). A conexão visual ao aplicativo Expo depende do outro integrante; não afirmar que já foi testada.
+
+Para repetir após configurar o banco, migrar e criar o operador:
+
+```bash
+# Terminal 1 (na raiz)
+export Llm__Mode=demo
+dotnet run --project apps/api -- --urls http://127.0.0.1:5055
+
+# Terminal 2 (na raiz, com Bootstrap__Email e Bootstrap__Password)
+python3 scripts/demo_fluxo_http.py
+```
+
+A demonstração utiliza apenas dados públicos documentados e IDs de município com sufixo aleatório para evitar confusão com cadastros reais. Antes de divulgar orientações ao público, o grupo deve conferir se a fonte municipal continua atual.
+
 ## Verificação e pendências
 
 Os testes automatizados abrangem revisão, privacidade básica, validação, isolamento entre municípios, autorização, publicação idempotente, rollback em falha do grafo, fontes e Swagger. Consulte a execução real do workflow `API SOA e CSharp` e as features atualizadas antes de marcar uma entrega como validada. Não foram incluídas fontes oficiais fictícias de Poá, chave de LLM, integração pronta com o Expo, nem evidências de tela inventadas.
