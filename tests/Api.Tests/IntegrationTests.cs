@@ -36,6 +36,18 @@ public class IntegrationTests
         Assert.False(insufficient.GetProperty("informacaoSuficiente").GetBoolean());
         Assert.Empty(insufficient.GetProperty("fontes").EnumerateArray());
         Assert.False(insufficient.TryGetProperty("canalOficialUrl", out _));
+        Assert.Equal(JsonValueKind.String, insufficient.GetProperty("resposta").ValueKind);
+        Assert.Empty(insufficient.GetProperty("servicosRelacionados").EnumerateArray());
+        using (var preflight = new HttpRequestMessage(
+            HttpMethod.Options, $"/api/v1/municipios/{city}/conversas"))
+        {
+            preflight.Headers.TryAddWithoutValidation("Origin", "http://localhost:8081");
+            preflight.Headers.TryAddWithoutValidation("Access-Control-Request-Method", "POST");
+            var cors = await citizen.SendAsync(preflight);
+            Assert.Equal(HttpStatusCode.NoContent, cors.StatusCode);
+            Assert.Contains("http://localhost:8081",
+                cors.Headers.GetValues("Access-Control-Allow-Origin"));
+        }
         // Source is explicitly fictional, not official Poá content.
         var source = await Json(await admin.PostAsJsonAsync($"/api/v1/municipios/{city}/fontes", new {
             titulo = "Fonte fictícia para teste", url = "https://example.org/servico", texto = "Teste: consulte o canal de demonstração.", dataConsulta = "2026-01-01" }));
@@ -67,6 +79,24 @@ public class IntegrationTests
         Assert.True(answer.GetProperty("informacaoSuficiente").GetBoolean());
         Assert.Equal("cata-treco", answer.GetProperty("servicosRelacionados")[0].GetString());
         Assert.Equal("https://example.org/servico", answer.GetProperty("fontes")[0].GetProperty("url").GetString());
+        Assert.Equal(JsonValueKind.String, answer.GetProperty("resposta").ValueKind);
+        Assert.Equal(JsonValueKind.True, answer.GetProperty("informacaoSuficiente").ValueKind);
+        Assert.Equal(JsonValueKind.String, answer.GetProperty("fontes")[0].GetProperty("titulo").ValueKind);
+        Assert.Equal(JsonValueKind.String, answer.GetProperty("fontes")[0].GetProperty("dataConsulta").ValueKind);
+        Assert.False(answer.TryGetProperty("canalOficialUrl", out _));
+        Assert.All(answer.GetProperty("servicosRelacionados").EnumerateArray(),
+            related => Assert.Contains(services!, entry => entry.Id == related.GetString()));
+        Assert.Equal(HttpStatusCode.UnprocessableEntity,
+            (await citizen.PostAsJsonAsync($"/api/v1/municipios/{city}/conversas", new
+            {
+                pergunta = "Teste",
+                historico = new[] {
+                    new { pergunta = "1", resposta = "1" },
+                    new { pergunta = "2", resposta = "2" },
+                    new { pergunta = "3", resposta = "3" },
+                    new { pergunta = "4", resposta = "4" }
+                }
+            })).StatusCode);
         Assert.DoesNotContain("123.456", factory.Llm.Question); Assert.DoesNotContain("senha=teste", factory.Llm.History[0].Resposta);
         factory.Llm.ForeignId = true;
         Assert.Equal(HttpStatusCode.ServiceUnavailable, (await citizen.PostAsJsonAsync($"/api/v1/municipios/{city}/conversas", new { pergunta = "Teste" })).StatusCode);
