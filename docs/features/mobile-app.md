@@ -356,6 +356,10 @@ Feita só na web (Chrome controlado por script) e por cálculo. Nenhum leitor de
 
 **Ainda aberto:** aviso do console "Blocked aria-hidden" no navegador do usuário, que não consegui reproduzir.
 
+### Teste em aparelho (10/11/2026)
+
+**iPhone com Expo Go (relato do usuário, não executado por mim).** O usuário leu o QR code do Metro em um iPhone e relatou que o app abriu e que enviar pergunta (mock), o Histórico e a mudança de preferências funcionaram. Depois de fechar o app e abrir de novo, o Histórico e as preferências continuaram funcionando (relato, sem detalhes). Não registrei: versão do iOS, versão do Expo Go, nível de texto, nem prints.
+
 ## Dependências e decisões
 
 - **Contrato da API** (A2, D2): necessário para trocar o mock pela API real, incluindo o campo `historico`.
@@ -415,10 +419,10 @@ Enviar o link do repositório no Teams até 19/11, às 23h55, por um único inte
 
 **Não verificado:**
 
-- **Android:** nenhuma execução (Expo Go, emulador ou aparelho). Também não foram verificados o efeito de `allowBackup: false`, o `package` do `app.json` e o passo a passo do README.
-- **iOS:** nenhuma execução. O backup do iOS não foi configurado.
-- **Expo Go**, em qualquer plataforma, inclusive a compatibilidade da versão instalada no celular com o SDK 58.
-- **`expo-sqlite` nativo** (Android e iOS): abertura, `PRAGMA`s, migração, `withTransactionAsync`, fila de gravações e persistência depois de reiniciar o app no aparelho. No Jest o motor é outro.
+- **Android:** nenhuma execução bem-sucedida. Também não foram verificados o efeito de `allowBackup: false`, o `package` do `app.json` e o passo a passo do README.
+- **iOS:** só o relato do usuário em um iPhone com Expo Go (ver "Teste em aparelho"); eu não executei nada em iOS. O backup do iOS não foi configurado.
+- **Expo Go:** funcionou em um iPhone (relato do usuário, versão não registrada); não verificado em Android.
+- **`expo-sqlite` nativo:** no iPhone o usuário relatou que histórico e preferências funcionaram (detalhes não registrados); no Android não foi verificado. Não verificados em nenhuma plataforma nativa: abertura, `PRAGMA`s, migração, `withTransactionAsync`, fila de gravações e persistência depois de reiniciar o app no aparelho. No Jest o motor é outro.
 - **Web:** `crossOriginIsolated` é falso (detalhes na seção do banco); Safari e Firefox; hospedagem de produção.
 - **Telas:** `Modal`, toque, teclado, áreas seguras, TalkBack e VoiceOver; a fonte do mockup (Inter) contra a do sistema; níveis de texto e escala de fonte do sistema; estado "carregando" e rolagem em telas pequenas; contraste final de `Notice` e botões.
 - **Conversa (tarefa 7):** o hook `useConversa` e os componentes não têm teste de renderização (só `montarHistorico`, `links` e o mapeamento de status do cliente têm Jest). Não foram vistos no navegador: o estado "enviando" (o mock responde em 600 ms e o script só olhou depois), os erros de envio e de gravação, o botão "Abrir canal oficial" e o abrir de links `https`. Teclado e rolagem em celular, anúncio "Resposta recebida" para leitores de tela e `KeyboardAvoidingView` não foram verificados.
