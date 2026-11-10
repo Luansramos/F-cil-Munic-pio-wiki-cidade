@@ -16,9 +16,17 @@ O projeto começou com o nome Nexo Cidadão, que ainda aparece em alguns documen
 | Indicadores previstos | Respostas acompanhadas de fonte e acerto das orientações nos testes do grupo |
 | ODS 11 | Facilitar o acesso a informações sobre serviços urbanos |
 | ODS 16 | Incentivar o acesso à informação pública e a transparência |
-| Integrantes | A equipe precisa confirmar os nomes para o README final |
+| Integrantes | Identificados na seção abaixo |
 
 A Prefeitura de Poá é uma referência para o piloto, não uma parceira do projeto. Os indicadores são propostas para avaliar o protótipo; ainda não são resultados de impacto.
+
+## Integrantes
+
+- Fernanda Rocha Menon — RM 554673
+- Luiza Macena Dantas — RM 556237
+- Luan Ramos Garcia de Souza — RM 558537
+- Matheus Ricciotti — RM 556930
+- Matheus Bortolotto — RM 555189
 
 ## Como a solução funciona
 

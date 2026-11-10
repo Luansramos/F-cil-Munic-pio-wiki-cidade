@@ -4,6 +4,14 @@ Projeto: **Fácil Município — Wiki Cidade**
 Disciplinas: **Arquitetura Orientada a Serviços e Web Services** e **C# Software Development**  
 Referência: briefing CitizenTech 2026.2, páginas 27 e 30.
 
+## Integrantes
+
+- Fernanda Rocha Menon — RM 554673
+- Luiza Macena Dantas — RM 556237
+- Luan Ramos Garcia de Souza — RM 558537
+- Matheus Ricciotti — RM 556930
+- Matheus Bortolotto — RM 555189
+
 ## 1. Problema e proposta
 
 O morador de uma cidade nem sempre sabe em qual canal consultar um serviço público. O Fácil Município organiza orientações de fontes oficiais e oferece uma consulta em linguagem natural, com referência à publicação de origem.
@@ -169,6 +177,6 @@ A execução automatizada também gera Swagger/OpenAPI, capturas do navegador, r
 
 ## 10. Pendências de integração e envio
 
-O backend está na branch `feat/soa-csharp-api` e no [PR #2](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/pull/2). A equipe precisa conferir os nomes dos integrantes, realizar a revisão por outro integrante, integrar o PR à `main` e enviar o link final na tarefa de cada disciplina.
+O backend está na branch `feat/soa-csharp-api` e no [PR #2](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/pull/2). Os cinco integrantes foram identificados no README e neste relatório. Ainda é necessário revisar o PR com outro integrante, integrá-lo à `main` e enviar o link final na tarefa de cada disciplina.
 
 A integração visual com Expo, o painel React e a LLM real pertencem ao projeto como um todo, mas ainda não foram homologados por este backend. Não há evidência de um aplicativo completo executado com a API.
