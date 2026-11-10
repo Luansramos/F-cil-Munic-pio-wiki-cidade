@@ -113,4 +113,4 @@ O GitHub Actions executa esses testes com os bancos, valida as migrações e rod
 
 As evidências e a relação com a rubrica estão em [docs/evidencias-soa-csharp.md](../../docs/evidencias-soa-csharp.md). A explicação da arquitetura e dos critérios da avaliação está no [relatório técnico](../../docs/entrega-soa-csharp.md). Os detalhes do contrato com o aplicativo estão em [docs/contratos-de-integracao.md](../../docs/contratos-de-integracao.md).
 
-A API foi testada no ambiente automatizado. A equipe ainda precisa testar a integração com o Expo, adicionar os nomes dos integrantes no README principal e conferir as fontes antes da apresentação.
+A API foi testada no ambiente automatizado. Os cinco integrantes e RMs já constam no README principal. A equipe ainda precisa testar a integração com o Expo e conferir as fontes antes da apresentação.
