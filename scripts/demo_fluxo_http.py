@@ -136,6 +136,15 @@ def main():
     require(not without_evidence["informacaoSuficiente"] and not without_evidence["fontes"],
             "O sistema não pode afirmar horário sem fonte específica.")
 
+    _, follow_up = http("POST", f"/api/v1/municipios/{poa}/conversas", {
+        "pergunta": "E no domingo?",
+        "historico": [{"pergunta": question, "resposta": answer["resposta"]}]
+    })
+    require(not follow_up["informacaoSuficiente"] and not follow_up["fontes"],
+            "Seguimento não pode afirmar atendimento no domingo sem evidência.")
+    require("canalOficialUrl" not in follow_up,
+            "O JSON não pode conter canalOficialUrl nulo.")
+
     _, foreign = http("POST", f"/api/v1/municipios/{other}/conversas",
                       {"pergunta": question})
     require(not foreign["informacaoSuficiente"] and not foreign["fontes"],
@@ -161,6 +170,7 @@ def main():
         "resposta": answer,
         "municipioSemPublicacaoNaoResponde": not before["informacaoSuficiente"],
         "perguntaNaoDocumentadaNaoResponde": not without_evidence["informacaoSuficiente"],
+        "seguimentoComHistoricoSemInventarHorario": not follow_up["informacaoSuficiente"],
         "segundoMunicipioIsolado": not foreign["informacaoSuficiente"],
         "repetirPublicacaoMantemVersao": publication["id"] == retry["id"]
     }
