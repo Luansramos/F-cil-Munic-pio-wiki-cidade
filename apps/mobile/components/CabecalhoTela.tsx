@@ -43,6 +43,7 @@ export function CabecalhoTela({ titulo, subtitulo, aoVoltar, direita }: Cabecalh
 const styles = StyleSheet.create({
   cabecalho: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: spacing.sm,
     paddingVertical: spacing.md,
@@ -60,6 +61,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
   },
   textos: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 150,
   },
 });

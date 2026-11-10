@@ -1,6 +1,6 @@
 # Feature — Aplicativo mobile do cidadão (Expo)
 
-- Status: em desenvolvimento (tarefas 1+2, 3 e 4+5 commitadas em `09380e5` e tarefa 6 em `e6198e2`, sem PR; tarefa 7 em `fdb6a5c`, sem PR; tarefa 8 (Histórico) em `a9f36c7`, sem PR; tarefa 9 (Preferências) implementada no working tree, sem commit)
+- Status: em desenvolvimento (tarefas 1+2, 3 e 4+5 commitadas em `09380e5` e tarefa 6 em `e6198e2`, sem PR; tarefa 7 em `fdb6a5c`, sem PR; tarefa 8 (Histórico) em `a9f36c7` e tarefa 9 (Preferências) em `c5e3cf8`, sem PR; tarefa 10 (acessibilidade) implementada no working tree, sem commit)
 - Responsável e colaboradores: Matheus (mobile e Cybersecurity); API P1; LLM P3
 - Itens do backlog / issue: D4, D5, D6, D7, D8 (apoio em D1–D3 para o contrato)
 - Componentes e disciplinas afetados: `apps/mobile`; Mobile Development & IoT (integração com a API de SOA e C#)
@@ -314,6 +314,34 @@ Definição de pronto de cada PR: todo componente e tela novos entram com rótul
 - Não depender só da cor: a ação de apagar tem texto e ícone além do vermelho.
 - Linguagem simples nas mensagens de erro e de estado.
 
+### Revisão da tarefa 10 (09/11/2026)
+
+Feita só na web (Chrome controlado por script) e por cálculo. Nenhum leitor de tela, celular ou emulador foi usado.
+
+**Medido:**
+
+- Contraste (fórmula do WCAG sobre os tokens de `theme/colors.ts`, não sobre pixels renderizados): todos os pares usados passam. O menor para texto é `primary` sobre `surfaceSelected`, 5,25:1 (mínimo 4,5:1). O menor para ícones e bordas de controles é `borderStrong` sobre `surfaceTint`, 3,26:1 (mínimo 3:1). Texto desativado (opacidade 0,5) não entra na conta.
+- Rodada automática no DOM, em 393 e 320 px de largura, nos níveis de texto 1 e 4, com 10 telas e estados cada (Início, seletor, Conversa vazia, com resposta, painel de fontes, informação insuficiente, Histórico, confirmar apagar, Preferências, privacidade): zero controles sem nome, zero com menos de 44 px e zero elementos fora da tela, depois das correções abaixo.
+- `Modal` (painel de fontes), na web: o foco entra no painel, fica preso dentro, `Escape` fecha e o foco volta ao botão "Ver fontes".
+
+**Problemas encontrados e corrigidos:**
+
+1. **Abas inativas focáveis na web.** O `Tab` do teclado parava nos controles de uma aba que não estava na tela (a biblioteca só marca `aria-hidden` e põe `zIndex: -1`). `AbaFocada` (`components/AbaFocada.tsx`), usado nas três rotas de aba, aplica `visibility: hidden` só na web. A ordem do `Tab` passou a ser só a aba atual e a barra de abas.
+2. **Selo "Ativo" fora da tela** em Preferências, em 320 px no nível 4: a linha "Modo demonstrativo" agora quebra linha.
+3. **Título "Conversa" quebrado no meio da palavra** ao lado do selo "Demonstração": o cabeçalho (`CabecalhoTela`) agora quebra o selo para a linha de baixo quando não cabe.
+4. **Título "Preferências" quebrado no meio** no nível 4 em 320 px: `nivelParaVariante` limita só a variante `title` ao nível 3 de 4.
+5. **Rótulo "Tamanho do texto" quebrado no meio** pelos botões A− e A+: a linha agora quebra e os botões descem.
+6. **Rótulos da barra de abas vazavam da própria aba** no nível 4: a barra não escala com o nível do app (continua com a escala do sistema).
+7. **Títulos das conversas cortados com reticências** no Histórico no nível 4 (o texto sumia): removi o limite de linhas.
+8. **Texto de botão que quebra linha encostava nas bordas**: `Button` ganhou `paddingVertical`.
+9. **Fundo do `Modal` era um segundo botão "Fechar"** repetido para teclado e leitor de tela: agora só responde a toque.
+
+**Limites conhecidos:**
+
+- Os multiplicadores dos níveis continuam provisórios. O título é limitado e a barra de abas não cresce, então o nível 4 não aumenta tudo na mesma proporção.
+- No `Modal` da web, o `Tab` passa por um elemento sem nome dentro do diálogo (provavelmente a guarda de foco do `react-native-web`). Não foi investigado.
+- A ferramenta que mede "sem nome" e tamanho conta só elementos visíveis. Ela não captura texto quebrado no meio de palavra; esses casos (itens 3 a 7) apareceram em capturas de tela vistas uma a uma, e só nas telas e estados listados acima.
+
 ## Dependências e decisões
 
 - **Contrato da API** (A2, D2): necessário para trocar o mock pela API real, incluindo o campo `historico`.
@@ -366,7 +394,7 @@ Enviar o link do repositório no Teams até 19/11, às 23h55, por um único inte
 
 **Verificado**, executado nesta máquina (Windows, Node 22.22.0, Chrome 156):
 
-- Jest: 15 suítes e 126 testes passando (09/11/2026, depois da tarefa 9). Os testes de banco rodam SQLite real em memória (`node:sqlite`, SQLite 3.50.4), não o `expo-sqlite` nativo.
+- Jest: 15 suítes e 128 testes passando (09/11/2026, depois da tarefa 10). Os testes de banco rodam SQLite real em memória (`node:sqlite`, SQLite 3.50.4), não o `expo-sqlite` nativo.
 - `npm run typecheck` e `npx expo lint` com código de saída 0 (repetidos em 09/11/2026); `npx expo-doctor` com 20/20 (07/11/2026, não repetido depois da tarefa 7).
 - `npx expo export` para Android, iOS e web, com código de saída 0 em 07/11/2026; depois da tarefa 7 só o da web foi repetido. Isso confirma só que o bundle compila.
 - Chrome (web, `npm run web`, janela de 393 × 852, controlado pelo protocolo de depuração): telas de Início, seletor de município, lista de serviços, navegação pelas abas, estado de erro, papéis de acessibilidade e a persistência do banco local (abrir, reabrir o banco existente, recarregar a página, abrir uma aba nova). Em 09/11/2026, a Conversa com o mock: pergunta sugerida no campo, envio, resposta com serviço relacionado, painel de fontes, segunda pergunta com `historico` (o mock citou a troca anterior), resposta de informação insuficiente sem botão de canal (o mock não traz `canalOficialUrl`), botão de voltar e reabertura da conversa pela URL sem parâmetros, com as trocas lidas do SQLite. Ainda em 09/11/2026, o Histórico (perfil novo do Chrome, mock): lista filtrada pelo município atual, "Todos os municípios" com o nome do município em cada item, abrir uma conversa de outro município e voltar para `/historico`, confirmação de apagar, cancelar (a conversa continua), apagar (sai da lista) e a lista depois de recarregar a página. A faixa "Disponível sem internet" apareceu ao simular o modo offline pelo protocolo de depuração do Chrome (`Network.emulateNetworkConditions`) e sumiu ao voltar online. Ainda em 09/11/2026, as Preferências (perfil novo do Chrome, mock): A+ três vezes mudou o texto de exemplo de 17 px para 20, 22 e 26 px (altura de linha 24, 28, 31 e 36), A+ ficou desativado no nível 4 e A− no nível 1; o nível 3 continuou depois de abrir `/preferencias` em uma aba nova; o texto de Início, Histórico e Preferências aumentou (visto em captura de tela); o `Modal` de privacidade e a confirmação de apagar abriram; cancelar manteve a conversa; apagar tudo esvaziou o Histórico e manteve o nível do texto; A− três vezes voltou a 17 px.
@@ -381,6 +409,7 @@ Enviar o link do repositório no Teams até 19/11, às 23h55, por um único inte
 - **Telas:** `Modal`, toque, teclado, áreas seguras, TalkBack e VoiceOver; a fonte do mockup (Inter) contra a do sistema; níveis de texto e escala de fonte do sistema; estado "carregando" e rolagem em telas pequenas; contraste final de `Notice` e botões.
 - **Conversa (tarefa 7):** o hook `useConversa` e os componentes não têm teste de renderização (só `montarHistorico`, `links` e o mapeamento de status do cliente têm Jest). Não foram vistos no navegador: o estado "enviando" (o mock responde em 600 ms e o script só olhou depois), os erros de envio e de gravação, o botão "Abrir canal oficial" e o abrir de links `https`. Teclado e rolagem em celular, anúncio "Resposta recebida" para leitores de tela e `KeyboardAvoidingView` não foram verificados.
 - **Histórico (tarefa 8):** o hook `useHistorico`, `useConexao` e os componentes não têm teste de renderização (só `formatarDataHistorico` tem Jest). A faixa sem internet só foi vista com o offline simulado do Chrome, não no sistema do celular. Não foram verificados: a lista com muitas conversas, o erro ao apagar e ao carregar, o `useFocusEffect` no aparelho, o `expo-network` nativo e TalkBack/VoiceOver nos botões de apagar.
+- **Acessibilidade (tarefa 10):** nada foi testado com leitor de tela (TalkBack, VoiceOver, NVDA); só atributos no DOM da web. Os alvos de toque foram medidos em pixels CSS do Chrome, não em dp no Android. Não foram verificados: escala de fonte do sistema ampliada (o Chrome não a simula), larguras abaixo de 320 px, orientação horizontal (o app é só retrato), ordem de leitura no celular, anúncios "Resposta recebida" e "Histórico apagado", e o efeito de `AbaFocada` e do `tabIndex` no Android e no iOS (os dois só têm efeito na web, por desenho).
 - **Preferências (tarefa 9):** `PreferenciasProvider`, `useApagarHistorico` e a tela não têm teste de renderização (só `escalarEstilo` tem Jest). Não foram verificados: os quatro níveis com a fonte do sistema ampliada (a combinação pode estourar o layout), o nível 4 nas telas de Conversa, Histórico e na barra de abas em celular pequeno, a falha ao gravar o nível, o erro ao apagar tudo, o `Modal` e os botões A−/A+ com TalkBack e VoiceOver, e o anúncio "Histórico apagado".
 - **Web, banco ocupado ao recarregar:** em um teste, recarregar a página na mesma aba (`Page.navigate`) deixou a tela "Não foi possível abrir seus dados" por mais de 45 s, e "Tentar novamente" não resolveu; abrir a mesma URL em uma aba nova funcionou. Em outro teste a mesma recarga funcionou. A causa não foi investigada (suspeita: a aba antiga manter o acesso exclusivo ao arquivo do navegador). Só observado na web com o Chrome controlado por script; não se sabe se acontece em uso normal nem no celular.
 - **API:** cliente real contra um servidor. O contrato da API em C# só foi lido, não executado: `dotnet`, PostgreSQL e Neo4j não foram rodados aqui, e o cliente real só foi testado com `fetch` simulado.
@@ -537,10 +566,10 @@ Uma branch curta por tarefa, com PR pequeno revisado por outro integrante. Acess
 | 4+5 | `feat/mobile-scaffold-theme` | Componentes base, abas e Início com seletor de município, serviços e estados | D4 | Implementada, commit `09380e5`, sem PR. Histórico, Preferências e Conversa são telas provisórias |
 | 6 | `feat/mobile-scaffold-theme` | SQLite com `PRAGMA foreign_keys = ON`, migração, repositório de conversas e tabela `preferencias` | D6 | Implementada, commit `e6198e2`, sem PR. Conversa já usa o repositório (tarefa 7); Histórico e Preferências ficam para a 8+9 |
 | 7 | `feat/mobile-scaffold-theme` (feita nesta branch, não em `feat/mobile-conversa`) | Conversa com várias trocas, `historico`, painel de fontes em `Modal`, informação insuficiente | D4, D5 | Implementada no working tree, sem commit nem PR. Faltam "Nova conversa" no cabeçalho e o estado sem conexão |
-| 8 | `feat/mobile-scaffold-theme` (feita nesta branch) | Histórico (listar, filtrar, reabrir, apagar com confirmação, faixa sem internet) | D6, D7 | Implementada no working tree, sem commit nem PR |
-| 9 | `feat/mobile-scaffold-theme` (feita nesta branch) | Preferências (tamanho do texto, privacidade, apagar todo o histórico, sobre) | D6, D7 | Implementada no working tree, sem commit nem PR |
-| 10 | `feat/mobile-acessibilidade` | Revisão final de acessibilidade | D7 | Planejada |
+| 8 | `feat/mobile-scaffold-theme` (feita nesta branch) | Histórico (listar, filtrar, reabrir, apagar com confirmação, faixa sem internet) | D6, D7 | Implementada, commit `a9f36c7`, sem PR |
+| 9 | `feat/mobile-scaffold-theme` (feita nesta branch) | Preferências (tamanho do texto, privacidade, apagar todo o histórico, sobre) | D6, D7 | Implementada, commit `c5e3cf8`, sem PR |
+| 10 | `feat/mobile-scaffold-theme` (feita nesta branch) | Revisão final de acessibilidade | D7 | Implementada no working tree, sem commit nem PR. Só na web e por cálculo; falta leitor de tela e celular |
 | 11 | `feat/mobile-docs-entrega` | README com a Ficha da CitizenTech, prints, vídeo | D8 | Planejada |
 
 - As tarefas 1+2, 3 e 4+5 estão no commit `09380e5` (`feat: implement mobile structure`), na branch `feat/mobile-scaffold-theme`. Nenhum PR foi aberto.
-- Próximo passo: tarefa 10 (revisão de acessibilidade), que deve cobrir o que está em "não verificado" (leitores de tela, níveis de texto com a fonte do sistema, contraste) e, com mais cuidado, Android no Expo Go. Pendentes menores: "Nova conversa" no cabeçalho da Conversa e o estado sem conexão que desativa o envio.
+- Próximo passo: revisão dos itens pendentes ("Nova conversa" no cabeçalho da Conversa, estado sem conexão que desativa o envio, o problema de banco ocupado ao recarregar na web) e a tarefa 11 (README da entrega, prints, vídeo). O que está em "não verificado" (Android, Expo Go, leitores de tela) continua aberto.

@@ -1,5 +1,10 @@
+import { AbaFocada } from '@/components/AbaFocada';
 import { PreferenciasScreen } from '@/screens/PreferenciasScreen';
 
 export default function Preferencias() {
-  return <PreferenciasScreen />;
+  return (
+    <AbaFocada>
+      <PreferenciasScreen />
+    </AbaFocada>
+  );
 }

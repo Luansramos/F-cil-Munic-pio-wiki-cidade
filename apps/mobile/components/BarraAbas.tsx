@@ -3,7 +3,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import type { Tabs } from 'expo-router';
 
 import { AppText } from '@/components/AppText';
-import { borderWidth, colors, radii, spacing } from '@/theme';
+import { NivelTextoContext } from '@/contexts/NivelTextoContext';
+import { NIVEL_TEXTO_PADRAO, borderWidth, colors, radii, spacing } from '@/theme';
 
 type BarraAbasProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
@@ -28,9 +29,11 @@ export function BarraAbas({ state, descriptors, navigateToTab, insets }: BarraAb
             style={[styles.aba, focada ? styles.abaAtiva : null]}
           >
             {opcoes.tabBarIcon?.({ focused: focada, color: '', size: 24 })}
-            <AppText variant="caption" color={focada ? 'primary' : 'textMuted'}>
-              {rotulo}
-            </AppText>
+            <NivelTextoContext.Provider value={NIVEL_TEXTO_PADRAO}>
+              <AppText variant="caption" color={focada ? 'primary' : 'textMuted'}>
+                {rotulo}
+              </AppText>
+            </NivelTextoContext.Provider>
           </Pressable>
         );
       })}

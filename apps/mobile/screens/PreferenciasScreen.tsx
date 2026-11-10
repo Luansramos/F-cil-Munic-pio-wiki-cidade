@@ -173,12 +173,15 @@ const styles = StyleSheet.create({
   },
   linhaTamanho: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.md,
   },
   textoTamanho: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 160,
   },
   botoesTamanho: {
     flexDirection: 'row',
@@ -194,6 +197,7 @@ const styles = StyleSheet.create({
   linhaDemo: {
     minHeight: 56,
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: spacing.md,
     paddingHorizontal: spacing.lg,
@@ -204,6 +208,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
   },
   textoDemo: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
   },
 });

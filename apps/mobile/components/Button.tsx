@@ -91,6 +91,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
     paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
     borderRadius: radii.lg,
   },
   larguraTotal: {

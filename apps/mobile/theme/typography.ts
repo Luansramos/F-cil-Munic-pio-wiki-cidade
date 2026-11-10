@@ -44,3 +44,12 @@ export function escalarEstilo(estilo: EstiloTexto, nivel: NivelTexto): EstiloTex
     fontWeight: estilo.fontWeight,
   };
 }
+
+const NIVEL_MAXIMO_DO_TITULO: NivelTexto = 2;
+
+export function nivelParaVariante(variante: TypographyToken, nivel: NivelTexto): NivelTexto {
+  if (variante === 'title' && nivel > NIVEL_MAXIMO_DO_TITULO) {
+    return NIVEL_MAXIMO_DO_TITULO;
+  }
+  return nivel;
+}

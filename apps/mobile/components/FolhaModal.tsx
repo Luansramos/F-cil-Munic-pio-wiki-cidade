@@ -23,8 +23,10 @@ export function FolhaModal({ visivel, titulo, aoFechar, children }: FolhaModalPr
     >
       <View style={styles.raiz}>
         <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Fechar"
+          accessible={false}
+          tabIndex={-1}
+          importantForAccessibility="no"
+          accessibilityElementsHidden
           onPress={aoFechar}
           style={styles.fundo}
         />

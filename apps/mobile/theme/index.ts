@@ -9,6 +9,7 @@ export {
   NIVEL_TEXTO_PADRAO,
   escalarEstilo,
   multiplicadorDoNivel,
+  nivelParaVariante,
   typography,
 } from './typography';
 export type { EstiloTexto, NivelTexto, TypographyToken } from './typography';

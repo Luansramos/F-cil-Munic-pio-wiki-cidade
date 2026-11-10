@@ -26,7 +26,7 @@ export function ItemConversa({ titulo, data, municipio, aoAbrir, aoApagar }: Ite
       >
         <Icon name="conversa" color="primary" />
         <View style={styles.textos}>
-          <AppText variant="label" numberOfLines={2}>
+          <AppText variant="label">
             {titulo}
           </AppText>
           {detalhes.length > 0 ? (

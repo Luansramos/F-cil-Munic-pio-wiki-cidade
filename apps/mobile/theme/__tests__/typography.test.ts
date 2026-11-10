@@ -3,6 +3,7 @@ import {
   NIVEL_TEXTO_PADRAO,
   escalarEstilo,
   multiplicadorDoNivel,
+  nivelParaVariante,
   typography,
 } from '../typography';
 
@@ -31,5 +32,19 @@ describe('escalarEstilo', () => {
       lineHeight: 36,
       fontWeight: '400',
     });
+  });
+});
+
+describe('nivelParaVariante', () => {
+  it('limita só o título ao nível 3 de 4, para caber em telas estreitas', () => {
+    expect(nivelParaVariante('title', 3)).toBe(2);
+    expect(nivelParaVariante('title', 2)).toBe(2);
+    expect(nivelParaVariante('title', 0)).toBe(0);
+  });
+
+  it('não altera as outras variantes', () => {
+    for (const variante of ['heading', 'button', 'label', 'body', 'small', 'caption'] as const) {
+      expect(nivelParaVariante(variante, 3)).toBe(3);
+    }
   });
 });
