@@ -38,6 +38,89 @@ public class DemoGroundedWikiTests
     }
 
     [Fact]
+    public async Task ShortFollowUpUsesLastPublishedServiceAsContext()
+    {
+        var demo = new DemoGroundedWiki();
+        var service = Evidence.Servico with
+        {
+            Etapas = ["Para esta demonstração fictícia, consulte o atendimento de domingo."]
+        };
+        var evidence = Evidence with { Servico = service };
+        var previous = new TrocaResumida(
+            "Como solicito a retirada de um sofá?",
+            "Cata Treco: orientações sobre a retirada de objetos.");
+
+        var withoutHistory = await demo.ResponderAsync(
+            "E no domingo?", [], [evidence], default);
+        var withHistory = await demo.ResponderAsync(
+            "E no domingo?", [previous], [evidence], default);
+
+        Assert.False(withoutHistory.InformacaoSuficiente);
+        Assert.True(withHistory.InformacaoSuficiente);
+        Assert.Equal(["cata-treco"], withHistory.ServicoIds);
+        Assert.Contains("domingo", withHistory.Resposta, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task FollowUpDoesNotInventOpeningDayWhenUnrecorded()
+    {
+        var demo = new DemoGroundedWiki();
+        var history = new[]
+        {
+            new TrocaResumida("Como solicito a retirada de um sofá?",
+                "Cata Treco: consulte o canal oficial.")
+        };
+
+        var answer = await demo.ResponderAsync(
+            "E no domingo?", history, [Evidence], default);
+
+        Assert.False(answer.InformacaoSuficiente);
+        Assert.Empty(answer.ServicoIds);
+    }
+
+    [Fact]
+    public async Task HistoryCannotReferenceServiceAbsentFromCurrentMunicipality()
+    {
+        var demo = new DemoGroundedWiki();
+        var otherMunicipalityService = new ServicoRevisado(
+            "iluminacao-publica", "Iluminação pública",
+            "Atendimento a postes de iluminação com lâmpadas apagadas.",
+            null, ["Atendimento de domingo deve ser confirmado."], [],
+            null, ["poste", "lampada"]);
+        var context = new Conhecimento(otherMunicipalityService,
+            new FonteDto("Fonte fictícia do segundo município",
+                "https://example.org/iluminacao", null));
+        var history = new[]
+        {
+            new TrocaResumida("Como solicito retirada de sofá?",
+                "Cata Treco: orientações sobre móveis.")
+        };
+
+        var answer = await demo.ResponderAsync(
+            "E no domingo?", history, [context], default);
+
+        Assert.False(answer.InformacaoSuficiente);
+        Assert.Empty(answer.ServicoIds);
+    }
+
+    [Fact]
+    public async Task DemoReturnsPlainTextNumberedSteps()
+    {
+        var service = Evidence.Servico with { Requisitos = ["Requisito fictício de teste."] };
+        var demo = new DemoGroundedWiki();
+
+        var answer = await demo.ResponderAsync(
+            "Como solicito a retirada de um sofá?", [],
+            [Evidence with { Servico = service }], default);
+
+        Assert.True(answer.InformacaoSuficiente);
+        Assert.Contains("1. Conferir os itens aceitos.", answer.Resposta);
+        Assert.Contains("1. Requisito fictício de teste.", answer.Resposta);
+        Assert.DoesNotContain("**", answer.Resposta);
+        Assert.DoesNotContain("\n- ", answer.Resposta);
+    }
+
+    [Fact]
     public async Task DoesNotPretendToExtractWithALlm()
     {
         var demo = new DemoGroundedWiki();
