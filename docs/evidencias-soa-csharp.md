@@ -4,8 +4,8 @@ Aqui estão os registros das verificações da API do Fácil Município. Os prin
 
 ## Resultado dos testes
 
-- **Execução:** [GitHub Actions — 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42722547143).
-- **Resultado:** compilação e verificação de migrações concluídas; 37 testes aprovados, sem falhas.
+- **Execução:** [GitHub Actions — 10/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42902618547).
+- **Resultado:** compilação e verificação de migrações concluídas; 41 testes aprovados, sem falhas.
 - **Ambiente de testes:** PostgreSQL 17 e Neo4j 5.26 Community.
 - **Arquivos:** resultados dos testes, OpenAPI do Swagger, respostas HTTP e capturas do navegador ficam nos artefatos da execução.
 
@@ -21,7 +21,13 @@ Também verifica que:
 - uma pergunta sem informação suficiente não recebe uma afirmação inventada;
 - um município não recebe o conteúdo de outro.
 
-O cenário terminou com sucesso, assim como os 37 testes automatizados. Seu resultado é salvo como `demo-fluxo-http.json`.
+O cenário anterior terminou com sucesso, assim como os 41 testes automatizados. Seu resultado é salvo como `demo-fluxo-http.json`.
+
+## Compatibilidade com o contrato mobile
+
+O código da API foi comparado com `types/guardas.ts`, `apiReal.ts` e o mock da branch mobile. Os testes cobrem JSON sem campos opcionais nulos, campo URL obrigatório, CORS do Expo Web, formato de resposta e histórico de até três trocas. A rotina demonstrativa usa histórico para selecionar serviços já publicados e se recusa a inventar horário em perguntas de seguimento.
+
+A integração **real** no Expo continua pendente. Os testes atuais exercitam o contrato HTTP e não representam o aplicativo executado.
 
 ## Onde encontrar cada requisito
 

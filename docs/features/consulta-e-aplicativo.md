@@ -20,10 +20,14 @@ A consulta recupera somente serviços da versão ativa do município escolhido. 
 
 Enquanto não há LLM real, `Llm__Mode=demo` permite consultar o conteúdo publicado por uma rotina determinística. Ela usa apenas a descrição, as etapas e os requisitos revisados. Se a fonte não sustentar um detalhe da pergunta, a API informa que não há dados suficientes.
 
-O [workflow de 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42721825544) passou com 37 testes e com o roteiro HTTP que retorna uma orientação sobre Cata Treco acompanhada da fonte. O roteiro também pergunta sobre atendimento aos sábados, que não está confirmado nas informações usadas.
+O [workflow de 10/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42902618547) passou com 41 testes e com o roteiro HTTP que retorna uma orientação sobre Cata Treco acompanhada da fonte. O roteiro também pergunta sobre atendimento aos sábados, que não está confirmado nas informações usadas.
 
 ## Para conectar com o Expo
 
 O cliente do mobile monta caminhos como `/municipios`. Por isso, quando ele estiver apontando para a API real, a variável `EXPO_PUBLIC_API_URL` deve terminar em `/api/v1`, e `EXPO_PUBLIC_USAR_MOCK` deve estar em `false`.
+
+O contrato foi conferido com `types/guardas.ts` e `services/api/apiReal.ts` na branch `feat/mobile-scaffold-theme`. O modo demonstrativo agora usa até três trocas de histórico para interpretar perguntas curtas de seguimento, mas só responde se a informação estiver publicada no município atual. A ausência de `null`, o CORS do Expo Web e os limites de entrada têm testes HTTP.
+
+O app recebe respostas em texto simples, omite campos opcionais ausentes e não precisa de login. As decisões sobre histórico, canal oficial e limites ainda devem ser confirmadas com P1/P2/P3, conforme [contrato compartilhado](../contratos-de-integracao.md).
 
 A integração precisa ser feita e testada pelo responsável pelo aplicativo. O funcionamento do endpoint no CI não comprova que a tela Expo já esteja consumindo a API.

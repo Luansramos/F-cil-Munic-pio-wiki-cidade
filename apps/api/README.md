@@ -78,7 +78,9 @@ A rota de conversa recebe, por exemplo:
 }
 ```
 
-A resposta traz o texto de orientação, os serviços relacionados, as fontes, a indicação `informacaoSuficiente` e, quando cadastrado, o campo `canalOficialUrl`. A API não salva as perguntas dos cidadãos. O histórico fica sob responsabilidade do aplicativo.
+A resposta traz o texto de orientação, os serviços relacionados, as fontes, a indicação `informacaoSuficiente` e, quando cadastrado, o campo `canalOficialUrl`. A API não salva as perguntas dos cidadãos. O histórico fica sob responsabilidade do aplicativo. A API recebe até três trocas e elimina padrões básicos de CPF, e-mail e senha antes de encaminhar o contexto ao respondedor.
+
+O contrato foi conferido com o app: os campos opcionais que estiverem vazios não são enviados como `null`; os IDs retornados são dos serviços publicados; a resposta usa texto simples e listas numeradas. O orçamento interno é de 12 segundos para respeitar os 15 segundos de timeout do app. Em desenvolvimento, CORS permite `http://localhost:8081`.
 
 ## Demonstração com Cata Treco
 
@@ -107,7 +109,7 @@ Com PostgreSQL e Neo4j configurados, execute:
 dotnet test tests/Api.Tests/Api.Tests.csproj -c Release
 ```
 
-O GitHub Actions executa esses testes com os bancos, valida as migrações e roda o roteiro HTTP. A [execução de 09/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42722547143) passou com 37 testes aprovados e o cenário HTTP concluído.
+O GitHub Actions executa esses testes com os bancos, valida as migrações e roda o roteiro HTTP. A [execução de 10/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42902618547) passou com 41 testes aprovados e o cenário HTTP concluído.
 
 As evidências e a relação com a rubrica estão em [docs/evidencias-soa-csharp.md](../../docs/evidencias-soa-csharp.md). A explicação da arquitetura e dos critérios da avaliação está no [relatório técnico](../../docs/entrega-soa-csharp.md). Os detalhes do contrato com o aplicativo estão em [docs/contratos-de-integracao.md](../../docs/contratos-de-integracao.md).
 
