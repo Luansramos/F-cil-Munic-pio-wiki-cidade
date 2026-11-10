@@ -6,9 +6,9 @@ using FacilMunicipio.Api.Contracts;
 namespace FacilMunicipio.Api.Services;
 
 /// <summary>
-/// Explicit demo-only deterministic responder; NEVER presented as an LLM.
-/// Produces text exclusively from the published graph snapshot supplied by the API.
-/// No question or history is written to disk or logged.
+/// Respondedor local usado apenas na demonstração. Não substitui a LLM.
+/// A pergunta e o histórico servem para identificar um serviço publicado;
+/// a resposta usa somente os dados revisados do grafo.
 /// </summary>
 public sealed class DemoGroundedWiki : ILlmWiki
 {
@@ -16,11 +16,13 @@ public sealed class DemoGroundedWiki : ILlmWiki
     {
         "como", "posso", "para", "quero", "preciso", "gostaria", "qual", "quais",
         "voce", "voces", "esta", "este", "sobre", "minha", "meu", "uma", "uns",
-        "por", "favor", "servico", "cidade", "municipio"
+        "por", "favor", "servico", "cidade", "municipio", "a", "o", "os", "as",
+        "de", "da", "do", "das", "dos", "na", "no", "nas", "nos", "em", "e",
+        "se", "for", "ser", "tem", "que", "pode", "tambem"
     };
 
-    // A question about a detail not recorded in the reviewed source must not receive
-    // a misleading generic answer. This deliberately favors abstaining.
+    // Detalhes que precisam constar na descrição, etapa ou requisito revisado.
+    // Um termo de busca não é evidência de horário, prazo ou valor.
     private static readonly HashSet<string> Qualifiers = new(StringComparer.Ordinal)
     {
         "sabado", "domingo", "feriado", "hoje", "amanha", "horario",
@@ -29,53 +31,110 @@ public sealed class DemoGroundedWiki : ILlmWiki
         "agendamento", "agendar"
     };
 
-    public Task<ServicoRevisado> ExtrairAsync(string texto, CancellationToken ct)
-        => throw new LlmUnavailableException(); // Manual drafts remain available.
+    private sealed record Candidate(
+        Conhecimento Knowledge,
+        HashSet<string> SearchTerms,
+        HashSet<string> EvidenceTerms);
 
-    public Task<ResultadoLlm> ResponderAsync(string pergunta, TrocaResumida[] historico,
-        IReadOnlyList<Conhecimento> contexto, CancellationToken ct)
+    public Task<ServicoRevisado> ExtrairAsync(string texto, CancellationToken ct)
+        => throw new LlmUnavailableException();
+
+    public Task<ResultadoLlm> ResponderAsync(
+        string pergunta,
+        TrocaResumida[] historico,
+        IReadOnlyList<Conhecimento> contexto,
+        CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        var tokens = Tokens(pergunta).Where(t => !StopWords.Contains(t)).Distinct().ToArray();
-        if (tokens.Length == 0) return Task.FromResult(Insufficient());
 
-        var best = contexto.Select(item => new
+        var candidates = contexto.Select(item => new Candidate(
+            item,
+            Tokens(string.Join(" ", item.Servico.Nome, item.Servico.Descricao,
+                string.Join(" ", item.Servico.Termos))),
+            Tokens(string.Join(" ", item.Servico.Nome, item.Servico.Descricao,
+                item.Servico.Orgao ?? "", string.Join(" ", item.Servico.Etapas),
+                string.Join(" ", item.Servico.Requisitos),
+                item.Servico.CanalUrl ?? "")))).ToArray();
+
+        var currentTokens = RelevantTokens(pergunta);
+        var selected = BestMatch(currentTokens, candidates);
+
+        // "E no domingo?" pode se referir à pergunta anterior.
+        // Só usamos o histórico em uma pergunta curta sobre um detalhe do serviço.
+        // Uma pergunta com outro assunto explícito não herda o serviço anterior.
+        if (selected is null
+            && currentTokens.Length > 0
+            && currentTokens.All(token => Qualifiers.Contains(token)))
         {
-            Item = item,
-            Score = tokens.Count(t => Tokens(string.Join(" ",
-                item.Servico.Nome, item.Servico.Descricao, string.Join(" ", item.Servico.Termos))).Contains(t)),
-            EvidenceTokens = Tokens(string.Join(" ", item.Servico.Nome,
-                item.Servico.Descricao, item.Servico.Orgao ?? "",
-                string.Join(" ", item.Servico.Etapas), string.Join(" ", item.Servico.Requisitos),
-                string.Join(" ", item.Servico.Termos))).ToHashSet()
-        }).Where(candidate => candidate.Score > 0)
-          .OrderByDescending(candidate => candidate.Score)
-          .ThenBy(candidate => candidate.Item.Servico.Id)
-          .FirstOrDefault();
+            foreach (var exchange in (historico ?? []).TakeLast(3).Reverse())
+            {
+                ct.ThrowIfCancellationRequested();
+                selected = BestMatch(RelevantTokens(exchange.Pergunta), candidates)
+                    ?? BestMatch(RelevantTokens(exchange.Resposta), candidates);
+                if (selected is not null)
+                    break;
+            }
+        }
 
-        if (best is null || tokens.Any(t => Qualifiers.Contains(t) && !best.EvidenceTokens.Contains(t)))
+        if (selected is null ||
+            currentTokens.Any(token => Qualifiers.Contains(token)
+                && !selected.EvidenceTerms.Contains(token)))
+        {
             return Task.FromResult(Insufficient());
+        }
 
-        var service = best.Item.Servico;
+        var service = selected.Knowledge.Servico;
         var lines = new List<string> { service.Nome + ": " + service.Descricao };
-        if (service.Etapas.Length > 0)
-            lines.Add("Etapas:\n" + string.Join("\n", service.Etapas.Select((s, i) => $"{i + 1}. {s}")));
-        if (service.Requisitos.Length > 0)
-            lines.Add("Requisitos:\n" + string.Join("\n", service.Requisitos.Select(s => "- " + s)));
-        if (service.CanalUrl is not null)
-            lines.Add("Canal informado na fonte revisada: " + service.CanalUrl);
 
-        return Task.FromResult(new ResultadoLlm(string.Join("\n\n", lines), [service.Id], true));
+        if (service.Etapas.Length > 0)
+            lines.Add("Etapas:\n" + string.Join("\n",
+                service.Etapas.Select((step, index) => $"{index + 1}. {step}")));
+
+        if (service.Requisitos.Length > 0)
+            lines.Add("Requisitos:\n" + string.Join("\n",
+                service.Requisitos.Select((item, index) => $"{index + 1}. {item}")));
+
+        if (!string.IsNullOrWhiteSpace(service.CanalUrl))
+            lines.Add("Canal oficial informado na fonte revisada: " + service.CanalUrl);
+
+        return Task.FromResult(new ResultadoLlm(
+            string.Join("\n\n", lines), [service.Id], true));
     }
+
+    private static Candidate? BestMatch(
+        string[] tokens, IReadOnlyList<Candidate> candidates)
+    {
+        if (tokens.Length == 0)
+            return null;
+
+        return candidates
+            .Select(candidate => new
+            {
+                Candidate = candidate,
+                Score = tokens.Count(candidate.SearchTerms.Contains)
+            })
+            .Where(match => match.Score > 0)
+            .OrderByDescending(match => match.Score)
+            .ThenBy(match => match.Candidate.Knowledge.Servico.Id, StringComparer.Ordinal)
+            .Select(match => match.Candidate)
+            .FirstOrDefault();
+    }
+
+    private static string[] RelevantTokens(string text) =>
+        Tokens(text).Where(token => !StopWords.Contains(token)).ToArray();
 
     private static ResultadoLlm Insufficient() => new("", [], false);
 
     private static HashSet<string> Tokens(string text)
     {
         var normalized = new string(text.Normalize(NormalizationForm.FormD)
-            .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+            .Where(character => CharUnicodeInfo.GetUnicodeCategory(character)
+                != UnicodeCategory.NonSpacingMark)
             .ToArray()).ToLowerInvariant();
+
         return Regex.Matches(normalized, "[a-z0-9]{3,}")
-            .Cast<Match>().Select(m => m.Value).ToHashSet(StringComparer.Ordinal);
+            .Cast<Match>()
+            .Select(match => match.Value)
+            .ToHashSet(StringComparer.Ordinal);
     }
 }
