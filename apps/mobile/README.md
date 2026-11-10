@@ -32,18 +32,20 @@ npm run web
 
 O `expo run` não serve para isso. O SQLite na web usa WebAssembly e o armazenamento do navegador (OPFS); o `metro.config.js` empacota o `.wasm` e envia os cabeçalhos `Cross-Origin-Embedder-Policy: credentialless` e `Cross-Origin-Opener-Policy: same-origin` nas respostas do Metro. Se abrir o app em duas abas ao mesmo tempo, a segunda não consegue abrir o banco (acesso exclusivo ao arquivo) e mostra "Não foi possível abrir seus dados".
 
-## Rodar no Expo Go em um celular Android (NÃO VERIFICADO)
+## Rodar no Expo Go em um celular
 
-Este passo a passo foi escrito a partir da documentação da Expo e **não foi executado**: não há Android Studio nem aparelho Android nesta máquina. Se algo divergir, corrija aqui.
+**iPhone: verificado pelo autor.** O autor leu o QR code em um iPhone com o Expo Go e relatou que enviar pergunta (com o mock), o Histórico e as Preferências funcionaram, inclusive depois de fechar e reabrir o app. Versão do iOS e do Expo Go não foram registradas.
 
-1. No celular, instale o **Expo Go** pela Google Play e atualize para a versão mais recente. O SDK 58 exige um Expo Go compatível (a API de versões da Expo lista a 58.0.5 para Android).
+**Android: NÃO VERIFICADO.** O passo a passo abaixo vem da documentação da Expo e não foi executado em um aparelho Android. Se algo divergir, corrija aqui.
+
+1. No celular, instale o **Expo Go** pela Google Play (Android) ou pela App Store (iPhone) e atualize para a versão mais recente. O SDK 58 exige um Expo Go compatível (a API de versões da Expo lista a 58.0.5 para Android).
 2. Conecte o celular e o computador **na mesma rede Wi-Fi**.
 3. No computador, em `apps/mobile`:
    ```bash
    npm install
    npm start
    ```
-4. No terminal aparece um QR code. No Android, abra o Expo Go e toque em **Scan QR code**. A câmera do celular sozinha pode não abrir o Expo Go.
+4. No terminal aparece um QR code. No Android, abra o Expo Go e toque em **Scan QR code**. A câmera do celular sozinha pode não abrir o Expo Go. No iPhone, o QR code foi lido com sucesso; não registrei se pela câmera ou pelo Expo Go.
 5. Se o celular não achar o computador, libere o Node.js no firewall do Windows para redes privadas (porta 8081) ou tente `npx expo start --tunnel` (pode pedir para instalar um pacote de túnel).
 6. Para conferir o banco local: escolha "Município Exemplo" no Início, feche o Expo Go por completo (deslizando-o para fora dos apps recentes) e reabra o app. O município escolhido deve continuar o mesmo.
 

@@ -67,7 +67,7 @@ Adicionar bibliotecas sempre com `npx expo install <pacote>`, para resolver a ve
 - Estrutura reorganizada para a raiz de `apps/mobile` (sem `src/`), conforme a arquitetura abaixo. O alias `@/` aponta para a raiz.
 - Removidos itens que o template trazia e que o projeto não usa: `AGENTS.md` local (apontava para `src/app` e conflita com esta estrutura), `.claude/settings.json` (habilitava um plugin de terceiros), `.vscode/`, `LICENSE`, README genérico, script `reset-project` e as dependências `@expo/ui`, `expo-glass-effect`, `expo-symbols`, `expo-device`, `expo-image`, `expo-web-browser`, `react-native-gesture-handler`, `react-native-reanimated` e `react-native-worklets`. `expo-doctor` não apontou problema depois da remoção.
 - `app.json`: nome "Fácil Município", slug `facil-municipio`, esquema `facilmunicipio`, `userInterfaceStyle` fixo em `light` (o mockup só tem tema claro e o contraste do escuro não foi verificado) e `reactCompiler` desativado, para reduzir o comportamento implícito.
-- Os ícones e a tela de abertura ainda são os do template. Falta definir os próprios.
+- Ícone e tela de abertura: ver "Fechamento do mobile (10/11/2026)". Os próprios substituíram os do template, mas só foram vistos como arquivos de imagem, não instalados em um aparelho.
 
 ## Protótipo visual
 
@@ -360,6 +360,20 @@ Feita só na web (Chrome controlado por script) e por cálculo. Nenhum leitor de
 
 **iPhone com Expo Go (relato do usuário, não executado por mim).** O usuário leu o QR code do Metro em um iPhone e relatou que o app abriu e que enviar pergunta (mock), o Histórico e a mudança de preferências funcionaram. Depois de fechar o app e abrir de novo, o Histórico e as preferências continuaram funcionando (relato, sem detalhes). Não registrei: versão do iOS, versão do Expo Go, nível de texto, nem prints.
 
+### Fechamento do mobile (10/11/2026)
+
+Feito sem commit.
+
+**Contrato da API.** Novo `services/api/__tests__/contratoApi.test.ts` (11 testes). Usa como entrada os exemplos de JSON de `docs/contratos-de-integracao.md` da branch `feat/soa-csharp-api` (leitura do documento, não de um servidor) e confere que `apiReal.ts` aceita: lista de municípios, lista de serviços (inclusive vazia), resposta suficiente com fonte `https` e `dataConsulta`, resposta de informação insuficiente, `canalOficialUrl` como texto; rejeita `null` em campo opcional; envia o corpo com `historico` e só os cabeçalhos `Accept` e `Content-Type`; e traduz 404, 422, 429 e 503. Isso prova que o app entende o formato **descrito** no contrato. **Não prova** que a API real devolve esse formato.
+
+**App contra a API real: não foi possível.** A API (`apps/api`, ASP.NET Core 10) exige PostgreSQL e Neo4j (`Program.cs` usa `UseNpgsql` e um driver `bolt`; o modo `Llm:Mode=demo` só troca o respondedor, não elimina os bancos). Esta máquina tem o .NET SDK 10.0.403, mas não tem Docker nem PostgreSQL, e não os instalei. A API também não está em `feature/mobile`; li uma cópia de `origin/feat/soa-csharp-api`. Para rodar: levantar os dois bancos (o `docker compose` do repositório dela), aplicar `--migrate` e `--bootstrap`, publicar os 3 serviços do piloto, definir `EXPO_PUBLIC_USAR_MOCK=false` e `EXPO_PUBLIC_API_URL=http://<IP do PC>:<porta>/api/v1` (no iPhone, `localhost` não serve). Dois pontos desconhecidos: se a API aceita conexões de fora do PC (e o firewall do Windows) e se o Expo Go no iPhone aceita `http`.
+
+**Ícone e tela de abertura.** Substituídos os arquivos do template por um balão de conversa branco com um prédio público (frontão e colunas) em verde `#0B6B5E`, a cor primária do tema: `icon.png` (1024, sem transparência), `android-icon-foreground.png`, `android-icon-background.png` (cor lisa), `android-icon-monochrome.png`, `splash-icon.png` e `favicon.png`. Gerados com um script Python (Pillow) que não foi guardado no repositório. No `app.json`, o fundo do ícone adaptativo do Android passou de `#E3F3EF` para `#0B6B5E` e `imageWidth` da abertura de 76 para 140. Visto: só as imagens `icon.png` e a monocromática, abertas como arquivo. Não visto: instalado na tela inicial do iPhone ou do Android, a tela de abertura em execução, o recorte do ícone adaptativo e o ícone da aba do navegador.
+
+**`npm audit` (`apps/mobile`).** Total de 31 (1 baixa, 30 moderadas, nenhuma alta ou crítica); só dependências de produção (`--omit=dev`): 5 moderadas. As causas-raiz que o relatório nomeia são `glob` (cancelamento por `AbortSignal` permite percorrer o sistema de arquivos depois do tempo limite), `minimatch` (negação de serviço por amplificação de `globparts`) e `deepmerge` (poluição de protótipo em `mergeObject()`). Quase todo o resto é cadeia de `jest`, `eslint` e `expo` (CLI) que depende delas. O `npm audit fix --force` indica mudanças incompatíveis e não foi executado. Não avaliei se o app, em execução no aparelho, usa algum desses caminhos de código; as ferramentas de desenvolvimento rodam só no computador.
+
+**Verificações de 10/11/2026** (`apps/mobile`): `tsc --noEmit` sem erros; `npm run lint` sem saída; Jest 16 suítes, 140 testes; `npx expo-doctor` 20/20; `npx expo export` para `android`, `ios` e `web`, código de saída 0 nos três.
+
 ## Dependências e decisões
 
 - **Contrato da API** (A2, D2): necessário para trocar o mock pela API real, incluindo o campo `historico`.
@@ -412,8 +426,8 @@ Enviar o link do repositório no Teams até 19/11, às 23h55, por um único inte
 
 **Verificado**, executado nesta máquina (Windows, Node 22.22.0, Chrome 156):
 
-- Jest: 15 suítes e 128 testes passando (09/11/2026, depois da tarefa 10). Os testes de banco rodam SQLite real em memória (`node:sqlite`, SQLite 3.50.4), não o `expo-sqlite` nativo.
-- `npm run typecheck` e `npx expo lint` com código de saída 0 (repetidos em 09/11/2026); `npx expo-doctor` com 20/20 (07/11/2026, não repetido depois da tarefa 7).
+- Jest: 16 suítes e 140 testes passando (10/11/2026, depois do fechamento do mobile). Os testes de banco rodam SQLite real em memória (`node:sqlite`, SQLite 3.50.4), não o `expo-sqlite` nativo.
+- `npm run typecheck` e `npx expo lint` com código de saída 0 (repetidos em 09/11/2026); `npx expo-doctor` com 20/20 e `npx expo export` para `android`, `ios` e `web` com código de saída 0 (todos repetidos em 10/11/2026).
 - `npx expo export` para Android, iOS e web, com código de saída 0 em 07/11/2026; depois da tarefa 7 só o da web foi repetido. Isso confirma só que o bundle compila.
 - Chrome (web, `npm run web`, janela de 393 × 852, controlado pelo protocolo de depuração): telas de Início, seletor de município, lista de serviços, navegação pelas abas, estado de erro, papéis de acessibilidade e a persistência do banco local (abrir, reabrir o banco existente, recarregar a página, abrir uma aba nova). Em 09/11/2026, a Conversa com o mock: pergunta sugerida no campo, envio, resposta com serviço relacionado, painel de fontes, segunda pergunta com `historico` (o mock citou a troca anterior), resposta de informação insuficiente sem botão de canal (o mock não traz `canalOficialUrl`), botão de voltar e reabertura da conversa pela URL sem parâmetros, com as trocas lidas do SQLite. Ainda em 09/11/2026, o Histórico (perfil novo do Chrome, mock): lista filtrada pelo município atual, "Todos os municípios" com o nome do município em cada item, abrir uma conversa de outro município e voltar para `/historico`, confirmação de apagar, cancelar (a conversa continua), apagar (sai da lista) e a lista depois de recarregar a página. A faixa "Disponível sem internet" apareceu ao simular o modo offline pelo protocolo de depuração do Chrome (`Network.emulateNetworkConditions`) e sumiu ao voltar online. Ainda em 09/11/2026, as Preferências (perfil novo do Chrome, mock): A+ três vezes mudou o texto de exemplo de 17 px para 20, 22 e 26 px (altura de linha 24, 28, 31 e 36), A+ ficou desativado no nível 4 e A− no nível 1; o nível 3 continuou depois de abrir `/preferencias` em uma aba nova; o texto de Início, Histórico e Preferências aumentou (visto em captura de tela); o `Modal` de privacidade e a confirmação de apagar abriram; cancelar manteve a conversa; apagar tudo esvaziou o Histórico e manteve o nível do texto; A− três vezes voltou a 17 px.
 
@@ -431,7 +445,7 @@ Enviar o link do repositório no Teams até 19/11, às 23h55, por um único inte
 - **Preferências (tarefa 9):** `PreferenciasProvider`, `useApagarHistorico` e a tela não têm teste de renderização (só `escalarEstilo` tem Jest). Não foram verificados: os quatro níveis com a fonte do sistema ampliada (a combinação pode estourar o layout), o nível 4 nas telas de Conversa, Histórico e na barra de abas em celular pequeno, a falha ao gravar o nível, o erro ao apagar tudo, o `Modal` e os botões A−/A+ com TalkBack e VoiceOver, e o anúncio "Histórico apagado".
 - **Web, banco ocupado ao recarregar:** em um teste, recarregar a página na mesma aba (`Page.navigate`) deixou a tela "Não foi possível abrir seus dados" por mais de 45 s, e "Tentar novamente" não resolveu; abrir a mesma URL em uma aba nova funcionou. Em outro teste a mesma recarga funcionou. A causa não foi investigada (suspeita: a aba antiga manter o acesso exclusivo ao arquivo do navegador). Só observado na web com o Chrome controlado por script; não se sabe se acontece em uso normal nem no celular.
 - **API:** cliente real contra um servidor. O contrato da API em C# só foi lido, não executado: `dotnet`, PostgreSQL e Neo4j não foram rodados aqui, e o cliente real só foi testado com `fetch` simulado.
-- **Outros:** testes de renderização de componentes e hooks (não há `@testing-library/react-native`); as 5 vulnerabilidades moderadas que o `npm install` relata, não investigadas.
+- **Outros:** testes de renderização de componentes e hooks (não há `@testing-library/react-native`); `npm audit`: ver "Fechamento do mobile (10/11/2026)".
 
 ### Tarefa 1+2 — esqueleto, tema, tipos e configuração (07/11/2026)
 
@@ -590,4 +604,4 @@ Uma branch curta por tarefa, com PR pequeno revisado por outro integrante. Acess
 | 11 | `feat/mobile-docs-entrega` | README com a Ficha da CitizenTech, prints, vídeo | D8 | Planejada |
 
 - As tarefas 1+2, 3 e 4+5 estão no commit `09380e5` (`feat: implement mobile structure`), na branch `feature/mobile`. Nenhum PR foi aberto.
-- Próximo passo: a tarefa 11 (README da entrega, prints, vídeo). O que está em "não verificado" (Android, Expo Go, leitores de tela) continua aberto.
+- Próximo passo: a tarefa 11 (README da entrega, prints, vídeo) e rodar o app contra a API real quando os bancos dela estiverem de pé. O que está em "não verificado" (Android, leitores de tela, ícone instalado no aparelho) continua aberto.
