@@ -22,6 +22,7 @@ import { TrocaConversa } from '@/components/TrocaConversa';
 import { config } from '@/config';
 import { useMunicipioAtual } from '@/contexts/MunicipioContext';
 import { useConversa } from '@/hooks/useConversa';
+import { useConexao } from '@/hooks/useConexao';
 import { useServicos } from '@/hooks/useServicos';
 import { colors, spacing } from '@/theme';
 import type { Fonte } from '@/types';
@@ -48,6 +49,7 @@ export function ConversaScreen() {
   const { estado } = useMunicipioAtual();
   const conversa = useConversa(conversaId, municipioIdParam);
   const servicos = useServicos(conversa.municipioId);
+  const conectado = useConexao();
 
   const [texto, setTexto] = useState(perguntaSugerida);
   const [fontesAbertas, setFontesAbertas] = useState<Fonte[] | null>(null);
@@ -94,6 +96,7 @@ export function ConversaScreen() {
 
   const semMunicipio = !conversa.carregando && conversa.municipioId === null;
   const enviando = conversa.pendente !== null;
+  const semInternet = !config.usarMock && conectado === false;
 
   return (
     <ContainerTela bordas={['top', 'bottom']} semPadding>
@@ -168,13 +171,22 @@ export function ConversaScreen() {
               mensagem="Não foi possível salvar esta conversa neste celular. Ela continua aberta, mas pode não aparecer no histórico."
             />
           ) : null}
+
+          {semInternet ? (
+            <Notice
+              tom="tint"
+              icone="semInternet"
+              titulo="Sem internet"
+              mensagem="Para enviar uma pergunta é preciso estar conectado. Você ainda pode ler esta conversa e o histórico."
+            />
+          ) : null}
         </ScrollView>
 
         <CampoPergunta
           valor={texto}
           aoMudar={setTexto}
           aoEnviar={enviar}
-          desativado={conversa.carregando || semMunicipio || enviando}
+          desativado={conversa.carregando || semMunicipio || enviando || semInternet}
         />
       </KeyboardAvoidingView>
 

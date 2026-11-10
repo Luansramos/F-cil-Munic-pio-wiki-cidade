@@ -1,4 +1,4 @@
-export type TipoErroBanco = 'abertura' | 'migracao' | 'conflito' | 'dados-invalidos' | 'operacao';
+export type TipoErroBanco = 'abertura' | 'em-uso' | 'migracao' | 'conflito' | 'dados-invalidos' | 'operacao';
 
 export class ErroBanco extends Error {
   readonly tipo: TipoErroBanco;

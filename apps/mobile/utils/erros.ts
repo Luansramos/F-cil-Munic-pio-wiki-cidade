@@ -25,6 +25,8 @@ export function mensagemDeErro(erro: unknown): string {
     switch (erro.tipo) {
       case 'abertura':
         return 'Não foi possível abrir os dados salvos neste celular. Tente de novo.';
+      case 'em-uso':
+        return 'O aplicativo já está aberto em outra aba do navegador. Feche as outras abas e recarregue esta página.';
       case 'migracao':
         return 'Os dados salvos neste celular não podem ser usados por esta versão do aplicativo.';
       default:

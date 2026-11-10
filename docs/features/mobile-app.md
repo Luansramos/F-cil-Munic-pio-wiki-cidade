@@ -135,7 +135,7 @@ Roteamento com Expo Router. Abas inferiores: **Início**, **Histórico** e **Pre
 - "Informação insuficiente": o app mostra o texto fixo do mockup e **não exibe o `resposta` devolvido pela API** nesse caso (ele só fica salvo). O botão "Abrir canal oficial" só aparece se `canalOficialUrl` for um link `https`.
 - Links: só abrem URLs `https` sem usuário ou senha (`utils/links.ts`). Fonte sem link mostra "Esta fonte de exemplo não tem link". `dataConsulta` (`yyyy-MM-dd`) aparece como `dd/MM/yyyy`; valor fora desse formato é ignorado.
 - O selo "Demonstração" e a nota "Exemplo de resposta para o protótipo." só aparecem com `EXPO_PUBLIC_USAR_MOCK=true`.
-- Fora do que foi feito: a ação "Nova conversa" no cabeçalho e o estado "sem conexão" que desativa o envio (o app tenta enviar e mostra o erro).
+- Itens que ficaram para a revisão: ver "Revisão dos itens pendentes (10/11/2026)".
 
 ### Histórico
 
@@ -341,6 +341,20 @@ Feita só na web (Chrome controlado por script) e por cálculo. Nenhum leitor de
 - Os multiplicadores dos níveis continuam provisórios. O título é limitado e a barra de abas não cresce, então o nível 4 não aumenta tudo na mesma proporção.
 - No `Modal` da web, o `Tab` passa por um elemento sem nome dentro do diálogo (provavelmente a guarda de foco do `react-native-web`). Não foi investigado.
 - A ferramenta que mede "sem nome" e tamanho conta só elementos visíveis. Ela não captura texto quebrado no meio de palavra; esses casos (itens 3 a 7) apareceram em capturas de tela vistas uma a uma, e só nas telas e estados listados acima.
+
+### Revisão dos itens pendentes (10/11/2026)
+
+**"Nova conversa" (removido).** Implementei um botão no cabeçalho, mas o usuário não pediu e mandou tirar; o código foi revertido. A Conversa continua sem essa ação (o mockup também não a desenha). Para outro assunto, o usuário volta ao Início e inicia uma conversa nova.
+
+**Sem conexão na Conversa (feito, não testado de ponta a ponta).** Com `EXPO_PUBLIC_USAR_MOCK=false` e `useConexao() === false`, aparece o aviso "Sem internet" e o campo de envio fica desativado; ler a conversa e o Histórico continua possível. Com o mock ligado o aviso não aparece, porque o mock funciona sem rede. Esse caminho não foi exercitado: o modo real depende da API, que não foi executada, e não há teste automatizado de tela.
+
+**Verificado:** Jest 15 suítes, 129 testes; `tsc --noEmit` sem erros; `npm run lint` (`expo lint`) sem saída.
+
+**Não verificado:** celular e Android. `npx eslint .` direto (fora do script do projeto) aponta 2 erros `react-hooks/set-state-in-effect` em `useCarregamento.ts` e `useConversa.ts`, que já existiam antes desta revisão.
+
+**Banco ocupado na web (diagnosticado e tratado).** Causa medida no Chrome: o `expo-sqlite` na web guarda o banco em um arquivo do navegador (OPFS) que só uma aba pode abrir por vez. Com o app aberto em uma aba, uma segunda aba falha com `createSyncAccessHandle ... Access Handles cannot be created if there is another open Access Handle`. Recarregar a mesma aba funcionou nos testes (4 de 4), então o caso do print provavelmente foi outra aba ou janela com o app aberto, mas isso é inferência: não consegui reproduzir o seu caso exato. Tentar abrir de novo na mesma página não resolve (a segunda tentativa deu `Invalid VFS state`), então não há retry automático. O que mudou: esse erro agora vira o tipo `em-uso`, com a mensagem "O aplicativo já está aberto em outra aba do navegador. Feche as outras abas e recarregue esta página." e o botão "Recarregar a página" (só na web). Testado: com a aba A aberta, a aba B mostra essa mensagem; depois de fechar A, o botão recarrega e o app abre. Só afeta a web; no celular o banco é nativo e não passa por esse caminho (não verificado em celular).
+
+**Ainda aberto:** aviso do console "Blocked aria-hidden" no navegador do usuário, que não consegui reproduzir.
 
 ## Dependências e decisões
 
@@ -565,11 +579,11 @@ Uma branch curta por tarefa, com PR pequeno revisado por outro integrante. Acess
 | 3 | `feat/mobile-scaffold-theme` | Interface do cliente da API, mock com os três serviços do piloto que aceita e varia com `historico`, marcado como exemplo | D4, D5 | Implementada, commit `09380e5`, sem PR |
 | 4+5 | `feat/mobile-scaffold-theme` | Componentes base, abas e Início com seletor de município, serviços e estados | D4 | Implementada, commit `09380e5`, sem PR. Histórico, Preferências e Conversa são telas provisórias |
 | 6 | `feat/mobile-scaffold-theme` | SQLite com `PRAGMA foreign_keys = ON`, migração, repositório de conversas e tabela `preferencias` | D6 | Implementada, commit `e6198e2`, sem PR. Conversa já usa o repositório (tarefa 7); Histórico e Preferências ficam para a 8+9 |
-| 7 | `feat/mobile-scaffold-theme` (feita nesta branch, não em `feat/mobile-conversa`) | Conversa com várias trocas, `historico`, painel de fontes em `Modal`, informação insuficiente | D4, D5 | Implementada no working tree, sem commit nem PR. Faltam "Nova conversa" no cabeçalho e o estado sem conexão |
+| 7 | `feat/mobile-scaffold-theme` (feita nesta branch, não em `feat/mobile-conversa`) | Conversa com várias trocas, `historico`, painel de fontes em `Modal`, informação insuficiente | D4, D5 | Implementada no working tree, sem commit nem PR. O estado sem conexão entrou na revisão de 10/11/2026; "Nova conversa" foi descartada |
 | 8 | `feat/mobile-scaffold-theme` (feita nesta branch) | Histórico (listar, filtrar, reabrir, apagar com confirmação, faixa sem internet) | D6, D7 | Implementada, commit `a9f36c7`, sem PR |
 | 9 | `feat/mobile-scaffold-theme` (feita nesta branch) | Preferências (tamanho do texto, privacidade, apagar todo o histórico, sobre) | D6, D7 | Implementada, commit `c5e3cf8`, sem PR |
 | 10 | `feat/mobile-scaffold-theme` (feita nesta branch) | Revisão final de acessibilidade | D7 | Implementada no working tree, sem commit nem PR. Só na web e por cálculo; falta leitor de tela e celular |
 | 11 | `feat/mobile-docs-entrega` | README com a Ficha da CitizenTech, prints, vídeo | D8 | Planejada |
 
 - As tarefas 1+2, 3 e 4+5 estão no commit `09380e5` (`feat: implement mobile structure`), na branch `feat/mobile-scaffold-theme`. Nenhum PR foi aberto.
-- Próximo passo: revisão dos itens pendentes ("Nova conversa" no cabeçalho da Conversa, estado sem conexão que desativa o envio, o problema de banco ocupado ao recarregar na web) e a tarefa 11 (README da entrega, prints, vídeo). O que está em "não verificado" (Android, Expo Go, leitores de tela) continua aberto.
+- Próximo passo: a tarefa 11 (README da entrega, prints, vídeo). O que está em "não verificado" (Android, Expo Go, leitores de tela) continua aberto.

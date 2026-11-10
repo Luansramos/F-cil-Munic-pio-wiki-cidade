@@ -44,6 +44,15 @@ describe('abrirBanco', () => {
     await expect(abrirBanco()).rejects.toMatchObject({ name: 'ErroBanco', tipo: 'abertura' });
   });
 
+  it('falha com o tipo em-uso, sem tentar de novo, quando outro processo segura o arquivo', async () => {
+    mockAbrir.mockRejectedValue(
+      new Error('Access Handles cannot be created if there is another open Access Handle'),
+    );
+
+    await expect(abrirBanco()).rejects.toMatchObject({ name: 'ErroBanco', tipo: 'em-uso' });
+    expect(mockAbrir).toHaveBeenCalledTimes(1);
+  });
+
   it('fecha o banco e falha quando a inicialização dá erro', async () => {
     const falso = criarBancoFalso();
     falso.execAsync.mockRejectedValue(new Error('disco cheio'));
