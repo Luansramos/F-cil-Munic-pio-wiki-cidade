@@ -4,7 +4,16 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { Icon } from '@/components/Icon';
 import { PERGUNTA_MAX } from '@/config/limites';
-import { borderWidth, colors, radii, spacing, touchTarget, typography } from '@/theme';
+import { useNivelTexto } from '@/contexts/NivelTextoContext';
+import {
+  borderWidth,
+  colors,
+  escalarEstilo,
+  radii,
+  spacing,
+  touchTarget,
+  typography,
+} from '@/theme';
 
 type CampoPerguntaProps = {
   valor: string;
@@ -20,6 +29,8 @@ export function CampoPergunta({
   desativado = false,
 }: CampoPerguntaProps) {
   const [focado, setFocado] = useState(false);
+  const nivel = useNivelTexto();
+  const textoDoCampo = escalarEstilo(typography.body, nivel);
   const podeEnviar = !desativado && valor.trim() !== '';
 
   return (
@@ -37,7 +48,11 @@ export function CampoPergunta({
           multiline
           maxLength={PERGUNTA_MAX}
           maxFontSizeMultiplier={2}
-          style={[styles.campo, focado ? styles.campoFocado : null]}
+          style={[
+            styles.campo,
+            { fontSize: textoDoCampo.fontSize, lineHeight: textoDoCampo.lineHeight },
+            focado ? styles.campoFocado : null,
+          ]}
         />
         <Pressable
           accessibilityRole="button"
@@ -88,8 +103,6 @@ const styles = StyleSheet.create({
     borderWidth: borderWidth.hairline,
     borderColor: colors.borderStrong,
     borderRadius: radii.sheet,
-    fontSize: typography.body.fontSize,
-    lineHeight: typography.body.lineHeight,
   },
   campoFocado: {
     borderWidth: borderWidth.emphasis,

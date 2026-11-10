@@ -16,6 +16,7 @@ type ButtonProps = {
   desativado?: boolean;
   larguraTotal?: boolean;
   accessibilityHint?: string;
+  accessibilityLabel?: string;
 };
 
 const ESTILOS: Record<
@@ -50,13 +51,14 @@ export function Button({
   desativado = false,
   larguraTotal = true,
   accessibilityHint,
+  accessibilityLabel,
 }: ButtonProps) {
   const estilo = ESTILOS[variante];
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={rotulo}
+      accessibilityLabel={accessibilityLabel ?? rotulo}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: desativado }}
       disabled={desativado}

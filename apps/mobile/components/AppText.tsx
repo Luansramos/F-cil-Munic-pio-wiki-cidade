@@ -1,7 +1,8 @@
 import { Text } from 'react-native';
 import type { TextProps } from 'react-native';
 
-import { LIMITE_ESCALA_SISTEMA, colors, typography } from '@/theme';
+import { useNivelTexto } from '@/contexts/NivelTextoContext';
+import { LIMITE_ESCALA_SISTEMA, colors, escalarEstilo, typography } from '@/theme';
 import type { ColorToken, TypographyToken } from '@/theme';
 
 type AppTextProps = TextProps & {
@@ -17,11 +18,18 @@ export function AppText({
   style,
   ...rest
 }: AppTextProps) {
+  const nivel = useNivelTexto();
+
   return (
     <Text
       maxFontSizeMultiplier={LIMITE_ESCALA_SISTEMA}
       {...rest}
-      style={[typography[variant], { color: colors[color] }, align ? { textAlign: align } : null, style]}
+      style={[
+        escalarEstilo(typography[variant], nivel),
+        { color: colors[color] },
+        align ? { textAlign: align } : null,
+        style,
+      ]}
     />
   );
 }
