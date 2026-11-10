@@ -11,7 +11,13 @@ type SeletorMunicipioProps = {
   aoSelecionar: (municipioId: string) => void;
   rotulo?: string;
   destaque?: boolean;
+  opcaoTodos?: {
+    ativa: boolean;
+    aoSelecionar: () => void;
+  };
 };
+
+const ROTULO_TODOS = 'Todos os municípios';
 
 export function SeletorMunicipio({
   municipios,
@@ -19,12 +25,23 @@ export function SeletorMunicipio({
   aoSelecionar,
   rotulo,
   destaque = true,
+  opcaoTodos,
 }: SeletorMunicipioProps) {
   const [aberto, setAberto] = useState(false);
-  const nomeAtual = selecionado ? formatarMunicipio(selecionado) : 'Escolher município';
+  const todosAtivo = opcaoTodos?.ativa === true;
+  const nomeAtual = todosAtivo
+    ? ROTULO_TODOS
+    : selecionado
+      ? formatarMunicipio(selecionado)
+      : 'Escolher município';
 
   function escolher(municipioId: string) {
     aoSelecionar(municipioId);
+    setAberto(false);
+  }
+
+  function escolherTodos() {
+    opcaoTodos?.aoSelecionar();
     setAberto(false);
   }
 
@@ -40,8 +57,18 @@ export function SeletorMunicipio({
         accessibilityHint="Abre a lista de municípios"
       />
       <FolhaModal visivel={aberto} titulo="Escolha o município" aoFechar={() => setAberto(false)}>
+        {opcaoTodos ? (
+          <ListRow
+            icone="local"
+            titulo={ROTULO_TODOS}
+            tom={todosAtivo ? 'tint' : 'surface'}
+            fim={todosAtivo ? 'check' : 'nenhum'}
+            selecionado={todosAtivo}
+            aoPressionar={escolherTodos}
+          />
+        ) : null}
         {municipios.map((municipio) => {
-          const ativo = municipio.id === selecionado?.id;
+          const ativo = !todosAtivo && municipio.id === selecionado?.id;
           return (
             <ListRow
               key={municipio.id}
