@@ -1,10 +1,10 @@
 # Feature — Aplicativo mobile do cidadão (Expo)
 
-- Status: em desenvolvimento (tarefas 1+2, 3 e 4+5 commitadas em `09380e5`, sem PR; tarefa 6 implementada no working tree, sem commit)
+- Status: em desenvolvimento (tarefas 1+2, 3 e 4+5 commitadas em `09380e5` e tarefa 6 em `e6198e2`, sem PR; tarefa 7 implementada no working tree, sem commit)
 - Responsável e colaboradores: Matheus (mobile e Cybersecurity); API P1; LLM P3
 - Itens do backlog / issue: D4, D5, D6, D7, D8 (apoio em D1–D3 para o contrato)
 - Componentes e disciplinas afetados: `apps/mobile`; Mobile Development & IoT (integração com a API de SOA e C#)
-- Última atualização: 07/11/2026
+- Última atualização: 09/11/2026
 - Observação: o backlog (`planejamento/04-backlog.md`) e `consulta-e-aplicativo.md` atribuem o app a P1/P2. O responsável pelo mobile é Matheus. A atualização desses documentos será combinada com o grupo.
 
 ## Problema e objetivo
@@ -34,7 +34,7 @@ Fora do escopo (conforme a especificação do MVP):
 
 ## Estado atual do repositório
 
-`apps/mobile` existe desde 07/11/2026 (branch `feat/mobile-scaffold-theme`) com o esqueleto do projeto, `theme/`, `types/` e `config/`, o componente `Icon`, a camada de API com dados mockados (`services/api/`), testes com Jest e a tarefa 4+5: componentes base, navegação por três abas com o Expo Router, contexto de município, hooks de carregamento e a tela de Início completa sobre o mock. Histórico, Preferências e Conversa existem só como telas provisórias. A tarefa 6 acrescentou o banco local SQLite (`services/banco/`), usado hoje só para guardar o município escolhido; os repositórios de conversas e do nível de texto existem e têm testes, mas nenhuma tela os usa ainda. Ainda não há conversa funcional, histórico real nem tela de preferências. A API não existe: nenhuma rota, esquema ou versão dela foi confirmada. Os tipos em `types/` seguem a proposta deste documento e continuam a acordar com P1.
+`apps/mobile` existe desde 07/11/2026 (branch `feat/mobile-scaffold-theme`) com o esqueleto do projeto, `theme/`, `types/` e `config/`, o componente `Icon`, a camada de API com dados mockados (`services/api/`), testes com Jest e a tarefa 4+5: componentes base, navegação por três abas com o Expo Router, contexto de município, hooks de carregamento e a tela de Início completa sobre o mock. Histórico e Preferências existem só como telas provisórias. A tarefa 6 acrescentou o banco local SQLite (`services/banco/`). A tarefa 7 ligou a tela de Conversa à API (mock por padrão) e ao banco: envio de perguntas com `historico`, gravação de cada troca, painel de fontes, aviso de informação insuficiente e reabertura de uma conversa salva pela URL. O repositório do nível de texto ainda não tem tela, e não há histórico real. A API em C# existe em outra branch (`feat/soa-csharp-api`, de P1) e **não foi executada por este app**: o contrato que ela implementa foi só lido no código (ver "Riscos, pendências e próximos passos"). Os tipos em `types/` seguem a proposta deste documento e continuam a acordar com P1.
 
 ### Versões fixadas (SDK 58)
 
@@ -125,6 +125,17 @@ Roteamento com Expo Router. Abas inferiores: **Início**, **Histórico** e **Pre
 - O município é fixo dentro de uma conversa. Para trocar de município, o usuário inicia uma nova conversa.
 - Ao reabrir uma conversa do Histórico, todas as trocas aparecem e o campo de pergunta permite continuar.
 - Estados: enviando, erro de rede com o texto digitado preservado, sem conexão (a conversa salva continua legível e o envio fica desativado com mensagem clara).
+
+#### Como a tarefa 7 implementou a Conversa (09/11/2026)
+
+- Rota `conversa/[id]`: o `id` é gerado no app ao iniciar a conversa. A conversa só é gravada depois da primeira troca bem-sucedida. A pergunta sugerida de um serviço vem preenchida no campo, editável, e não é enviada sozinha.
+- Limites da API (lidos em `feat/soa-csharp-api`, não executados): pergunta de 1 a 500 caracteres (campo com `maxLength` 500) e `historico` com no máximo 3 trocas, cada pergunta e cada resposta com no máximo 1000 caracteres. `montarHistorico` (`utils/historico.ts`) pega as 3 últimas trocas e corta com reticências o que passar de 1000.
+- Erros por status HTTP: 429 vira `limite-de-uso` ("muitas perguntas em pouco tempo") e 422 vira `pergunta-invalida`; os demais status continuam `indisponivel`, e falha de rede, `sem-conexao`. A pergunta que falhou continua no campo.
+- Se a gravação falhar, a conversa continua na tela com o aviso "Conversa não salva"; as trocas não gravadas são tentadas de novo, em ordem, no próximo envio.
+- "Informação insuficiente": o app mostra o texto fixo do mockup e **não exibe o `resposta` devolvido pela API** nesse caso (ele só fica salvo). O botão "Abrir canal oficial" só aparece se `canalOficialUrl` for um link `https`.
+- Links: só abrem URLs `https` sem usuário ou senha (`utils/links.ts`). Fonte sem link mostra "Esta fonte de exemplo não tem link". `dataConsulta` (`yyyy-MM-dd`) aparece como `dd/MM/yyyy`; valor fora desse formato é ignorado.
+- O selo "Demonstração" e a nota "Exemplo de resposta para o protótipo." só aparecem com `EXPO_PUBLIC_USAR_MOCK=true`.
+- Fora do que foi feito: a ação "Nova conversa" no cabeçalho e o estado "sem conexão" que desativa o envio (o app tenta enviar e mostra o erro).
 
 ### Histórico
 
@@ -337,10 +348,10 @@ Enviar o link do repositório no Teams até 19/11, às 23h55, por um único inte
 
 **Verificado**, executado nesta máquina (Windows, Node 22.22.0, Chrome 156):
 
-- Jest: 11 suítes e 84 testes passando. Os testes de banco rodam SQLite real em memória (`node:sqlite`, SQLite 3.50.4), não o `expo-sqlite` nativo.
-- `npm run typecheck` e `npx expo lint` com código de saída 0; `npx expo-doctor` com 20/20.
-- `npx expo export` para Android, iOS e web, com código de saída 0. Isso confirma só que o bundle compila.
-- Chrome (web, `npm run web`, janela de 393 × 852, controlado pelo protocolo de depuração): telas de Início, seletor de município, lista de serviços, navegação pelas abas, estado de erro, papéis de acessibilidade e a persistência do banco local (abrir, reabrir o banco existente, recarregar a página, abrir uma aba nova).
+- Jest: 13 suítes e 117 testes passando (09/11/2026, depois da tarefa 7). Os testes de banco rodam SQLite real em memória (`node:sqlite`, SQLite 3.50.4), não o `expo-sqlite` nativo.
+- `npm run typecheck` e `npx expo lint` com código de saída 0 (repetidos em 09/11/2026); `npx expo-doctor` com 20/20 (07/11/2026, não repetido depois da tarefa 7).
+- `npx expo export` para Android, iOS e web, com código de saída 0 em 07/11/2026; depois da tarefa 7 só o da web foi repetido. Isso confirma só que o bundle compila.
+- Chrome (web, `npm run web`, janela de 393 × 852, controlado pelo protocolo de depuração): telas de Início, seletor de município, lista de serviços, navegação pelas abas, estado de erro, papéis de acessibilidade e a persistência do banco local (abrir, reabrir o banco existente, recarregar a página, abrir uma aba nova). Em 09/11/2026, a Conversa com o mock: pergunta sugerida no campo, envio, resposta com serviço relacionado, painel de fontes, segunda pergunta com `historico` (o mock citou a troca anterior), resposta de informação insuficiente sem botão de canal (o mock não traz `canalOficialUrl`), botão de voltar e reabertura da conversa pela URL sem parâmetros, com as trocas lidas do SQLite.
 
 **Não verificado:**
 
@@ -350,8 +361,8 @@ Enviar o link do repositório no Teams até 19/11, às 23h55, por um único inte
 - **`expo-sqlite` nativo** (Android e iOS): abertura, `PRAGMA`s, migração, `withTransactionAsync`, fila de gravações e persistência depois de reiniciar o app no aparelho. No Jest o motor é outro.
 - **Web:** `crossOriginIsolated` é falso (detalhes na seção do banco); Safari e Firefox; hospedagem de produção.
 - **Telas:** `Modal`, toque, teclado, áreas seguras, TalkBack e VoiceOver; a fonte do mockup (Inter) contra a do sistema; níveis de texto e escala de fonte do sistema; estado "carregando" e rolagem em telas pequenas; contraste final de `Notice` e botões.
-- **Conversas:** a gravação pela interface (a tela de Conversa ainda não existe). Os repositórios só foram exercitados pelo Jest.
-- **API:** cliente real contra um servidor (a API não existe); só com `fetch` simulado.
+- **Conversa (tarefa 7):** o hook `useConversa` e os componentes não têm teste de renderização (só `montarHistorico`, `links` e o mapeamento de status do cliente têm Jest). Não foram vistos no navegador: o estado "enviando" (o mock responde em 600 ms e o script só olhou depois), os erros de envio e de gravação, o botão "Abrir canal oficial" e o abrir de links `https`. Teclado e rolagem em celular, anúncio "Resposta recebida" para leitores de tela e `KeyboardAvoidingView` não foram verificados.
+- **API:** cliente real contra um servidor. O contrato da API em C# só foi lido, não executado: `dotnet`, PostgreSQL e Neo4j não foram rodados aqui, e o cliente real só foi testado com `fetch` simulado.
 - **Outros:** testes de renderização de componentes e hooks (não há `@testing-library/react-native`); as 5 vulnerabilidades moderadas que o `npm install` relata, não investigadas.
 
 ### Tarefa 1+2 — esqueleto, tema, tipos e configuração (07/11/2026)
@@ -487,7 +498,7 @@ Registrar aqui, nas próximas tarefas, os comandos e resultados reais, os prints
 
 ## Riscos, pendências e próximos passos
 
-- Contrato da API ainda não acordado: o mock pode divergir da resposta real, principalmente no campo `historico`.
+- Contrato da API: a branch `feat/soa-csharp-api` (P1) implementa rotas em `/api/v1` com os mesmos campos que o app espera. Ao apontar o app para ela, `EXPO_PUBLIC_API_URL` precisa terminar em `/api/v1`. Leitura do código, sem execução. Divergências a combinar com P1 e P3: no modo `Llm__Mode=demo` a API recebe o `historico` mas não o usa (pergunta de seguimento sem palavra-chave volta como informação insuficiente); a API nasce sem municípios e serviços, então é preciso cadastrar e publicar o conteúdo; o limite de taxa é por IP (429); o app só reconhece os ids `coleta-de-lixo`, `iluminacao-publica` e `cata-treco` para ícones.
 - A continuidade da conversa depende de a API e a LLM usarem o contexto enviado.
 - O histórico enviado como contexto aumenta a superfície de PII e precisa passar pelo mesmo filtro da pergunta.
 - Comunicação com a API em ambiente de desenvolvimento (URL, rede local) ainda não definida.
@@ -503,11 +514,11 @@ Uma branch curta por tarefa, com PR pequeno revisado por outro integrante. Acess
 | 1+2 | `feat/mobile-scaffold-theme` | `apps/mobile` com Expo, TypeScript e Expo Router; versões fixadas; `theme/`, `types/`, `config/` | D4 | Implementada, commit `09380e5`, sem PR |
 | 3 | `feat/mobile-scaffold-theme` | Interface do cliente da API, mock com os três serviços do piloto que aceita e varia com `historico`, marcado como exemplo | D4, D5 | Implementada, commit `09380e5`, sem PR |
 | 4+5 | `feat/mobile-scaffold-theme` | Componentes base, abas e Início com seletor de município, serviços e estados | D4 | Implementada, commit `09380e5`, sem PR. Histórico, Preferências e Conversa são telas provisórias |
-| 6 | `feat/mobile-scaffold-theme` | SQLite com `PRAGMA foreign_keys = ON`, migração, repositório de conversas e tabela `preferencias` | D6 | Implementada no working tree, sem commit nem PR. Falta ligar os repositórios às telas (Conversa na tarefa 7, Histórico e Preferências na 8+9) |
-| 7 | `feat/mobile-conversa` | Conversa com várias trocas, `historico`, painel de fontes em `Modal`, informação insuficiente | D4, D5 | Planejada |
+| 6 | `feat/mobile-scaffold-theme` | SQLite com `PRAGMA foreign_keys = ON`, migração, repositório de conversas e tabela `preferencias` | D6 | Implementada, commit `e6198e2`, sem PR. Conversa já usa o repositório (tarefa 7); Histórico e Preferências ficam para a 8+9 |
+| 7 | `feat/mobile-scaffold-theme` (feita nesta branch, não em `feat/mobile-conversa`) | Conversa com várias trocas, `historico`, painel de fontes em `Modal`, informação insuficiente | D4, D5 | Implementada no working tree, sem commit nem PR. Faltam "Nova conversa" no cabeçalho e o estado sem conexão |
 | 8+9 | `feat/mobile-historico-preferencias` | Histórico (listar, filtrar, reabrir, apagar) e Preferências | D6, D7 | Planejada |
 | 10 | `feat/mobile-acessibilidade` | Revisão final de acessibilidade | D7 | Planejada |
 | 11 | `feat/mobile-docs-entrega` | README com a Ficha da CitizenTech, prints, vídeo | D8 | Planejada |
 
 - As tarefas 1+2, 3 e 4+5 estão no commit `09380e5` (`feat: implement mobile structure`), na branch `feat/mobile-scaffold-theme`. Nenhum PR foi aberto.
-- Próximo passo: tarefa 7 (conversa), que usa `salvarTroca` e o contexto de `historico`.
+- Próximo passo: tarefas 8+9 (Histórico e Preferências), que usam `listar`, `buscar`, `apagar` e `apagarTudo`.

@@ -27,6 +27,7 @@ const GLIFOS = {
   documento: 'file-document-outline',
   fechar: 'close',
   check: 'check',
+  externo: 'open-in-new',
 } as const satisfies Record<string, NomeGlifo>;
 
 export type NomeIcone = keyof typeof GLIFOS;

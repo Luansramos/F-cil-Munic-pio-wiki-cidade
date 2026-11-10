@@ -3,8 +3,19 @@ import { ehMunicipio, ehRespostaConversa, ehServico } from '@/types/guardas';
 
 import type { ApiClient } from './ApiClient';
 import { ErroApi } from './erros';
+import type { TipoErroApi } from './erros';
 
 const TEMPO_LIMITE_MS = 15000;
+
+function tipoPorStatus(status: number): TipoErroApi {
+  if (status === 429) {
+    return 'limite-de-uso';
+  }
+  if (status === 422) {
+    return 'pergunta-invalida';
+  }
+  return 'indisponivel';
+}
 
 function formatoInesperado(): ErroApi {
   return new ErroApi('indisponivel', 'A API respondeu em um formato inesperado.');
@@ -35,7 +46,10 @@ export function criarApiReal(apiUrl: string): ApiClient {
     }
 
     if (!resposta.ok) {
-      throw new ErroApi('indisponivel', `A API respondeu com o status ${resposta.status}.`);
+      throw new ErroApi(
+        tipoPorStatus(resposta.status),
+        `A API respondeu com o status ${resposta.status}.`,
+      );
     }
 
     try {

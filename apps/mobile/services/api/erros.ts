@@ -1,4 +1,10 @@
-export type TipoErroApi = 'sem-conexao' | 'indisponivel' | 'configuracao' | 'desconhecido';
+export type TipoErroApi =
+  | 'sem-conexao'
+  | 'indisponivel'
+  | 'limite-de-uso'
+  | 'pergunta-invalida'
+  | 'configuracao'
+  | 'desconhecido';
 
 export class ErroApi extends Error {
   readonly tipo: TipoErroApi;

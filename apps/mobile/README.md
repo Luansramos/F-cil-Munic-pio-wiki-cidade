@@ -59,8 +59,8 @@ O histórico e as preferências ficam em um banco SQLite local (`facil-municipio
 
 Copie `.env.example` para `.env` para alterar a configuração. O `.env` não é versionado.
 
-- `EXPO_PUBLIC_USAR_MOCK`: `true` por padrão. A API real ainda não existe.
-- `EXPO_PUBLIC_API_URL`: URL da API. Vazia por enquanto.
+- `EXPO_PUBLIC_USAR_MOCK`: `true` por padrão. Com `false`, o app usa `EXPO_PUBLIC_API_URL`.
+- `EXPO_PUBLIC_API_URL`: URL base da API, sem barra no fim. A API em C# (`feat/soa-csharp-api`) expõe as rotas em `/api/v1`, então o valor seria algo como `http://<host>:<porta>/api/v1`. Isso foi lido no código dela, não testado contra um servidor.
 - `EXPO_PUBLIC_MOCK_LATENCIA_MS`: atraso simulado do mock, 600 por padrão.
 
 Com `EXPO_PUBLIC_USAR_MOCK=true`, o app usa dados de exemplo locais, sem links e sem rede (veja "Camada de API e dados mockados" em `mobile-app.md`).

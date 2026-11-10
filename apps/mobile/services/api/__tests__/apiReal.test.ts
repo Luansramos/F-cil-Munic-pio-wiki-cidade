@@ -109,3 +109,17 @@ describe('apiReal', () => {
     await expect(api.listarMunicipios()).rejects.toMatchObject({ tipo: 'indisponivel' });
   });
 });
+
+describe('apiReal: erros por status', () => {
+  it.each([
+    [429, 'limite-de-uso'],
+    [422, 'pergunta-invalida'],
+    [503, 'indisponivel'],
+    [404, 'indisponivel'],
+  ])('status %s vira o tipo %s', async (status, tipo) => {
+    fetchMock.mockResolvedValue(resposta({}, status));
+    const api = criarApiReal('https://api.invalid');
+
+    await expect(api.enviarPergunta('poa', { pergunta: 'x' })).rejects.toMatchObject({ tipo });
+  });
+});
