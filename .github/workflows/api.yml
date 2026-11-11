@@ -1,0 +1,89 @@
+name: API SOA e CSharp
+on:
+  push:
+    branches: [feat/soa-csharp-api]
+  pull_request:
+    paths: ['apps/api/**', 'tests/Api.Tests/**', '.github/workflows/api.yml']
+permissions:
+  contents: read
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: facil_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: integration-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 20
+      neo4j:
+        image: neo4j:5.26-community
+        env:
+          NEO4J_AUTH: neo4j/integration-only
+        ports: ['7687:7687', '7474:7474']
+    env:
+      ConnectionStrings__Postgres: Host=localhost;Database=facil_test;Username=test;Password=integration-only
+      Neo4j__Uri: bolt://localhost:7687
+      Neo4j__Password: integration-only
+      Jwt__Key: ephemeral-ci-only-key-not-for-deployment-42
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore and build
+        run: |
+          dotnet build tests/Api.Tests/Api.Tests.csproj -c Release
+          python3 -m py_compile scripts/demo_fluxo_http.py
+      - name: Verify committed EF migrations
+        run: |
+          dotnet tool install --global dotnet-ef --version 10.0.4
+          dotnet ef migrations has-pending-model-changes --project apps/api
+      - name: Wait for Neo4j
+        run: |
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://localhost:7474 >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Unit and integration tests (real PostgreSQL and Neo4j)
+        run: dotnet test tests/Api.Tests/Api.Tests.csproj -c Release --logger 'trx;LogFileName=api.trx' --results-directory test-results
+      - name: Collect runnable API evidence
+        run: |
+          mkdir -p test-results
+          export Bootstrap__Email="operador-ci@example.test"
+          export Bootstrap__Password="$(openssl rand -hex 20)"
+          dotnet run --project apps/api -c Release --no-build -- --bootstrap
+          export Llm__Mode=demo
+          dotnet run --project apps/api -c Release --no-build -- --urls http://127.0.0.1:5055 >/tmp/facil-api-smoke.log 2>&1 &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:5055/health -o test-results/health.json; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/facil-api-smoke.log; exit 1; fi
+          curl -fsS http://127.0.0.1:5055/api/v1/municipios -o test-results/municipios.json
+          curl -fsS http://127.0.0.1:5055/swagger/v1/swagger.json -o test-results/openapi.json
+          python3 scripts/demo_fluxo_http.py
+          # Real browser screenshots from the API running inside the CI runner.
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$browser" ]; then
+            timeout 35s "$browser" --headless --no-sandbox --disable-gpu --hide-scrollbars --window-size=1440,1100 --virtual-time-budget=5000 --screenshot=test-results/swagger-ui.png http://127.0.0.1:5055/swagger/index.html
+            timeout 35s "$browser" --headless --no-sandbox --disable-gpu --hide-scrollbars --window-size=1100,850 --virtual-time-budget=1800 --screenshot=test-results/health-browser.png http://127.0.0.1:5055/health
+            test -s test-results/swagger-ui.png
+            test -s test-results/health-browser.png
+          else
+            echo "::warning::Browser not present; screenshots were not created"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-test-results
+          path: |
+            test-results
+            apps/api/Data/Migrations

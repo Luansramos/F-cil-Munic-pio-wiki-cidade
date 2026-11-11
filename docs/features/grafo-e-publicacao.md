@@ -1,19 +1,29 @@
-# Feature — Grafo e publicação
+# Grafo e publicação
 
-- Status: planejada
-- Responsáveis sugeridos: P1 e P3
-- Backlog: C1–C6
+**Status:** implementado e testado na API.
 
-## Objetivo e integração
+**Backlog:** C1–C4 e H3.
 
-Publicar serviços revisados em grafo com município, versão, entidades, relações e fontes. PostgreSQL controla versões administrativas e versão ativa; Neo4j contém conhecimento publicado. A gravação é repetível com IDs estáveis.
+## Implementação
 
-## Critérios de aceite
+Os dados administrativos ficam no PostgreSQL. Quando um rascunho é aprovado, `PublicationService` monta a nova versão do serviço e grava o conteúdo no Neo4j com município, versão e fonte.
 
-- Serviço e fonte são recuperáveis no grafo.
-- Consultas filtram município e versão ativa.
-- Falha preserva versão anterior; repetição não duplica conteúdo.
+A API só ativa a nova versão no PostgreSQL depois de conseguir gravar o grafo. Dessa forma, se a gravação falhar, a versão anterior continua disponível ao cidadão. O mesmo rascunho aprovado também pode ser publicado novamente sem gerar uma segunda versão.
 
-## Verificações e pendências
+No Neo4j, as consultas usam o município e a versão ativa. Isso evita que um cidadão receba serviços de outra cidade ou conteúdo ainda em revisão.
 
-Não implementado nem verificado. Documentar recuperação após falha entre bancos e seus resultados.
+## Testes realizados
+
+Os testes cobrem:
+
+- bloqueio de rascunho não aprovado;
+- repetição de publicação;
+- manutenção da versão anterior após falha simulada no grafo;
+- isolamento entre municípios;
+- leitura do serviço e de sua fonte após publicação.
+
+Esses testes passaram no [GitHub Actions](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42721825544), com PostgreSQL e Neo4j. O cenário HTTP de Cata Treco também confirmou publicação e consulta.
+
+## Limitação conhecida
+
+Não há transação distribuída entre os bancos. Uma falha pode deixar uma versão órfã no Neo4j, mas ela não fica ativa nem aparece nas consultas públicas. Limpeza automática dessas versões fica para uma melhoria posterior.
