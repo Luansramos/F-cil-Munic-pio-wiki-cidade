@@ -10,7 +10,8 @@ namespace FacilMunicipio.Api.Services;
 public class PublicationService(
     AppDbContext db,
     IKnowledgeGraph graph,
-    CurrentUser user)
+    CurrentUser user,
+    SinkGuard guard)
 {
     public async Task<Versao> PublishAsync(Guid id, CancellationToken ct)
     {
@@ -47,6 +48,11 @@ public class PublicationService(
             f => f.Id == rascunho.FonteId && f.MunicipioId == municipioId, ct);
 
         var servico = JsonSerializer.Deserialize<ServicoRevisado>(rascunho.ConteudoJson)!;
+
+        // Sink: publicação no grafo. Rascunhos antigos ou alterados fora da API também são verificados.
+        // Falha aqui encerra a transação antes de qualquer gravação.
+        await guard.RequireCleanAsync(municipioId, SinkDestino.Grafo,
+            SinkGuard.Fields(servico).Concat([("fonte.titulo", (string?)fonte.Titulo), ("fonte.url", fonte.Url)]));
 
         // Preserva os outros serviços que já estão publicados.
         var conhecimentos = municipio.VersaoAtivaId is Guid versaoAnterior

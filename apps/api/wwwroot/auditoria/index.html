@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditoria de Privacidade — Fácil Município</title>
+<style>
+  :root { --bg:#f6f7f9; --fg:#14213d; --card:#fff; --line:#c9cfd8; --muted:#4a5568; --verde:#0b6b3a; --amarelo:#7a5200; --vermelho:#a11d1d; --focus:#1d4ed8; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#10151f; --fg:#eef1f6; --card:#192131; --line:#3b4659; --muted:#b4bdcc; --verde:#6fe3a1; --amarelo:#ffd26a; --vermelho:#ff8f8f; --focus:#8fb4ff; } }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--fg); }
+  main { max-width:1000px; margin:0 auto; padding:16px; }
+  h1 { font-size:1.5rem; margin:.2rem 0 1rem; } h2 { font-size:1.15rem; margin:0 0 .5rem; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px; margin-bottom:16px; }
+  label { display:block; font-weight:600; margin:.5rem 0 .2rem; }
+  input, select, button { font:inherit; padding:.5rem .6rem; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--fg); min-height:44px; }
+  button { cursor:pointer; font-weight:600; }
+  :focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
+  .row { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; }
+  .indicator { display:flex; gap:16px; align-items:center; border-left:10px solid var(--line); padding-left:16px; }
+  .indicator.VERDE { border-color:var(--verde); } .indicator.AMARELO { border-color:var(--amarelo); } .indicator.VERMELHO { border-color:var(--vermelho); }
+  .indicator .icon { font-size:2.4rem; line-height:1; }
+  .indicator.VERDE .nivel { color:var(--verde); } .indicator.AMARELO .nivel { color:var(--amarelo); } .indicator.VERMELHO .nivel { color:var(--vermelho); }
+  .nivel { font-weight:700; font-size:1.2rem; }
+  .counts { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px; margin:0; padding:0; list-style:none; }
+  .counts li { border:1px solid var(--line); border-radius:8px; padding:10px; } .counts strong { display:block; font-size:1.6rem; }
+  table { width:100%; border-collapse:collapse; } th, td { text-align:left; padding:8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  .scroll { overflow-x:auto; }
+  .tag { display:inline-block; border:1px solid var(--line); border-radius:4px; padding:0 6px; font-size:.85rem; }
+  .muted { color:var(--muted); font-size:.92rem; }
+  .error { color:var(--vermelho); font-weight:600; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Auditoria de Privacidade — Fácil Município</h1>
+  <p class="muted">Painel de metadados de eventos de privacidade. Não exibe perguntas, documentos nem valores detectados. A proteção cobre apenas os caminhos instrumentados descritos na documentação.</p>
+
+  <section aria-labelledby="login-title" id="login-box">
+    <h2 id="login-title">Acesso administrativo</h2>
+    <form id="login-form" class="row" autocomplete="off">
+      <div><label for="email">E-mail</label><input id="email" type="email" required autocomplete="username"></div>
+      <div><label for="senha">Senha</label><input id="senha" type="password" required autocomplete="current-password"></div>
+      <button type="submit">Entrar</button>
+    </form>
+    <p id="login-error" class="error" role="alert" hidden></p>
+    <p class="muted">A sessão fica somente na memória desta aba; ao recarregar, entre novamente.</p>
+  </section>
+
+  <div id="panel" hidden>
+    <section aria-labelledby="filtros-title">
+      <h2 id="filtros-title">Consulta</h2>
+      <div class="row">
+        <div><label for="municipio">Município</label><select id="municipio"></select></div>
+        <div><label for="horas">Período</label>
+          <select id="horas"><option value="24">Últimas 24 horas</option><option value="72">Últimas 72 horas</option><option value="168">Últimos 7 dias</option></select></div>
+        <button id="refresh" type="button">Atualizar</button>
+        <button id="logout" type="button">Sair</button>
+      </div>
+    </section>
+
+    <p id="state" role="status" aria-live="polite" class="muted"></p>
+
+    <div id="content" hidden>
+      <section aria-labelledby="risco-title">
+        <h2 id="risco-title">Risco Cidadão</h2>
+        <div id="indicator" class="indicator">
+          <span class="icon" id="ind-icon" aria-hidden="true"></span>
+          <div><div class="nivel"><span id="ind-nivel"></span> — <span id="ind-rotulo"></span></div><div id="ind-desc"></div></div>
+        </div>
+        <p class="muted">Regra: considera os eventos do período escolhido. VERMELHO = proteção pendente com gravidade alta; AMARELO = dado pessoal de gravidade média/alta detectado e tratado (ou evento pendente); VERDE = sem eventos ou só gravidade baixa tratada. Gravidade é potencial do tipo de dado; a situação da proteção é a ação. Bloqueio bem-sucedido não é vazamento confirmado.</p>
+      </section>
+
+      <section aria-labelledby="resumo-title">
+        <h2 id="resumo-title">Resumo de eventos</h2>
+        <ul class="counts">
+          <li><strong id="c-total">0</strong>Eventos no período</li>
+          <li><strong id="c-san">0</strong>Sanitizações</li>
+          <li><strong id="c-blo">0</strong>Bloqueios</li>
+          <li><strong id="c-pen">0</strong>Proteções pendentes</li>
+          <li><strong id="c-tra">0</strong>Traduções pendentes ou sem IA</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="eventos-title">
+        <h2 id="eventos-title">Eventos recentes</h2>
+        <p id="empty" class="muted" hidden>Nenhum evento registrado no período. Isso não é garantia de segurança.</p>
+        <div class="scroll"><table id="events" hidden>
+          <caption class="muted">Últimos 50 eventos do período, do mais recente ao mais antigo.</caption>
+          <thead><tr><th scope="col">Horário</th><th scope="col">Categoria</th><th scope="col">Origem</th><th scope="col">Destino</th><th scope="col">Ação</th><th scope="col">Gravidade</th><th scope="col">Explicação</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </section>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+  "use strict";
+  var token = null; // somente em memória; nunca no armazenamento do navegador, em URL ou em cookie
+  var $ = function (id) { return document.getElementById(id); };
+  var ICON = { VERDE: "🟢", AMARELO: "🟡", VERMELHO: "🔴" };
+  var LABELS = { Cpf: "CPF", Rg: "RG", Email: "E-mail", Senha: "Senha", Saude: "Saúde", Llm: "Assistente de IA", RespostaPublica: "Resposta pública", Persistencia: "Banco de dados", Grafo: "Grafo publicado", Sanitizado: "Sanitizado", Bloqueado: "Bloqueado", Pendente: "Pendente", Baixa: "Baixa", Media: "Média", Alta: "Alta" };
+  var label = function (v) { return LABELS[v] || v; };
+
+  function api(path, options) {
+    options = options || {}; options.headers = options.headers || {};
+    if (token) options.headers.Authorization = "Bearer " + token;
+    return fetch(path, options);
+  }
+  function setState(text, isError) { var s = $("state"); s.textContent = text; s.className = isError ? "error" : "muted"; }
+
+  $("login-form").addEventListener("submit", function (ev) {
+    ev.preventDefault(); $("login-error").hidden = true;
+    api("/api/v1/auth/login", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: $("email").value, senha: $("senha").value }) })
+      .then(function (r) { if (!r.ok) throw new Error(r.status === 429 ? "Muitas tentativas. Aguarde um minuto." : "E-mail ou senha inválidos."); return r.json(); })
+      .then(function (d) {
+        token = d.token; $("senha").value = ""; $("login-box").hidden = true; $("panel").hidden = false; return loadCities();
+      })
+      .catch(function (e) { $("login-error").textContent = e.message || "Não foi possível entrar."; $("login-error").hidden = false; });
+  });
+
+  function loadCities() {
+    return api("/api/v1/municipios").then(function (r) { return r.json(); }).then(function (list) {
+      // Só conveniência de interface: a API valida o município no servidor.
+      try {
+        var claims = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+        if (claims.municipioId) list = list.filter(function (m) { return m.id === claims.municipioId; });
+      } catch (e) { /* mantém a lista completa */ }
+      var select = $("municipio"); select.textContent = "";
+      list.forEach(function (m) { var o = document.createElement("option"); o.value = m.id; o.textContent = m.nome + " (" + m.uf + ")"; select.appendChild(o); });
+      if (list.length === 0) { setState("Nenhum município cadastrado."); return; }
+      return load();
+    }).catch(function () { setState("Não foi possível carregar os municípios.", true); });
+  }
+
+  function load() {
+    var id = $("municipio").value; if (!id) return;
+    $("content").hidden = true; setState("Carregando eventos…");
+    return api("/api/v1/municipios/" + encodeURIComponent(id) + "/seguranca/painel?horas=" + encodeURIComponent($("horas").value))
+      .then(function (r) {
+        if (r.status === 401) { logout(); throw new Error("Sessão expirada. Entre novamente."); }
+        if (r.status === 403) throw new Error("Você não tem permissão para consultar este município.");
+        if (!r.ok) throw new Error("Não foi possível carregar o painel agora. Tente novamente.");
+        return r.json();
+      })
+      .then(render)
+      .catch(function (e) { setState(e.message, true); });
+  }
+
+  function render(d) {
+    setState("Atualizado em " + new Date(d.geradoEm).toLocaleString("pt-BR") + " · período de " + d.periodoHoras + " h");
+    var ind = d.indicador; $("indicator").className = "indicator " + ind.nivel;
+    $("ind-icon").textContent = ICON[ind.nivel] || ""; $("ind-nivel").textContent = ind.nivel; $("ind-rotulo").textContent = ind.rotulo; $("ind-desc").textContent = ind.descricao;
+    $("c-total").textContent = d.resumo.total; $("c-san").textContent = d.resumo.sanitizados; $("c-blo").textContent = d.resumo.bloqueados;
+    $("c-pen").textContent = d.resumo.pendentes; $("c-tra").textContent = d.resumo.traducoesPendentes;
+    var body = $("events").querySelector("tbody"); body.textContent = "";
+    $("empty").hidden = d.eventos.length > 0; $("events").hidden = d.eventos.length === 0;
+    d.eventos.forEach(function (e) {
+      var tr = document.createElement("tr");
+      function cell(text) { var td = document.createElement("td"); td.textContent = text; tr.appendChild(td); return td; }
+      cell(new Date(e.ocorridoEm).toLocaleString("pt-BR")); cell(label(e.categoria)); cell(e.origem); cell(label(e.destino)); cell(label(e.acao)); cell(label(e.gravidade));
+      var td = cell(e.explicacao + " ");
+      var tag = document.createElement("span"); tag.className = "tag";
+      tag.textContent = e.origemExplicacao === "IA" ? "Explicação gerada por IA"
+        : (e.traducaoEstado === "Falhou" ? "Mensagem padrão do sistema (tradução por IA falhou)" : "Mensagem padrão do sistema (tradução por IA pendente)");
+      td.appendChild(tag); body.appendChild(tr);
+    });
+    $("content").hidden = false;
+  }
+
+  function logout() { token = null; $("panel").hidden = true; $("login-box").hidden = false; $("content").hidden = true; }
+  $("refresh").addEventListener("click", load); $("municipio").addEventListener("change", load); $("horas").addEventListener("change", load);
+  $("logout").addEventListener("click", logout);
+})();
+</script>
+</body>
+</html>

@@ -22,6 +22,76 @@ namespace FacilMunicipio.Api.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("FacilMunicipio.Api.Domain.EventoSeguranca", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Acao")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<Guid>("CorrelacaoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Destino")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Gravidade")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("MunicipioId")
+                        .IsRequired()
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<DateTimeOffset>("OcorridoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Origem")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("TraducaoEstado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("TraducaoTentativas")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TraducaoTexto")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset?>("TraduzidaEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MunicipioId", "OcorridoEm");
+
+                    b.HasIndex("TraducaoEstado", "OcorridoEm");
+
+                    b.ToTable("EventosSeguranca");
+                });
+
             modelBuilder.Entity("FacilMunicipio.Api.Domain.Fonte", b =>
                 {
                     b.Property<Guid>("Id")
@@ -176,6 +246,15 @@ namespace FacilMunicipio.Api.Data.Migrations
                     b.HasIndex("MunicipioId", "CriadaEm");
 
                     b.ToTable("Versoes");
+                });
+
+            modelBuilder.Entity("FacilMunicipio.Api.Domain.EventoSeguranca", b =>
+                {
+                    b.HasOne("FacilMunicipio.Api.Domain.Municipio", null)
+                        .WithMany()
+                        .HasForeignKey("MunicipioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("FacilMunicipio.Api.Domain.Fonte", b =>

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace FacilMunicipio.Api.Controllers;
 [ApiController, Route("api/v1"), Authorize(Roles = "ADMIN,OPERADOR")]
 public class AdminController(AppDbContext db, CurrentUser user, IPasswordHasher<Usuario> passwords,
-    ILlmWiki llm, PublicationService publisher) : ControllerBase
+    ILlmWiki llm, PublicationService publisher, SinkGuard guard) : ControllerBase
 {
     [HttpPost("municipios"), Authorize(Roles = "OPERADOR")]
     public async Task<IActionResult> CreateMunicipio(CriarMunicipio request, CancellationToken ct)
@@ -38,6 +38,8 @@ public class AdminController(AppDbContext db, CurrentUser user, IPasswordHasher<
         user.RequireMunicipio(id);
         if (!await db.Municipios.AnyAsync(x => x.Id == id, ct)) return NotFound();
         if (request.DataConsulta == default || request.DataConsulta > DateOnly.FromDateTime(DateTime.UtcNow)) return UnprocessableEntity();
+        await guard.RequireCleanAsync(id, SinkDestino.Persistencia,
+            [("fonte.titulo", request.Titulo), ("fonte.texto", request.Texto), ("fonte.url", request.Url)]);
         var f = new Fonte { MunicipioId = id, Titulo = request.Titulo, Url = request.Url, Texto = request.Texto, DataConsulta = request.DataConsulta };
         db.Fontes.Add(f); await db.SaveChangesAsync(ct); return StatusCode(201, f);
     }
@@ -56,7 +58,8 @@ public class AdminController(AppDbContext db, CurrentUser user, IPasswordHasher<
         var f = await Source(id, ct);
         using var budget = CancellationTokenSource.CreateLinkedTokenSource(ct);
         budget.CancelAfter(TimeSpan.FromSeconds(12));
-        var proposal = await llm.ExtrairAsync(PrivacyFilter.Clean(f.Texto), budget.Token);
+        var text = await guard.SanitizeAsync(f.MunicipioId, f.Texto, "fonte.texto", SinkDestino.Llm);
+        var proposal = await llm.ExtrairAsync(text, budget.Token);
         var errors = new List<ValidationResult>();
         if (!Validator.TryValidateObject(proposal, new(proposal), errors, true)) return StatusCode(503);
         return await SaveDraft(id, proposal, ct);
@@ -69,6 +72,7 @@ public class AdminController(AppDbContext db, CurrentUser user, IPasswordHasher<
     private async Task<IActionResult> SaveDraft(Guid id, ServicoRevisado service, CancellationToken ct)
     {
         var f = await Source(id, ct);
+        await guard.RequireCleanAsync(f.MunicipioId, SinkDestino.Persistencia, SinkGuard.Fields(service));
         var draft = new Rascunho { FonteId = id, MunicipioId = f.MunicipioId };
         draft.Revisar(JsonSerializer.Serialize(service), false, user.Id);
         db.Rascunhos.Add(draft); await db.SaveChangesAsync(ct);
@@ -87,6 +91,7 @@ public class AdminController(AppDbContext db, CurrentUser user, IPasswordHasher<
     {
         var city = await db.Rascunhos.AsNoTracking().Where(x => x.Id == id).Select(x => x.MunicipioId).SingleOrDefaultAsync(ct);
         if (city is null) return NotFound(); user.RequireMunicipio(city);
+        await guard.RequireCleanAsync(city, SinkDestino.Persistencia, SinkGuard.Fields(request.Servico));
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtext({city}))", ct);
         var d = await db.Rascunhos.SingleAsync(x => x.Id == id, ct);
