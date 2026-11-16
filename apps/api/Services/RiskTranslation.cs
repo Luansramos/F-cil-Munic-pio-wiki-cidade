@@ -54,6 +54,8 @@ public static class RiskRules
         origem.StartsWith("conversa.") ? "pergunta ou histórico da conversa" :
         origem.StartsWith("llm.") ? "resposta gerada pelo assistente" :
         origem.StartsWith("fonte.") ? "texto de uma fonte administrativa" :
+        origem.StartsWith("grafo.") ? "conhecimento já publicado" :
+        origem.StartsWith("resposta.") ? "resposta pública" :
         origem.StartsWith("rascunho.") ? "rascunho de serviço" : "campo do sistema";
     public static string RotuloDestino(SinkDestino d) => d switch
     {

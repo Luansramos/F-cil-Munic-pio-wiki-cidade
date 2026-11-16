@@ -27,6 +27,7 @@ public class SecurityFactory : WebApplicationFactory<Program>
     public const string CityA = "cidade-a", CityB = "cidade-b";
     private readonly string dbName = Guid.NewGuid().ToString("N");
     public readonly FakeLlm Llm = new();
+    public readonly FakeGraph Graph = new();
     public readonly LogCapture Logs = new();
     static SecurityFactory() => Environment.SetEnvironmentVariable("Jwt__Key", JwtKey);
 
@@ -40,7 +41,7 @@ public class SecurityFactory : WebApplicationFactory<Program>
             s.RemoveAll<DbContextOptions<AppDbContext>>(); s.RemoveAll<IDbContextOptionsConfiguration<AppDbContext>>();
             s.AddDbContext<AppDbContext>(o => o.UseInMemoryDatabase(dbName));
             s.RemoveAll<ILlmWiki>(); s.AddSingleton<ILlmWiki>(Llm);
-            s.RemoveAll<IKnowledgeGraph>(); s.AddSingleton<IKnowledgeGraph, FakeGraph>();
+            s.RemoveAll<IKnowledgeGraph>(); s.AddSingleton<IKnowledgeGraph>(Graph);
         });
     }
 
@@ -73,10 +74,12 @@ public class SecurityFactory : WebApplicationFactory<Program>
 
 public class FakeGraph : IKnowledgeGraph
 {
+    /// <summary>Descrição publicada devolvida pelo grafo simulado (permite simular conteúdo antigo com PII).</summary>
+    public string Description = "Orientação fictícia para teste.";
     public Task WriteAsync(string m, Guid v, IReadOnlyList<Conhecimento> k, CancellationToken ct) => Task.CompletedTask;
     public Task<IReadOnlyList<Conhecimento>> ReadAsync(string m, Guid v, CancellationToken ct) =>
         Task.FromResult<IReadOnlyList<Conhecimento>>([new(
-            new("cata-treco", "Cata Treco", "Orientação fictícia para teste.", "Órgão fictício", ["Consulte o canal de demonstração."], [], null, ["sofá"]),
+            new("cata-treco", "Cata Treco", Description, "Órgão fictício", ["Consulte o canal de demonstração."], [], null, ["sofá"]),
             new("Fonte fictícia", "https://example.org/servico", "2026-01-01"))]);
 }
 

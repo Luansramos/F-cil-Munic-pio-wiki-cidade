@@ -52,7 +52,7 @@ public class PublicationService(
         // Sink: publicação no grafo. Rascunhos antigos ou alterados fora da API também são verificados.
         // Falha aqui encerra a transação antes de qualquer gravação.
         await guard.RequireCleanAsync(municipioId, SinkDestino.Grafo,
-            SinkGuard.Fields(servico).Concat([("fonte.titulo", (string?)fonte.Titulo), ("fonte.url", fonte.Url)]));
+            SinkGuard.Fields(servico).Concat([("fonte.titulo", (string?)fonte.Titulo), ("fonte.url", fonte.Url)]), ct);
 
         // Preserva os outros serviços que já estão publicados.
         var conhecimentos = municipio.VersaoAtivaId is Guid versaoAnterior

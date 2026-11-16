@@ -49,9 +49,10 @@ public static partial class PrivacyFilter
     [GeneratedRegex(@"\b(?:cpf)\b\W{0,12}$", Opt)] private static partial Regex CpfContext();
     // RG só com contexto ("RG", "identidade", "registro geral") para não marcar qualquer número.
     [GeneratedRegex(@"\b(?:rg|r\.g\.|identidade|registro\s+geral)\b(?:\s*(?:é|eh|n[ºo°]\.?|n[úu]mero))*\s*[:=\-]?\s*(?<v>\d{1,2}\.?\d{3}\.?\d{3}-?[\dxX]?)(?!\d)", Opt)] private static partial Regex Rg();
-    // Senha: campo identificado (senha=..., password: ...) ou frase na primeira pessoa ("minha senha é ...").
+    // Senha: campo identificado (senha=..., password: ...) ou frase na primeira pessoa; na frase o valor precisa ter dígito ou símbolo,
+    // para não tratar "minha senha é importante" como senha.
     [GeneratedRegex(@"\b(?:senha|password|passwd|pwd)\b\s*[:=]\s*(?<v>(?!\[DADO REMOVIDO\])\S+)", Opt)] private static partial Regex SenhaCampo();
-    [GeneratedRegex(@"\b(?:minha|nova|atual|antiga)\s+senha\s+(?:é|eh|:)\s*(?<v>(?!\[DADO REMOVIDO\])[^\s.,;!?]+)", Opt)] private static partial Regex SenhaFrase();
+    [GeneratedRegex(@"\b(?:minha|nova|atual|antiga)\s+senha\s+(?:é|eh|:)\s*(?<v>(?!\[DADO REMOVIDO\])(?=[^\s.,;!?]*[\d\p{S}\p{P}-[.,;!?]])[^\s.,;!?]+)", Opt)] private static partial Regex SenhaFrase();
     // Saúde: só afirmação pessoal contextual ("tenho diabetes", "fui diagnosticada com ...", CID).
     [GeneratedRegex(@"\b(?:tenho|estou\s+com|sou\s+portador(?:a)?\s+de|fui\s+diagnosticad[oa]\s+com|faço\s+tratamento\s+(?:de|para)|meu\s+(?:diagnóstico|laudo)\s+(?:é|foi|de))\s+(?:\w+\s+){0,2}?(?:diabetes|hiv|aids|câncer|cancer|depressão|depressao|epilepsia|hepatite|tuberculose|esquizofrenia|transtorno\s+\w+|covid(?:-19)?)\b", Opt)] private static partial Regex SaudeFrase();
     [GeneratedRegex(@"\bCID[\s-]?[A-Z]\d{2}(?:\.\d)?\b", Opt)] private static partial Regex Cid();

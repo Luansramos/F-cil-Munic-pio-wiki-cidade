@@ -52,6 +52,8 @@ public class SecurityTests
     [InlineData("Meu telefone é 11999998888")]
     [InlineData("O protocolo 2026000123 foi aberto")]
     [InlineData("Há atendimento para quem tem diabetes no posto?")]
+    [InlineData("Minha senha é importante para mim")]
+    [InlineData("Minha senha é fraca, como troco?")]
     public void NormalQuestionsAreNotFlagged(string input)
     {
         var scan = PrivacyFilter.Analyze(input, "conversa.pergunta");
@@ -66,8 +68,10 @@ public class SecurityTests
         // Falso negativo: CPF por extenso ou fragmentado não é detectado por regex.
         Assert.False(PrivacyFilter.Analyze("meu cpf é um dois três quatro cinco", "x").HasPii);
         Assert.False(PrivacyFilter.Analyze("CPF 123 456 789 00", "x").HasPii);
-        // Falso positivo: frase com padrão de senha sem ser uma senha.
-        Assert.True(PrivacyFilter.Analyze("minha senha é importante", "x").HasPii);
+        // Falso negativo: senha só com letras, informada em frase (sem "senha=") — a regra exige dígito ou símbolo.
+        Assert.False(PrivacyFilter.Analyze("minha senha é gatinho", "x").HasPii);
+        // Já no formato de campo, qualquer valor é removido.
+        Assert.True(PrivacyFilter.Analyze("senha=gatinho", "x").HasPii);
     }
 
     [Fact]
@@ -190,12 +194,12 @@ public class SecurityTests
     {
         await using var f = new SecurityFactory(); await f.SeedAsync();
         using var scope = f.Services.CreateScope(); var guard = scope.ServiceProvider.GetRequiredService<SinkGuard>();
-        var safe = await guard.SanitizeAsync(SecurityFactory.CityA, $"cpf {Cpf} e senha=Abc12345", "conversa.pergunta", SinkDestino.Llm);
+        var safe = guard.Sanitize(SecurityFactory.CityA, $"cpf {Cpf} e senha=Abc12345", "conversa.pergunta", SinkDestino.Llm);
         // Tratado: segue. Bruto (ou transformado) com a marca: bloqueado.
-        Assert.True(await guard.VerifyAsync(SecurityFactory.CityA, SinkDestino.Llm, ("conversa.pergunta", safe)));
-        Assert.False(await guard.VerifyAsync(SecurityFactory.CityA, SinkDestino.Llm, ("x.raw", $"cpf {Cpf}")));
-        Assert.False(await guard.VerifyAsync(SecurityFactory.CityA, SinkDestino.RespostaPublica, ("x.transformado", "valor: 12345678900")));
-        Assert.False(await guard.VerifyAsync(SecurityFactory.CityA, SinkDestino.Persistencia, ("x.upper", "ABC12345 no texto")));
+        Assert.True(guard.Verify(SecurityFactory.CityA, SinkDestino.Llm, ("conversa.pergunta", safe)));
+        Assert.False(guard.Verify(SecurityFactory.CityA, SinkDestino.Llm, ("x.raw", $"cpf {Cpf}")));
+        Assert.False(guard.Verify(SecurityFactory.CityA, SinkDestino.RespostaPublica, ("x.transformado", "valor: 12345678900")));
+        Assert.False(guard.Verify(SecurityFactory.CityA, SinkDestino.Persistencia, ("x.upper", "ABC12345 no texto")));
         Assert.Equal(SinkGuard.RejectionMessage, (await Assert.ThrowsAsync<ApiException>(() =>
             guard.RequireCleanAsync(SecurityFactory.CityA, SinkDestino.Grafo, [("rascunho.descricao", "Fale com maria@example.org")]))).Message);
     }
@@ -205,7 +209,7 @@ public class SecurityTests
     {
         await using var f = new SecurityFactory(); await f.SeedAsync();
         using var scope = f.Services.CreateScope(); var guard = scope.ServiceProvider.GetRequiredService<SinkGuard>();
-        await guard.SanitizeAsync(SecurityFactory.CityA, "senha=Abc12345", "conversa.pergunta", SinkDestino.Llm);
+        guard.Sanitize(SecurityFactory.CityA, "senha=Abc12345", "conversa.pergunta", SinkDestino.Llm);
         guard.Log(LogLevel.Information, "tentativa com Abc12345 e CPF 123.456.789-00");
         guard.Log(LogLevel.Information, "mensagem sem dado pessoal");
         Assert.Contains("Log bloqueado", f.Logs.All); Assert.Contains("mensagem sem dado pessoal", f.Logs.All);
@@ -217,9 +221,67 @@ public class SecurityTests
     {
         var audit = new SecurityAudit(new BrokenScopeFactory(), NullLogger<SecurityAudit>.Instance);
         var guard = new SinkGuard(audit, NullLogger<SinkGuard>.Instance);
-        Assert.False(await guard.VerifyAsync("x", SinkDestino.RespostaPublica, ("llm.resposta", "CPF 123.456.789-00")));
+        Assert.False(guard.Verify("x", SinkDestino.RespostaPublica, ("llm.resposta", "CPF 123.456.789-00")));
         await Assert.ThrowsAsync<ApiException>(() => guard.RequireCleanAsync("x", SinkDestino.Persistencia, [("fonte.texto", "maria@example.org")]));
-        Assert.DoesNotContain("123.456", await guard.SanitizeAsync("x", "CPF 123.456.789-00", "conversa.pergunta", SinkDestino.Llm));
+        Assert.DoesNotContain("123.456", guard.Sanitize("x", "CPF 123.456.789-00", "conversa.pergunta", SinkDestino.Llm));
+    }
+
+    // ---------- Achados da revisão: contexto da LLM, canal público e auditoria em lote ----------
+
+    [Fact]
+    public async Task Conversation_BlocksPublishedKnowledgeWithPiiBeforeCallingTheLlm()
+    {
+        await using var f = new SecurityFactory(); await f.SeedAsync();
+        f.Graph.Description = "Contato do responsável: fulano@example.org";
+        using var client = f.Client();
+        var response = await client.PostAsJsonAsync($"/api/v1/municipios/{SecurityFactory.CityA}/conversas", new EnvioPergunta("Como funciona o Cata Treco?", null));
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.False(json.GetProperty("informacaoSuficiente").GetBoolean());
+        Assert.Equal(0, f.Llm.Calls);
+        var events = await f.WithDb(db => db.EventosSeguranca.ToListAsync());
+        Assert.Contains(events, e => e.Destino == SinkDestino.Llm && e.Acao == AcaoProtecao.Bloqueado && e.Origem == "grafo.descricao" && e.Categoria == PiiCategory.Email);
+        Assert.DoesNotContain("fulano@example.org", JsonSerializer.Serialize(events) + f.Logs.All);
+    }
+
+    [Fact]
+    public async Task Conversation_EarlyAndBlockedResponsesNeverCarryAChannelWithPii()
+    {
+        await using var f = new SecurityFactory(); await f.SeedAsync(publishedA: false);
+        await f.WithDb(async db =>
+        {
+            var city = await db.Municipios.SingleAsync(m => m.Id == SecurityFactory.CityA);
+            city.CanalOficialUrl = "https://example.org/contato?cpf=123.456.789-00"; await db.SaveChangesAsync(); return 0;
+        });
+        using var client = f.Client();
+        var response = await client.PostAsJsonAsync($"/api/v1/municipios/{SecurityFactory.CityA}/conversas", new EnvioPergunta("Como funciona?", null));
+        var text = await response.Content.ReadAsStringAsync();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain("123.456", text); Assert.DoesNotContain("canalOficialUrl", text);
+        Assert.Contains(await f.WithDb(db => db.EventosSeguranca.ToListAsync()), e => e.Origem == "resposta.canal" && e.Destino == SinkDestino.RespostaPublica);
+        // Município com canal legítimo continua devolvendo o canal na resposta insuficiente.
+        await f.WithDb(async db =>
+        {
+            (await db.Municipios.SingleAsync(m => m.Id == SecurityFactory.CityA)).CanalOficialUrl = "https://example.org/canal"; await db.SaveChangesAsync(); return 0;
+        });
+        var ok = await (await client.PostAsJsonAsync($"/api/v1/municipios/{SecurityFactory.CityA}/conversas", new EnvioPergunta("Como funciona?", null))).Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("https://example.org/canal", ok.GetProperty("canalOficialUrl").GetString());
+    }
+
+    [Fact]
+    public async Task Audit_SevenSanitizedFieldsAreWrittenInOneBatchAndFlushRespectsCancellation()
+    {
+        var scopes = new BrokenScopeFactory();
+        var guard = new SinkGuard(new SecurityAudit(scopes, NullLogger<SecurityAudit>.Instance), NullLogger<SinkGuard>.Instance);
+        for (var i = 0; i < 7; i++) guard.Sanitize("x", $"CPF {Cpf} e senha=Abc12345", $"conversa.historico[{i}].pergunta", SinkDestino.Llm);
+        Assert.Equal(0, scopes.Calls);                 // nada de E/S enquanto a conversa processa os campos
+        await guard.FlushAsync(default);
+        Assert.Equal(1, scopes.Calls);                 // uma única gravação para os 14 eventos
+        await guard.FlushAsync(default);
+        Assert.Equal(1, scopes.Calls);                 // nada pendente: sem nova chamada
+        guard.Sanitize("x", $"CPF {Cpf}", "conversa.pergunta", SinkDestino.Llm);
+        using var cancelled = new CancellationTokenSource(); cancelled.Cancel();
+        await guard.FlushAsync(cancelled.Token);       // cancelamento não lança nem libera dado
     }
 
     // ---------- Persistência / publicação ----------
@@ -470,6 +532,7 @@ public class SecurityTests
 
     private sealed class BrokenScopeFactory : IServiceScopeFactory
     {
-        public IServiceScope CreateScope() => throw new InvalidOperationException("auditoria indisponível");
+        public int Calls;
+        public IServiceScope CreateScope() { Calls++; throw new InvalidOperationException("auditoria indisponível"); }
     }
 }

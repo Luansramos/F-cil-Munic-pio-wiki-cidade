@@ -49,14 +49,16 @@ Não há substituição global de campos `senha` no JSON (quebraria login e cada
 3. **Tratamento**: sanitização (conversa) ou rejeição (fontes/rascunhos). As marcas se **propagam**: o valor de uma senha citada na pergunta é removido também quando aparece solto no histórico.
 4. **Sink**: `VerifyAsync`/`RequireCleanAsync` reanalisam o texto de saída com regex **e** procuram os valores marcados (inclusive reformatados, em outra caixa ou com dígitos separados). Se acharem, bloqueiam, registram só metadados e produzem resposta segura.
 
-Sinks cobertos: chamada à LLM de conhecimento, resposta pública da conversa, persistência de fontes/rascunhos, publicação no grafo e as linhas de log escritas por `SinkGuard.Log`.
+Sinks cobertos: chamada à LLM de conhecimento (pergunta, histórico **e todo o conhecimento publicado enviado como contexto**), resposta pública da conversa (resposta, serviços, fontes e canal, **inclusive as respostas alternativas de “informação insuficiente” e de bloqueio**, cujo canal oficial só sai se passar pela verificação), persistência de fontes/rascunhos, publicação no grafo e as linhas de log escritas por `SinkGuard.Log`.
 
 **Limites reais** (não afirmar proteção maior):
 
 - **Não** há proteção automática de todo `ILogger`, de toda a aplicação ou de código futuro. Apenas os caminhos acima foram instrumentados. Revisão dos logs existentes: `Program.cs` registra só status e tipo da exceção; nenhum log novo contém corpo HTTP, pergunta, histórico, senha, prompt ou mensagem de exceção.
 - É uma análise em tempo de execução, por requisição e por texto; não é análise estática do código.
 - A marca vive só na requisição: não há rastreamento entre requisições nem entre processos.
-- Falha de auditoria **não libera** dado (a decisão vem antes e não depende do banco), mas o evento é perdido: há uma única tentativa com timeout de 3 s, sem fila.
+- Falha de auditoria **não libera** dado (a decisão vem antes e não depende do banco), mas o evento é perdido. Os eventos de uma operação são acumulados em memória e gravados **uma única vez** (`FlushAsync`), com limite de 2 s e ligado ao cancelamento da requisição; sem fila e sem nova tentativa. Pior caso da conversa: 12 s de orçamento + 2 s de auditoria, abaixo do timeout de 15 s do app (e não mais uma espera por campo).
+- Bloqueios de **log** (`SinkGuard.Log`) saem apenas como linha de log com categorias; **não** viram evento no painel (o log não conhece o município nem o destino).
+- Mensagens de erro previstas (404, 503, 422) são textos fixos do código e não incluem conteúdo do usuário.
 
 ## Detecção: cobertura, falsos positivos e negativos
 
@@ -69,7 +71,7 @@ Limitações documentadas (e verificadas em teste):
 - Falso negativo: CPF por extenso (“um dois três…”) ou com espaços (`123 456 789 00`) não é detectado na entrada; só seria barrado na saída se o mesmo valor já tivesse sido marcado.
 - Falso negativo: o valor de uma senha com menos de 6 caracteres é removido onde vem identificado (`senha=…`), mas **não** é rastreado em texto livre (evita bloquear respostas que contenham palavras comuns como “teste”).
 - Falso negativo: saúde fora do vocabulário e das frases listadas; nomes, endereços, telefones e datas de nascimento não são detectados.
-- Falso positivo: “minha senha é importante” é lido como senha; e-mail institucional em fonte/rascunho é rejeitado (a política é conservadora).
+- Falso positivo reduzido: em frase (“minha senha é …”) o valor precisa ter dígito ou símbolo; assim “minha senha é importante” não é senha. Custo: senha só com letras em frase (“minha senha é gatinho”) **não** é detectada (no formato `senha=gatinho` é). E-mail institucional em fonte/rascunho é rejeitado (a política é conservadora).
 - Regex e regras de contexto não detectam qualquer dado pessoal possível.
 
 ## Auditoria (PostgreSQL)
@@ -98,7 +100,7 @@ Tabela `EventosSeguranca`: id, correlação aleatória da operação, município
 - ADMIN consulta apenas o próprio município (403 nos demais); OPERADOR segue a política existente; a validação é no backend.
 - **Período**: 24 h por padrão, 1–168 h.
 - **Regra** (gravidade potencial é do tipo de dado: senha/saúde alta, CPF/RG média, e-mail baixa; a situação da proteção é a ação):
-  - VERMELHO: existe evento `Pendente` de gravidade alta (proteção não confirmada);
+  - VERMELHO: existe evento `Pendente` de gravidade alta (proteção não confirmada). **Nenhum caminho atual gera `Pendente`, então o vermelho não é alcançável hoje**; a regra é coberta só por teste unitário e nenhum incidente é forjado para exibi-lo;
   - AMARELO: existe evento `Pendente`, ou evento tratado (sanitizado/bloqueado) de gravidade média/alta;
   - VERDE: nenhum evento, ou apenas eventos tratados de gravidade baixa.
 - Bloqueio bem-sucedido nunca é contado como vazamento confirmado. “Sem eventos” aparece como “Sem eventos registrados” e o texto afirma que **não é garantia de segurança**.
@@ -110,4 +112,4 @@ Proteger a API **não** remove a pergunta original que o aplicativo Expo pode sa
 
 ## Verificações
 
-Executadas (ver [entrega-cybersecurity.md](../entrega-cybersecurity.md) para comandos e resultados): testes automatizados com API real em memória (EF InMemory), grafo e LLM de conhecimento simulados, transporte HTTP do tradutor simulado. **Não executados neste ambiente**: o teste de integração com PostgreSQL e Neo4j (requer Docker), a publicação real no grafo com bloqueio (coberta por trecho novo desse teste, só roda no CI), qualquer chamada a provedor de IA real, a página no navegador, PDF, capturas e vídeo.
+Executadas (ver [entrega-cybersecurity.md](../entrega-cybersecurity.md) para comandos e resultados): testes automatizados com API real em memória (EF InMemory), grafo e LLM de conhecimento simulados, transporte HTTP do tradutor simulado, e o teste de integração com PostgreSQL e Neo4j reais locais (96/96). **Não executados**: qualquer chamada a provedor de IA real, a página no navegador, PDF, capturas e vídeo.

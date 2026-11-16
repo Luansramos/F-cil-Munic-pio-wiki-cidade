@@ -77,10 +77,12 @@ Ambiente: Windows 10, .NET SDK 10.0.404, **sem Docker** (PostgreSQL e Neo4j indi
 | Comando | Resultado |
 |---|---|
 | `dotnet test tests/Api.Tests` na base, antes das mudanças | 41 testes: 40 aprovados, 1 falha (`IntegrationTests`, exige `Jwt__Key`, PostgreSQL e Neo4j) |
-| `dotnet test tests/Api.Tests` com as mudanças | **91 testes: 90 aprovados, 1 falha** — a mesma `IntegrationTests.RealDatabases_…`, que tenta abrir conexão com o PostgreSQL inexistente; 50 testes novos (casos de `Theory` contam individualmente), todos aprovados |
+| `dotnet test tests/Api.Tests` sem bancos, após os ajustes da revisão | 96 testes: 95 aprovados, 1 falha (`IntegrationTests`, sem PostgreSQL/Neo4j no ar) |
+| `dotnet test tests/Api.Tests` com PostgreSQL 17.6 e Neo4j 5.26 locais (binários portáteis) | **96 testes, 96 aprovados**, incluindo `IntegrationTests` real e o trecho que bloqueia publicação de rascunho com e-mail |
+| API real + `scripts/demo_fluxo_http.py` + consulta com CPF e saúde | `DEMO HTTP OK`; painel retornou 2 eventos sanitizados e indicador AMARELO (verificado por API, **não** no navegador) |
 | `dotnet ef migrations has-pending-model-changes --project apps/api` (dotnet-ef 10.0.4, instalado fora do PATH) | “No changes have been made to the model since the last migration.” |
 
-Os testes novos usam `WebApplicationFactory` com EF **InMemory**, grafo e LLM de conhecimento simulados e HTTP do tradutor simulado. Isso **não** substitui a execução com PostgreSQL/Neo4j: transações, `pg_advisory_xact_lock` e a publicação real continuam cobertos apenas pelo teste de integração (CI). Foi acrescentado a ele um trecho que tenta publicar um rascunho com e-mail e espera `ApiException`; **esse trecho não foi executado localmente**.
+Os testes novos (55, incluindo casos de `Theory`) usam `WebApplicationFactory` com EF **InMemory**, grafo e LLM de conhecimento simulados e HTTP do tradutor simulado. Isso **não** substitui a execução com PostgreSQL/Neo4j: transações, `pg_advisory_xact_lock` e a publicação real continuam cobertos apenas pelo teste de integração (CI). Foi acrescentado a ele um trecho que tenta publicar um rascunho com e-mail e espera `ApiException`; esse trecho foi executado contra os bancos reais locais e passou.
 
 Para repetir com bancos (README da API): `docker compose up -d`, variáveis de ambiente, `dotnet run --project apps/api -- --migrate`, `dotnet test tests/Api.Tests -c Release`.
 
@@ -110,7 +112,7 @@ Preparação (manual): bancos no ar, `--migrate`, `--bootstrap`, `Llm__Mode=demo
 
 ## Pendências para a entrega
 
-1. Subir PostgreSQL/Neo4j e executar o `dotnet test` completo (inclusive `IntegrationTests` e o trecho novo de publicação) e `--migrate`.
+1. (Feito localmente) PostgreSQL/Neo4j, `--migrate` e `dotnet test` completo. Repetir no CI.
 2. Configurar um provedor de IA por variáveis de ambiente, confirmar o modelo na documentação oficial e executar C7 de verdade; só então registrar a validação.
 3. Abrir o painel no navegador e fazer as capturas C1–C9 (sem dados reais).
 4. Gravar o vídeo do dashboard.
