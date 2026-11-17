@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { LinkExterno } from '@/components/LinkExterno';
+import { config } from '@/config';
 import { borderWidth, colors, radii, spacing } from '@/theme';
 import type { Fonte } from '@/types';
 import { ehUrlSegura, enderecoExibido, formatarDataConsulta } from '@/utils/links';
@@ -36,7 +37,7 @@ export function CartaoFonte({ fonte }: CartaoFonteProps) {
         />
       ) : (
         <AppText variant="small" color="textMuted">
-          Esta fonte de exemplo não tem link.
+          {config.usarMock ? 'Esta fonte de exemplo não tem link.' : 'Esta fonte não tem link.'}
         </AppText>
       )}
     </View>

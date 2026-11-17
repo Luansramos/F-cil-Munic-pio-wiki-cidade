@@ -2,6 +2,57 @@
 
 App Expo (SDK 58) do Fácil Município. Protótipo acadêmico em desenvolvimento. O escopo, a arquitetura, as decisões e as verificações estão em [docs/features/mobile-app.md](../../docs/features/mobile-app.md).
 
+## Ficha da CitizenTech
+
+| Item | Descrição |
+|---|---|
+| Nome | Fácil Município — Wiki Cidade |
+| Cidade e bairro | Poá (SP) |
+| Cidadão beneficiado | Moradores que precisam encontrar informações sobre serviços urbanos |
+| Problema, em uma frase | É difícil saber qual serviço procurar e onde encontrar orientações confiáveis |
+| Como funciona | O cidadão escolhe o município, faz uma pergunta em linguagem simples e recebe uma orientação baseada só no conhecimento revisado e publicado, com a fonte consultada |
+| O que cada parte faz | **App Expo (esta pasta):** perguntas, fontes e histórico salvo no celular. **API em C# (`apps/api` na `main`):** cadastro, revisão, publicação e consulta, com PostgreSQL e Neo4j. Demais partes: ver o [README da raiz](../../README.md) na `main` |
+| Link do repositório | https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade |
+| Indicador de impacto (proposta) | Respostas acompanhadas de fonte e acerto das orientações nos testes do grupo. Ainda não são resultados de impacto |
+| ODS conectados | ODS 11 (facilitar o acesso a informações sobre serviços urbanos) e ODS 16 (acesso à informação pública e transparência) |
+| Integrantes | Fernanda Rocha Menon (RM 554673), Luiza Macena Dantas (RM 556237), Luan Ramos Garcia de Souza (RM 558537), Matheus Ricciotti (RM 556930), Matheus Bortolotto (RM 555189) |
+
+A Prefeitura de Poá é uma referência para o piloto, não uma parceira do projeto.
+
+## Prints das telas
+
+As capturas foram feitas em 17/11/2026 no **navegador** (Chrome, tela de 393 × 852, escala 2x), com o app compilado para a web. **Não são capturas de um celular físico.** Todos os dados são de exemplo ou públicos; nenhuma pergunta contém dado pessoal.
+
+### Modo demonstrativo (`EXPO_PUBLIC_USAR_MOCK=true`)
+
+Respostas de exemplo, marcadas com "(Exemplo)" e com o selo "Demonstração". O município "São Paulo" é fictício para o protótipo.
+
+| 1. Início | 2. Resposta com fonte | 3. Fontes da resposta | 4. Sem informação suficiente |
+|---|---|---|---|
+| <img src="../../docs/features/img/app/01-inicio.png" width="210" alt="Tela Início com o município São Paulo, o botão Iniciar conversa e três serviços"> | <img src="../../docs/features/img/app/02-conversa-resposta-com-fonte.png" width="210" alt="Conversa com a resposta de exemplo sobre o Cata Treco e o link Ver fontes"> | <img src="../../docs/features/img/app/03-painel-de-fontes.png" width="210" alt="Painel Fontes desta resposta com duas fontes de exemplo"> | <img src="../../docs/features/img/app/04-conversa-sem-informacao-suficiente.png" width="210" alt="Aviso Não encontrei informação suficiente para uma pergunta sem cobertura"> |
+
+| 5. Histórico (salvo no celular) | 6. Preferências | 7. Texto maior | 8. Início com texto maior |
+|---|---|---|---|
+| <img src="../../docs/features/img/app/05-historico.png" width="210" alt="Tela Histórico com a conversa salva e o botão de apagar"> | <img src="../../docs/features/img/app/06-preferencias.png" width="210" alt="Tela Preferências com tamanho do texto, privacidade e modo demonstrativo"> | <img src="../../docs/features/img/app/07-preferencias-texto-maior.png" width="210" alt="Preferências com o tamanho do texto no nível 3 de 4"> | <img src="../../docs/features/img/app/08-inicio-texto-maior.png" width="210" alt="Tela Início com o texto aumentado"> |
+
+### Com a API em C# (`EXPO_PUBLIC_USAR_MOCK=false`)
+
+O app lê municípios, serviços e respostas da API real em C# rodando no mesmo computador, em modo demonstração do conhecimento (`Llm__Mode=demo`: devolve o texto já revisado e publicado, **sem LLM**). O conteúdo de Poá vem do roteiro `scripts/demo_fluxo_http.py` da API, a partir de uma página pública da Prefeitura de Poá.
+
+| 1. Município sem serviços | 2. Escolha do município | 3. Poá com serviço publicado |
+|---|---|---|
+| <img src="../../docs/features/img/app/api-01-inicio-municipio-sem-servicos.png" width="210" alt="Início do município fictício sem serviços, com o aviso de que ainda não há serviços disponíveis"> | <img src="../../docs/features/img/app/api-02-escolha-do-municipio.png" width="210" alt="Janela Escolha o município com Município fictício e Poá"> | <img src="../../docs/features/img/app/api-03-inicio-poa-com-servico.png" width="210" alt="Início de Poá com o serviço Cata Treco"> |
+
+| 4. Resposta da API | 5. Fonte oficial | 6. Sem informação suficiente |
+|---|---|---|
+| <img src="../../docs/features/img/app/api-04-conversa-resposta-da-api.png" width="210" alt="Resposta sobre o Cata Treco de Poá com etapas e link da fonte oficial"> | <img src="../../docs/features/img/app/api-05-painel-de-fontes-da-api.png" width="210" alt="Painel de fontes com o título, o endereço, a data de consulta e o link Abrir fonte"> | <img src="../../docs/features/img/app/api-06-conversa-sem-informacao-suficiente.png" width="210" alt="Aviso de informação insuficiente para uma pergunta sem fonte publicada"> |
+
+**Como foram feitas:** `expo export --platform web` e um servidor estático local que envia os cabeçalhos `Cross-Origin-Embedder-Policy: credentialless` e `Cross-Origin-Opener-Policy: same-origin`. No Chrome automatizado, o servidor de desenvolvimento (`npm run web`) não chegou a abrir o banco local; o build de produção abriu normalmente. Não foi investigada a causa.
+
+## Vídeo de demonstração (até 3 minutos)
+
+**Link: a incluir antes da entrega.** O vídeo ainda não foi gravado nem publicado.
+
 ## Requisitos
 
 - **Node.js 22.13 ou superior** (faixa completa em `engines`: `^22.13.0 || ^24.3.0 || ^26.0.0 || >=27.0.0`). Vem do `expo@58` e do `react-native@0.88`; o `node:sqlite` usado nos testes também exige 22.13 ou superior sem flag. Verificado apenas com a 22.22.0.
@@ -53,6 +104,19 @@ O `expo run` não serve para isso. O SQLite na web usa WebAssembly e o armazenam
 
 O `app.json` está preparado para Android: `android.package` definido e `android.allowBackup: false` (ver "Dados no aparelho"). Nada disso foi testado em Android.
 
+## Rodar contra a API em C#
+
+1. Suba a API em C# (pasta `apps/api` da `main`; as instruções estão no README dela: PostgreSQL, Neo4j, `--migrate`, `--bootstrap`). Para o conhecimento sem LLM use `Llm__Mode=demo`. A integração com a LLM (Azure OpenAI) fica em outra branch e **não foi testada com o app**.
+2. Se quiser dados de teste, rode `python scripts/demo_fluxo_http.py` da API. Ele publica Poá e um município fictício.
+3. No app, em `apps/mobile`:
+   ```bash
+   # navegador no mesmo computador
+   EXPO_PUBLIC_USAR_MOCK=false EXPO_PUBLIC_API_URL=http://127.0.0.1:5055/api/v1 npm run web
+   ```
+4. Celular: a URL precisa usar o **IP do computador na rede Wi-Fi** (`http://<IP>:<porta>/api/v1`, veja o IP com `ipconfig`), a API precisa escutar em todas as interfaces (`--urls http://0.0.0.0:<porta>`) e o firewall do Windows precisa liberar a porta. Reinicie o Expo com `--clear` depois de mudar a variável. O CORS da API só afeta o navegador (origem padrão `http://localhost:8081`); o app nativo não usa CORS.
+
+**Verificado (17/11/2026):** no navegador, contra a API local, o app listou municípios e serviços, enviou perguntas (a seguinte leva o histórico) e mostrou resposta com fonte e o aviso de informação insuficiente (prints acima). **Não verificado:** celular físico contra a API (HTTP sem HTTPS no Expo Go), Android, resposta de LLM real e tempo de resposta real (o limite do app é 15 s e o da API 12 s).
+
 ## Dados no aparelho
 
 O histórico e as preferências ficam em um banco SQLite local (`facil-municipio.db`), no aparelho, sem criptografia: a proteção vem do isolamento do aplicativo pelo sistema operacional. O app liga `secure_delete` para que os dados apagados sejam sobrescritos no arquivo, o que não garante que eles sejam irrecuperáveis. No Android, `allowBackup: false` impede o backup automático para o Google Drive. **Isso vale só para o Android**: o comportamento de backup no iOS não foi configurado nem verificado.
@@ -62,7 +126,7 @@ O histórico e as preferências ficam em um banco SQLite local (`facil-municipio
 Copie `.env.example` para `.env` para alterar a configuração. O `.env` não é versionado.
 
 - `EXPO_PUBLIC_USAR_MOCK`: `true` por padrão. Com `false`, o app usa `EXPO_PUBLIC_API_URL`.
-- `EXPO_PUBLIC_API_URL`: URL base da API, sem barra no fim. A API em C# (`feat/soa-csharp-api`) expõe as rotas em `/api/v1`, então o valor seria algo como `http://<host>:<porta>/api/v1`. Isso foi lido no código dela, não testado contra um servidor.
+- `EXPO_PUBLIC_API_URL`: URL base da API, sem barra no fim. A API em C# (`apps/api` na `main`) expõe as rotas em `/api/v1`, então o valor é `http://<host>:<porta>/api/v1`. Testado em 17/11/2026 no navegador contra a API local; ver "Rodar contra a API em C#".
 - `EXPO_PUBLIC_MOCK_LATENCIA_MS`: atraso simulado do mock, 600 por padrão.
 
 Com `EXPO_PUBLIC_USAR_MOCK=true`, o app usa dados de exemplo locais, sem links e sem rede (veja "Camada de API e dados mockados" em `mobile-app.md`).

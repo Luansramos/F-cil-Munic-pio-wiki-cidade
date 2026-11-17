@@ -374,6 +374,18 @@ Feito sem commit.
 
 **Verificações de 10/11/2026** (`apps/mobile`): `tsc --noEmit` sem erros; `npm run lint` sem saída; Jest 16 suítes, 140 testes; `npx expo-doctor` 20/20; `npx expo export` para `android`, `ios` e `web`, código de saída 0 nos três.
 
+### App sem o mock, contra um servidor de teste (17/11/2026)
+
+**Não foi contra a API real.** A API em C# (`main`) exige PostgreSQL e Neo4j, e a integração com LLM está em `origin/codex/azure-llm-wiki` (Azure OpenAI) e a de Cybersecurity em `origin/feature/cybersecurity` (Gemini). Esta máquina não tem Docker, WSL, PostgreSQL, Neo4j nem chaves de nenhum provedor, e nada disso estava em execução. Por isso usei um servidor de teste descartável em Node (não está no repositório), que imita as três rotas de `docs/contratos-de-integracao.md` com resposta fictícia, 422 para pergunta inválida, 429 acima de 10 por minuto e 503 sob comando. Ele prova o caminho do app sem mock, não o comportamento da API, do grafo ou da LLM.
+
+Com `EXPO_PUBLIC_USAR_MOCK=false` e `EXPO_PUBLIC_API_URL=http://localhost:5055/api/v1`, no Chrome (393 × 852), `expo start --web`:
+
+- O Início lista o município e os três serviços que vieram do servidor (Poá · SP). O selo "Demonstração" e o prefixo "(Exemplo)" não aparecem; a nota "Exemplo de resposta para o protótipo" também não.
+- A pergunta sai em `POST /api/v1/municipios/poa/conversas` com `{"pergunta": ...}`; a seguinte leva `historico` com a troca anterior (visto na lista de requisições do Chrome). A resposta mostra o texto, o serviço relacionado e as fontes; a fonte com `https` vira link e a de `url` vazia mostra "sem link" no painel.
+- Com o servidor em modo 503, o app mostra "O serviço está indisponível agora" e mantém a pergunta no campo. Com o servidor desligado, o Início mostra "Não foi possível carregar os municípios / Sem conexão com a internet" com "Tentar novamente".
+- Achado sobre o servidor de teste, não sobre a API: a heurística de seguimento que escrevi tratou "Como tiro minha CNH?" (curta, sem palavra-chave) como continuação do serviço anterior. Isso mostra o risco de uma resposta de seguimento se aplicar a um assunto novo; como a API real se comporta nesse caso não foi verificado (o contrato diz que assunto novo e explícito não herda o serviço, mas "CNH" não está entre os serviços publicados).
+- Não verificado: 429 e 422 na tela, CORS com origem diferente de `http://localhost:8081`, HTTP em vez de HTTPS no Expo Go do iPhone, tempo de resposta real (o limite do app é 15 s e o da API 12 s), qualquer resposta de LLM.
+
 ## Dependências e decisões
 
 - **Contrato da API** (A2, D2): necessário para trocar o mock pela API real, incluindo o campo `historico`.
