@@ -1,0 +1,20 @@
+{
+  "name": "facil-municipio-video-cybersecurity",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Vídeo de apresentação da entrega de Cybersecurity (Remotion). Usa capturas reais de docs/evidencias-cybersecurity.",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts Cybersecurity out/Facil_Municipio_Cybersecurity_Remotion_1080p.mp4 --codec=h264 --crf=18"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.544",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.544"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "typescript": "5.6.3"
+  }
+}

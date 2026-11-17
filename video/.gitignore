@@ -1,0 +1,4 @@
+node_modules/
+out/
+# O áudio da narração e as capturas reais são arquivos locais da entrega
+public/narracao.mp3

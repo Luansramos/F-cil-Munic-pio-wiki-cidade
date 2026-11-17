@@ -54,4 +54,5 @@ Evidências **reais**, geradas em 16/11/2026 contra a API local (ASP.NET Core 10
 - Indicador VERMELHO não aparece: nenhum caminho atual emite o estado `Pendente`, e nenhum incidente foi forjado.
 - O modelo e a URL base foram informados pelo integrante; a documentação oficial do provedor não foi consultada. A chave usada foi exposta em conversa e **deve ser revogada**.
 - Detecção por regex tem falsos positivos e negativos (ver `docs/features/seguranca.md`). O limite do mobile (pergunta salva localmente no SQLite) continua fora do escopo.
-- Pendentes: **vídeo do dashboard** e o **PDF final** com o diagrama e o texto técnico.
+- **Vídeo:** gerado com Remotion em [`video/`](../../video/README.md) (3 min 35 s, 1080p), usando estas capturas reais e a narração gravada pela equipe. Os cortes das cenas seguem as pausas do áudio; a correspondência fala × cena **não foi verificada por transcrição** e deve ser conferida ouvindo. O app mobile não aparece (fora dos requisitos).
+- Pendente: o **PDF final** com o diagrama e o texto técnico.

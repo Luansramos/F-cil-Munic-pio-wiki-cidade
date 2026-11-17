@@ -90,7 +90,7 @@ Automatizado × manual: tudo da seção 5 é automatizado. São **manuais e aind
 
 ## 6. Cenários para capturas e roteiro do vídeo
 
-**Capturas e evidências já geradas** (reais, dados simulados): ver [docs/evidencias-cybersecurity/](evidencias-cybersecurity/README.md) — painel logado (operador e ADMIN), indicador, eventos com explicação da IA e modelo, bloqueios, auditoria em SQL, testes, chamada ao provedor e transcrição de C1, C2, C3, C3b e C9. A tabela abaixo continua sendo o roteiro para repetir ou complementar; o **vídeo** segue pendente.
+**Capturas e evidências já geradas** (reais, dados simulados): ver [docs/evidencias-cybersecurity/](evidencias-cybersecurity/README.md) — painel logado (operador e ADMIN), indicador, eventos com explicação da IA e modelo, bloqueios, auditoria em SQL, testes, chamada ao provedor e transcrição de C1, C2, C3, C3b e C9. A tabela abaixo continua sendo o roteiro para repetir ou complementar. **Vídeo:** versão em Remotion em `video/` (ver `video/README.md`), com narração reaproveitada e capturas reais, incluindo a sequência ao vivo "mensagem padrão → explicação do Gemini" (≈ 10 s). Conferir o áudio ouvindo antes de entregar.
 
 Preparação (manual): bancos no ar, `--migrate`, `--bootstrap`, `Llm__Mode=demo` (modo demonstração, **não é LLM**; apenas repete texto revisado), um município com um serviço publicado (ex.: roteiro `scripts/demo_fluxo_http.py`). Para a cena de IA, definir `RiskTranslator__BaseUrl`, `__Model` e `__ApiKey` no ambiente do terminal (nunca no chat nem no repositório). Usar somente dados simulados.
 

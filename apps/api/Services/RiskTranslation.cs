@@ -60,7 +60,8 @@ public static class RiskRules
         PiiCategory.Senha => "senha", _ => "informação de saúde"
     };
     public static string RotuloOrigem(string origem) =>
-        origem.StartsWith("conversa.") ? "pergunta ou histórico da conversa" :
+        origem.StartsWith("conversa.historico") ? "mensagem anterior da conversa (histórico)" :
+        origem.StartsWith("conversa.") ? "pergunta atual do cidadão" :
         origem.StartsWith("llm.") ? "resposta gerada pelo assistente" :
         origem.StartsWith("fonte.") ? "texto de uma fonte administrativa" :
         origem.StartsWith("grafo.") ? "conhecimento já publicado" :
