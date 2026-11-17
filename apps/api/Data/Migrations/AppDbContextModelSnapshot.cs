@@ -73,6 +73,10 @@ namespace FacilMunicipio.Api.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("TraducaoModelo")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
                     b.Property<int>("TraducaoTentativas")
                         .HasColumnType("integer");
 

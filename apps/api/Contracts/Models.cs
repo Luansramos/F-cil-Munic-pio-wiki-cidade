@@ -70,5 +70,5 @@ public sealed class HttpsUrlAttribute : ValidationAttribute
 public record IndicadorRisco(string Nivel, string Rotulo, string Descricao);
 public record ResumoSeguranca(int Total, int Sanitizados, int Bloqueados, int Pendentes, int TraducoesPendentes);
 public record EventoSegurancaDto(Guid Id, DateTimeOffset OcorridoEm, string Categoria, string Origem, string Destino,
-    string Acao, string Gravidade, string Codigo, string TraducaoEstado, string Explicacao, string OrigemExplicacao);
+    string Acao, string Gravidade, string Codigo, string TraducaoEstado, string Explicacao, string OrigemExplicacao, string? ModeloIa);
 public record PainelSeguranca(int PeriodoHoras, DateTimeOffset GeradoEm, IndicadorRisco Indicador, ResumoSeguranca Resumo, EventoSegurancaDto[] Eventos);

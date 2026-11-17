@@ -1,0 +1,103 @@
+# Evidência: testes automatizados (dotnet test tests/Api.Tests) — 2026-11-17T00:59:58Z
+# Ambiente: .NET SDK 10.0.404, PostgreSQL 17.6 e Neo4j 5.26 locais (para IntegrationTests); demais testes usam banco em memória.
+
+Aprovado Api.Tests.DomainTests.SourceLinksRequireHttps(url: "https://user:pass@example.org", valid: False)
+Aprovado Api.Tests.QualityTests.OfficialLinksNeedAbsoluteHttpsWithoutCredentials(url: "https://example.org", expected: True)
+Aprovado Api.Tests.QualityTests.OfficialLinksNeedAbsoluteHttpsWithoutCredentials(url: "http://example.org", expected: False) [< 1 ms]
+Aprovado Api.Tests.DomainTests.SourceLinksRequireHttps(url: "javascript:alert(1)", valid: False) [< 1 ms]
+Aprovado Api.Tests.QualityTests.OfficialLinksNeedAbsoluteHttpsWithoutCredentials(url: "https://usuario:senha@example.org", expected: False) [< 1 ms]
+Aprovado Api.Tests.DomainTests.SourceLinksRequireHttps(url: "https://example.org", valid: True) [< 1 ms]
+Aprovado Api.Tests.DomainTests.SourceLinksRequireHttps(url: "http://example.org", valid: False) [< 1 ms]
+Aprovado Api.Tests.QualityTests.OfficialLinksNeedAbsoluteHttpsWithoutCredentials(url: "https://", expected: False)
+Aprovado Api.Tests.QualityTests.OfficialLinksNeedAbsoluteHttpsWithoutCredentials(url: "ftp://example.org", expected: False) [< 1 ms]
+Aprovado Api.Tests.QualityTests.OfficialLinksNeedAbsoluteHttpsWithoutCredentials(url: "/caminho-relativo", expected: False) [< 1 ms]
+Aprovado Api.Tests.QualityTests.OfficialLinksNeedAbsoluteHttpsWithoutCredentials(url: "javascript:alert(1)", expected: False) [< 1 ms]
+Aprovado Api.Tests.QualityTests.OfficialLinksNeedAbsoluteHttpsWithoutCredentials(url: "https://example.org/servico?ref=1", expected: True) [< 1 ms]
+Aprovado Api.Tests.DomainTests.QuestionOverLimitRejected [< 1 ms]
+Aprovado Api.Tests.DomainTests.RevisionChangesVersionAndRecordsReviewer
+Aprovado Api.Tests.QualityTests.ReviewChangesRevisionAndApprovalState
+Aprovado Api.Tests.QualityTests.InvalidServiceDetailsAreRejected(caseName: "etapa longa")
+Aprovado Api.Tests.QualityTests.InvalidServiceDetailsAreRejected(caseName: "termo vazio") [< 1 ms]
+Aprovado Api.Tests.QualityTests.InvalidServiceDetailsAreRejected(caseName: "etapa vazia") [< 1 ms]
+Aprovado Api.Tests.QualityTests.InvalidServiceDetailsAreRejected(caseName: "requisito vazio") [< 1 ms]
+Aprovado Api.Tests.DemoGroundedWikiTests.DemoReturnsPlainTextNumberedSteps
+Aprovado Api.Tests.DemoGroundedWikiTests.ShortFollowUpUsesLastPublishedServiceAsContext
+Aprovado Api.Tests.DemoGroundedWikiTests.FollowUpDoesNotInventOpeningDayWhenUnrecorded
+Aprovado Api.Tests.DemoGroundedWikiTests.AbstainsWhenEvidenceDoesNotSupportDetail(question: "Posso levar lixo eletrônico no sábado?")
+Aprovado Api.Tests.DemoGroundedWikiTests.AbstainsWhenEvidenceDoesNotSupportDetail(question: "Posso retirar um sofá no sábado?") [< 1 ms]
+Aprovado Api.Tests.DemoGroundedWikiTests.AbstainsWhenEvidenceDoesNotSupportDetail(question: "Qual o valor da coleta de sofá?") [< 1 ms]
+Aprovado Api.Tests.DemoGroundedWikiTests.HistoryCannotReferenceServiceAbsentFromCurrentMunicipality [< 1 ms]
+Aprovado Api.Tests.DemoGroundedWikiTests.DoesNotPretendToExtractWithALlm
+Aprovado Api.Tests.DemoGroundedWikiTests.RespondsOnlyWithReviewedEvidence [< 1 ms]
+Aprovado Api.Tests.QualityTests.SensitiveDetailsAreMaskedInQuestions(input: "PASSWORD:teste123", secret: "teste123")
+Aprovado Api.Tests.QualityTests.SensitiveDetailsAreMaskedInQuestions(input: "CPF 12345678900", secret: "12345678900")
+Aprovado Api.Tests.QualityTests.SensitiveDetailsAreMaskedInQuestions(input: "CPF 123.456.789-00", secret: "123.456.789-00") [< 1 ms]
+Aprovado Api.Tests.QualityTests.SensitiveDetailsAreMaskedInQuestions(input: "E-mail pessoa@example.org", secret: "pessoa@example.org") [< 1 ms]
+Aprovado Api.Tests.QualityTests.SensitiveDetailsAreMaskedInQuestions(input: "senha=segredo", secret: "segredo") [< 1 ms]
+Aprovado Api.Tests.DomainTests.SensitiveFieldsRemovedFromBothHistoryFields
+Aprovado Api.Tests.DomainTests.InsufficientResponseNeverInventsSources
+Aprovado Api.Tests.QualityTests.DemoHonorsCancellation
+Aprovado Api.Tests.QualityTests.DemoDoesNotAssertUnrecordedOpeningHours [< 1 ms]
+Aprovado Api.Tests.QualityTests.ConversationHistoryMasksBothSides
+Aprovado Api.Tests.QualityTests.InsufficientAnswerDoesNotReturnAnyPublishedSource [< 1 ms]
+Aprovado Api.Tests.QualityTests.DemoRefusesUnrelatedQuestionEvenWithKnowledgeAvailable [< 1 ms]
+Aprovado Api.Tests.SecurityTests.DashboardPage_IsStaticAndEmbedsNoEventsOrCredentialStorage
+Aprovado Api.Tests.SecurityTests.NormalQuestionsAreNotFlagged(input: "Minha senha é fraca, como troco?")
+Aprovado Api.Tests.SecurityTests.NormalQuestionsAreNotFlagged(input: "O protocolo 2026000123 foi aberto")
+Aprovado Api.Tests.SecurityTests.NormalQuestionsAreNotFlagged(input: "Qual documento preciso levar para a retirada de so"···) [< 1 ms]
+Aprovado Api.Tests.SecurityTests.NormalQuestionsAreNotFlagged(input: "Como pedir a segunda via do RG?") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.NormalQuestionsAreNotFlagged(input: "Qual o horário do posto de saúde?") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.NormalQuestionsAreNotFlagged(input: "Como alterar minha senha?") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.NormalQuestionsAreNotFlagged(input: "Onde fica o hospital municipal?") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.NormalQuestionsAreNotFlagged(input: "Há atendimento para quem tem diabetes no posto?") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.NormalQuestionsAreNotFlagged(input: "Meu telefone é 11999998888")
+Aprovado Api.Tests.SecurityTests.NormalQuestionsAreNotFlagged(input: "Minha senha é importante para mim") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.DetectsCategoriesAndFormats(input: "Eu tenho diabetes e preciso de ajuda", category: Saude, secret: "diabetes")
+Aprovado Api.Tests.SecurityTests.DetectsCategoriesAndFormats(input: "minha senha é Abc12345", category: Senha, secret: "Abc12345") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.DetectsCategoriesAndFormats(input: "PASSWORD: Abc12345", category: Senha, secret: "Abc12345") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.DetectsCategoriesAndFormats(input: "identidade número 12345678", category: Rg, secret: "12345678") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.DetectsCategoriesAndFormats(input: "meu laudo é CID F32", category: Saude, secret: "CID F32") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.DetectsCategoriesAndFormats(input: "CPF 12345678900", category: Cpf, secret: "12345678900") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.DetectsCategoriesAndFormats(input: "escreva para maria@example.org", category: Email, secret: "maria@example.org") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.DetectsCategoriesAndFormats(input: "senha=Abc12345", category: Senha, secret: "Abc12345") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.DetectsCategoriesAndFormats(input: "Meu CPF é 123.456.789-00", category: Cpf, secret: "123.456.789-00") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.DetectsCategoriesAndFormats(input: "fui diagnosticada com depressão", category: Saude, secret: "depressão") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.DetectsCategoriesAndFormats(input: "o cpf: 123456789-00", category: Cpf, secret: "123456789-00") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.DetectsCategoriesAndFormats(input: "Meu RG é 12.345.678-9", category: Rg, secret: "12.345.678-9") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.Conversation_BlocksPiiGeneratedByTheLlmAndReturnsSafeResponse(unsafeReply: "Seu documento 123 456 789 00 foi anotado.")
+Aprovado Api.Tests.SecurityTests.Conversation_BlocksPiiGeneratedByTheLlmAndReturnsSafeResponse(unsafeReply: "Escreva para atendimento.pessoa@example.org.")
+Aprovado Api.Tests.SecurityTests.Conversation_BlocksPiiGeneratedByTheLlmAndReturnsSafeResponse(unsafeReply: "Para falar com a prefeitura use CPF 111.444.777-35"···)
+Aprovado Api.Tests.SecurityTests.Translation_UnconfiguredProviderKeepsEventsPending_AndDashboardShowsLabeledDefaultMessage
+Aprovado Api.Tests.SecurityTests.Conversation_NormalQuestionsPassUnchangedWithoutEvents
+Aprovado Api.Tests.SecurityTests.SinkGuard_BlocksTaintedValueWithoutTreatment_AndAllowsSanitizedContent
+Aprovado Api.Tests.SecurityTests.LegacyCleanKeepsExistingBehaviourForHistory [< 1 ms]
+Aprovado Api.Tests.SecurityTests.Translation_FailuresAreBoundedAndMarkedFailed_WithoutLosingTheEvent
+Aprovado Api.Tests.SecurityTests.Translation_PromptStatesWhatTheSystemDidForEachCode(codigo: "SINK_BLOQUEADO", palavra: "impedida") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.Translation_PromptStatesWhatTheSystemDidForEachCode(codigo: "CONTEUDO_REJEITADO", palavra: "recusado") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.Translation_OutputOfTheModelIsAlsoValidated(output: "") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.Translation_OutputOfTheModelIsAlsoValidated(output: "Uma frase. Duas frases. Três frases.")
+Aprovado Api.Tests.SecurityTests.Translation_OutputOfTheModelIsAlsoValidated(output: "Um ataque hacker tentou invadir sua conta. Fique a"···)
+Aprovado Api.Tests.SecurityTests.Translation_OutputOfTheModelIsAlsoValidated(output: "Seu CPF 123.456.789-00 foi removido.") [< 1 ms]
+Aprovado Api.Tests.SecurityTests.AuditFailureNeverReleasesBlockedData
+Aprovado Api.Tests.SecurityTests.AdminRejectsPersonalDataInSourcesAndDraftsBeforePersistence
+Aprovado Api.Tests.SecurityTests.Translation_AFailureStopsTheBatchWithoutBurningAttemptsOfOtherEvents
+Aprovado Api.Tests.SecurityTests.Conversation_AnalyzesBeforeEarlyReturn_ButNeverForUnknownCity
+Aprovado Api.Tests.SecurityTests.Logs_NeverContainOriginalValues_EvenWhenSanitizingAndBlocking
+Aprovado Api.Tests.SecurityTests.ScanObjectsDoNotLeakOriginalsThroughToString
+Aprovado Api.Tests.SecurityTests.Audit_SevenSanitizedFieldsAreWrittenInOneBatchAndFlushRespectsCancellation
+Aprovado Api.Tests.SecurityTests.Conversation_BlocksPublishedKnowledgeWithPiiBeforeCallingTheLlm
+Aprovado Api.Tests.SecurityTests.Retention_RemovesOnlyExpiredEvents
+Aprovado Api.Tests.SecurityTests.Conversation_TaintPropagatesAcrossFields
+Aprovado Api.Tests.SecurityTests.LoginAndUserCreation_PreservePasswordsThatLookLikePii
+Aprovado Api.Tests.SecurityTests.Translation_ReusesIdenticalTranslationsInsteadOfCallingTheProviderAgain
+Aprovado Api.Tests.SecurityTests.Conversation_EarlyAndBlockedResponsesNeverCarryAChannelWithPii
+Aprovado Api.Tests.SecurityTests.DashboardApi_RequiresJwtAndEnforcesMunicipalIsolation
+Aprovado Api.Tests.SecurityTests.RiskIndicator_SeparatesPotentialSeverityFromProtectionStatus
+Aprovado Api.Tests.IntegrationTests.RealDatabases_PublicationIsolationAuthorizationAndMobileContract
+Aprovado Api.Tests.SecurityTests.Translation_PromptHasOnlyControlledMetadata_AndSuccessIsStoredAsAi
+Aprovado Api.Tests.SecurityTests.Conversation_SanitizesQuestionAndBothSidesOfHistoryBeforeTheLlm_AndAuditsOnlyMetadata
+Aprovado Api.Tests.SecurityTests.DashboardApi_RespectsThePeriod
+Aprovado Api.Tests.SecurityTests.Translation_AcceptsShortFaithfulPortuguese [< 1 ms]
+Aprovado Api.Tests.SecurityTests.SinkGuard_LogIsBlockedWhenMessageHasMarkedData
+Aprovado Api.Tests.SecurityTests.KnownLimitations_AreDocumentedByTests [< 1 ms]
+Aprovados: 99

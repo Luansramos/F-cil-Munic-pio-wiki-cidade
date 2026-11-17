@@ -7,13 +7,13 @@ namespace FacilMunicipio.Api.Security;
 
 /// <summary>
 /// Grava eventos de auditoria em escopo/conexão próprios (não participa de transações da requisição).
-/// Todos os eventos de uma operação vão em UMA gravação, limitada a 2 s e ligada ao cancelamento da requisição.
+/// Todos os eventos de uma operação vão em UMA gravação, limitada a 1 s e ligada ao cancelamento da requisição.
 /// Falha de auditoria NUNCA libera dado: a decisão de sanitizar/bloquear já foi tomada antes; o evento
 /// perdido é registrado em log apenas com o tipo da exceção. Não há fila nem nova tentativa.
 /// </summary>
 public sealed partial class SecurityAudit(IServiceScopeFactory scopes, ILogger<SecurityAudit> logger)
 {
-    public static readonly TimeSpan WriteTimeout = TimeSpan.FromSeconds(2);
+    public static readonly TimeSpan WriteTimeout = TimeSpan.FromSeconds(1);
     [GeneratedRegex(@"^[a-z]+(\.[a-z]+(\[\d{1,3}\])?)*$")] private static partial Regex ControlledPath();
 
     public static EventoSeguranca[] Build(Guid correlation, string municipioId, IEnumerable<PiiFinding> findings,
@@ -104,7 +104,7 @@ public sealed class SinkGuard(SecurityAudit audit, ILogger<SinkGuard> logger)
     private void Queue(string municipioId, IEnumerable<PiiFinding> findings, SinkDestino destino, AcaoProtecao acao, string codigo) =>
         pending.AddRange(SecurityAudit.Build(CorrelacaoId, municipioId, findings, destino, acao, codigo));
 
-    /// <summary>Grava de uma vez os eventos pendentes da operação (uma gravação, máx. 2 s, respeita o cancelamento).</summary>
+    /// <summary>Grava de uma vez os eventos pendentes da operação (uma gravação, máx. 1 s, respeita o cancelamento).</summary>
     public async Task FlushAsync(CancellationToken ct)
     {
         if (pending.Count == 0) return;

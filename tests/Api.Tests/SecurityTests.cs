@@ -377,11 +377,22 @@ public class SecurityTests
         {
             Assert.All(Originals, secret => Assert.DoesNotContain(secret, b, StringComparison.OrdinalIgnoreCase));
             Assert.Contains("no máximo duas frases", b); Assert.Contains("português do Brasil", b); Assert.Contains("modelo-de-teste", b);
+            Assert.Contains(RiskRules.DescricaoCodigo("PII_SANITIZADA"), b); Assert.DoesNotContain("PII_SANITIZADA", b);
         });
         Assert.Equal("Bearer", seen!.Headers.Authorization!.Scheme);
         var events = await f.WithDb(db => db.EventosSeguranca.ToListAsync());
-        Assert.All(events, e => { Assert.Equal(TraducaoEstado.Traduzida, e.TraducaoEstado); Assert.NotNull(e.TraducaoTexto); });
+        Assert.All(events, e => { Assert.Equal(TraducaoEstado.Traduzida, e.TraducaoEstado); Assert.NotNull(e.TraducaoTexto); Assert.Equal("modelo-de-teste", e.TraducaoModelo); });
         Assert.DoesNotContain(events, e => e.TraducaoTexto!.Contains("123.456"));
+    }
+
+    [Theory]
+    [InlineData("CONTEUDO_REJEITADO", "recusado")]
+    [InlineData("SINK_BLOQUEADO", "impedida")]
+    public void Translation_PromptStatesWhatTheSystemDidForEachCode(string codigo, string palavra)
+    {
+        var e = NewEvent(a: AcaoProtecao.Bloqueado); e.Codigo = codigo;
+        var prompt = OpenAiCompatibleRiskTranslator.BuildPrompt(e);
+        Assert.Contains(palavra, prompt); Assert.DoesNotContain(codigo, prompt);
     }
 
     [Fact]
@@ -417,6 +428,7 @@ public class SecurityTests
         Assert.Equal("PADRAO", ev.GetProperty("origemExplicacao").GetString());
         Assert.Equal("Pendente", ev.GetProperty("traducaoEstado").GetString());
         Assert.Equal(RiskRules.MensagemPadrao(AcaoProtecao.Sanitizado), ev.GetProperty("explicacao").GetString());
+        Assert.False(ev.TryGetProperty("modeloIa", out _));   // mensagem padrão nunca é atribuída a um modelo
         Assert.Equal(1, panel.GetProperty("resumo").GetProperty("traducoesPendentes").GetInt32());
     }
 
@@ -435,6 +447,24 @@ public class SecurityTests
         using var admin = f.Client("ADMIN", SecurityFactory.CityA);
         var ev = (await admin.GetFromJsonAsync<JsonElement>($"/api/v1/municipios/{SecurityFactory.CityA}/seguranca/painel")).GetProperty("eventos")[0];
         Assert.Equal("PADRAO", ev.GetProperty("origemExplicacao").GetString());
+    }
+
+    [Fact]
+    public async Task Translation_AFailureStopsTheBatchWithoutBurningAttemptsOfOtherEvents()
+    {
+        await using var f = new SecurityFactory(); await f.SeedAsync();
+        await f.WithDb(async db => { db.EventosSeguranca.AddRange(NewEvent(), NewEvent(c: PiiCategory.Email), NewEvent(c: PiiCategory.Senha)); await db.SaveChangesAsync(); return 0; });
+        var bodies = new List<string>();
+        bool failed = false;
+        await f.WithDb(async db =>
+        {
+            var processor = new RiskTranslationProcessor(db, Translator((_, _) => new HttpResponseMessage(HttpStatusCode.BadRequest), bodies), NullLogger<RiskTranslationProcessor>.Instance);
+            await processor.ProcessPendingAsync(10, default); failed = processor.LastRunFailed; return 0;
+        });
+        Assert.Single(bodies); Assert.True(failed);
+        var events = await f.WithDb(db => db.EventosSeguranca.ToListAsync());
+        Assert.Equal(1, events.Count(e => e.TraducaoTentativas == 1)); Assert.Equal(2, events.Count(e => e.TraducaoTentativas == 0));
+        Assert.All(events, e => Assert.Equal(TraducaoEstado.Pendente, e.TraducaoEstado));
     }
 
     [Theory]

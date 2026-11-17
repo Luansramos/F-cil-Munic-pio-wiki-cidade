@@ -91,7 +91,7 @@ Requer JWT (`ADMIN` do próprio município ou `OPERADOR`). `horas`: 1 a 168 (pad
     "origem": "conversa.historico[0].resposta", "destino": "Llm|RespostaPublica|Persistencia|Grafo",
     "acao": "Sanitizado|Bloqueado|Pendente", "gravidade": "Baixa|Media|Alta", "codigo": "PII_SANITIZADA",
     "traducaoEstado": "Pendente|Traduzida|Falhou",
-    "explicacao": "…", "origemExplicacao": "IA|PADRAO"
+    "explicacao": "…", "origemExplicacao": "IA|PADRAO", "modeloIa": "modelo configurado (só quando origemExplicacao = IA)"
   }]
 }
 ```

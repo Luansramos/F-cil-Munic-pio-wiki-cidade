@@ -33,6 +33,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         e.Property(x => x.Origem).HasMaxLength(80);
         e.Property(x => x.Codigo).HasMaxLength(40);
         e.Property(x => x.TraducaoTexto).HasMaxLength(500);
+        e.Property(x => x.TraducaoModelo).HasMaxLength(80);
         e.HasIndex(x => new { x.MunicipioId, x.OcorridoEm });
         e.HasIndex(x => new { x.TraducaoEstado, x.OcorridoEm });
     }

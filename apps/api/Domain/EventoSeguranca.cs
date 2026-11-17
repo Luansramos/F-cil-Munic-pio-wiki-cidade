@@ -31,5 +31,7 @@ public class EventoSeguranca
     public TraducaoEstado TraducaoEstado { get; set; } = TraducaoEstado.Pendente;
     public int TraducaoTentativas { get; set; }
     public string? TraducaoTexto { get; set; }
+    /// <summary>Identificador do modelo de IA que gerou a explicação (vem da configuração; nulo sem tradução).</summary>
+    public string? TraducaoModelo { get; set; }
     public DateTimeOffset? TraduzidaEm { get; set; }
 }

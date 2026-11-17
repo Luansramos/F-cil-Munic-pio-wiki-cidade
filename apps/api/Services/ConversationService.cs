@@ -8,8 +8,8 @@ public class ConversationService(AppDbContext db, IKnowledgeGraph graph, ILlmWik
 {
     public async Task<RespostaConversa> AskAsync(string id, EnvioPergunta request, CancellationToken ct)
     {
-        // Os eventos da operação são gravados uma única vez, mesmo em retorno antecipado ou erro (máx. 2 s;
-        // pior caso: 12 s de orçamento + 2 s de auditoria, abaixo do timeout de 15 s do app).
+        // Os eventos da operação são gravados uma única vez, mesmo em retorno antecipado ou erro (máx. 1 s;
+        // pior caso medido com LLM e auditoria travadas: ~13,2 s. É orçamento interno, não garantia de chegada ao app em 15 s).
         try { return await AskCoreAsync(id, request, ct); }
         finally { await guard.FlushAsync(ct); }
     }

@@ -52,6 +52,7 @@
     <section aria-labelledby="filtros-title">
       <h2 id="filtros-title">Consulta</h2>
       <div class="row">
+        <p id="sessao" class="muted" style="flex-basis:100%;margin:0"></p>
         <div><label for="municipio">Município</label><select id="municipio"></select></div>
         <div><label for="horas">Período</label>
           <select id="horas"><option value="24">Últimas 24 horas</option><option value="72">Últimas 72 horas</option><option value="168">Últimos 7 dias</option></select></div>
@@ -128,6 +129,10 @@
       try {
         var claims = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
         if (claims.municipioId) list = list.filter(function (m) { return m.id === claims.municipioId; });
+        // Só exibição: a autorização real é feita pela API.
+        var roleKey = Object.keys(claims).filter(function (k) { return k === "role" || k.slice(-5) === "/role"; })[0];
+        $("sessao").textContent = "Sessão: perfil " + (roleKey ? claims[roleKey] : "desconhecido") +
+          (claims.municipioId ? " · município " + claims.municipioId : " · todos os municípios (política do operador)");
       } catch (e) { /* mantém a lista completa */ }
       var select = $("municipio"); select.textContent = "";
       list.forEach(function (m) { var o = document.createElement("option"); o.value = m.id; o.textContent = m.nome + " (" + m.uf + ")"; select.appendChild(o); });
@@ -164,7 +169,7 @@
       cell(new Date(e.ocorridoEm).toLocaleString("pt-BR")); cell(label(e.categoria)); cell(e.origem); cell(label(e.destino)); cell(label(e.acao)); cell(label(e.gravidade));
       var td = cell(e.explicacao + " ");
       var tag = document.createElement("span"); tag.className = "tag";
-      tag.textContent = e.origemExplicacao === "IA" ? "Explicação gerada por IA"
+      tag.textContent = e.origemExplicacao === "IA" ? "Explicação gerada por IA" + (e.modeloIa ? " · modelo " + e.modeloIa : "")
         : (e.traducaoEstado === "Falhou" ? "Mensagem padrão do sistema (tradução por IA falhou)" : "Mensagem padrão do sistema (tradução por IA pendente)");
       td.appendChild(tag); body.appendChild(tr);
     });

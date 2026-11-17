@@ -14,6 +14,7 @@ public class SecurityController(AppDbContext db, CurrentUser user) : ControllerB
     /// <summary>Painel de auditoria de privacidade do município: indicador Risco Cidadão, contagens e últimos eventos.</summary>
     /// <param name="id">Município. ADMIN só acessa o próprio; OPERADOR segue a política administrativa existente.</param>
     /// <param name="horas">Período de 1 a 168 horas (padrão 24).</param>
+    /// <param name="ct">Cancelamento da requisição.</param>
     [HttpGet("painel")]
     [ProducesResponseType<PainelSeguranca>(200)]
     public async Task<ActionResult<PainelSeguranca>> Panel(string id, [FromQuery] int horas = 24, CancellationToken ct = default)
@@ -36,7 +37,7 @@ public class SecurityController(AppDbContext db, CurrentUser user) : ControllerB
             var ai = e.TraducaoEstado == TraducaoEstado.Traduzida && !string.IsNullOrWhiteSpace(e.TraducaoTexto);
             return new EventoSegurancaDto(e.Id, e.OcorridoEm, e.Categoria.ToString(), e.Origem, e.Destino.ToString(), e.Acao.ToString(),
                 e.Gravidade.ToString(), e.Codigo, e.TraducaoEstado.ToString(),
-                ai ? e.TraducaoTexto! : RiskRules.MensagemPadrao(e.Acao), ai ? "IA" : "PADRAO");
+                ai ? e.TraducaoTexto! : RiskRules.MensagemPadrao(e.Acao), ai ? "IA" : "PADRAO", ai ? e.TraducaoModelo : null);
         }).ToArray();
         return new PainelSeguranca(horas, DateTimeOffset.UtcNow, indicator, summary, events);
     }

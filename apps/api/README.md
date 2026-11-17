@@ -103,7 +103,7 @@ export RiskTranslator__ApiKey="<CHAVE_DO_PROVEDOR>"   # nunca versionar nem cola
 # opcionais: RiskTranslator__PollSeconds=10  RiskTranslator__WorkerEnabled=true  Security__RetentionDays=90
 ```
 
-O código chama `POST {BaseUrl}/chat/completions` com `Authorization: Bearer`. Nenhum modelo é fixado; confirme o identificador atual na documentação oficial do provedor. A chamada real **ainda não foi validada**.
+O código chama `POST {BaseUrl}/chat/completions` com `Authorization: Bearer`. Nenhum modelo é fixado; confirme o identificador atual na documentação oficial do provedor. A chamada real foi validada em 16/11/2026 com `gemini-3.1-flash-lite` no endpoint compatível do Google (detalhes em `docs/features/seguranca.md`); confirme o modelo na documentação do provedor antes de usar em outro ambiente.
 
 ## Demonstração com Cata Treco
 

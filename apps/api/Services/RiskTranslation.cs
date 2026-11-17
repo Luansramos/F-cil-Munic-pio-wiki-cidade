@@ -45,6 +45,15 @@ public static class RiskRules
         _ => "Um evento de privacidade aguarda uma decisão de proteção."
     };
 
+    /// <summary>O que o código do evento significa, em texto controlado, para a IA não inventar motivos.</summary>
+    public static string DescricaoCodigo(string codigo) => codigo switch
+    {
+        "PII_SANITIZADA" => "o dado pessoal foi removido do texto antes de ele seguir adiante e a conversa continuou sem esse dado",
+        "SINK_BLOQUEADO" => "a saída foi impedida porque continha dado pessoal; nada foi exibido nem enviado",
+        "CONTEUDO_REJEITADO" => "o cadastro foi recusado porque o texto continha dado pessoal; nada foi gravado no banco de dados nem publicado",
+        _ => "o sistema registrou um evento de proteção de privacidade"
+    };
+
     public static string RotuloCategoria(PiiCategory c) => c switch
     {
         PiiCategory.Cpf => "CPF", PiiCategory.Rg => "RG", PiiCategory.Email => "e-mail",
@@ -68,6 +77,8 @@ public interface IRiskTranslator
 {
     /// <summary>false quando não há credencial/configuração: o evento fica PENDENTE sem consumir tentativas.</summary>
     bool Configured { get; }
+    /// <summary>Modelo configurado, registrado no evento para evidência (valor da configuração, nunca a chave).</summary>
+    string ModeloUsado { get; }
     Task<string> TranslateAsync(EventoSeguranca evento, CancellationToken ct);
 }
 
@@ -82,15 +93,17 @@ public sealed class OpenAiCompatibleRiskTranslator(HttpClient http, IConfigurati
     private string Model => config["RiskTranslator:Model"] ?? "";
     private string ApiKey => config["RiskTranslator:ApiKey"] ?? "";
     public bool Configured => BaseUrl.StartsWith("https://") && Model.Length > 0 && ApiKey.Length > 0;
+    public string ModeloUsado => Model;
 
     public static string BuildPrompt(EventoSeguranca e) =>
         "Explique para um cidadão leigo de 60 anos um evento do sistema de privacidade do Fácil Município. " +
         "Dados do evento (controlados pelo sistema): " +
         $"tipo de dado = {RiskRules.RotuloCategoria(e.Categoria)}; origem = {RiskRules.RotuloOrigem(e.Origem)}; " +
-        $"destino = {RiskRules.RotuloDestino(e.Destino)}; ação do sistema = {e.Acao}; código = {e.Codigo}; gravidade potencial = {e.Gravidade}. " +
+        $"destino = {RiskRules.RotuloDestino(e.Destino)}; gravidade potencial = {e.Gravidade}; " +
+        $"o que o sistema fez = {RiskRules.DescricaoCodigo(e.Codigo)}. " +
         "Regras: responda em português do Brasil, em no máximo duas frases, com linguagem simples; " +
-        "descreva fielmente a ação do sistema (SANITIZADO = o dado foi removido antes de seguir; BLOQUEADO = a saída foi impedida); " +
-        "não afirme ataque, acesso indevido ou vazamento, pois nada disso foi comprovado; não peça nem repita dados pessoais.";
+        "descreva fielmente o que o sistema fez, usando só as informações acima e sem inventar outros motivos; " +
+        "não afirme ataque, acesso indevido ou vazamento, pois nada disso foi comprovado; não mencione códigos técnicos; não peça nem repita dados pessoais.";
 
     public async Task<string> TranslateAsync(EventoSeguranca e, CancellationToken ct)
     {
@@ -108,6 +121,8 @@ public sealed class OpenAiCompatibleRiskTranslator(HttpClient http, IConfigurati
 public sealed partial class RiskTranslationProcessor(AppDbContext db, IRiskTranslator translator, ILogger<RiskTranslationProcessor> logger)
 {
     public const int MaxAttempts = 3;
+    /// <summary>true se o último lote teve falha: o worker espera antes de tentar de novo (provedor fora do ar ou configuração errada).</summary>
+    public bool LastRunFailed { get; private set; }
     [GeneratedRegex(@"\b(ataque|atacante|invas[ãa]o|invadi\w*|hacker|vazou|vazamento confirmado)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)] private static partial Regex Claims();
     [GeneratedRegex(@"[.!?]+(\s|$)")] private static partial Regex SentenceEnd();
 
@@ -126,28 +141,35 @@ public sealed partial class RiskTranslationProcessor(AppDbContext db, IRiskTrans
             .OrderBy(e => e.OcorridoEm).Take(batch).ToListAsync(ct);
         foreach (var e in pending)
         {
+            var failed = false;
             var reused = await db.EventosSeguranca.Where(x => x.TraducaoEstado == TraducaoEstado.Traduzida && x.Codigo == e.Codigo
                 && x.Categoria == e.Categoria && x.Origem == e.Origem && x.Destino == e.Destino && x.Acao == e.Acao && x.Gravidade == e.Gravidade)
-                .Select(x => x.TraducaoTexto).FirstOrDefaultAsync(ct);
+                .OrderBy(x => x.OcorridoEm).Select(x => new { x.TraducaoTexto, x.TraducaoModelo }).FirstOrDefaultAsync(ct);
             try
             {
-                var text = reused;
+                var text = reused?.TraducaoTexto; var model = reused?.TraducaoModelo;
                 if (text is null)
                 {
                     using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
                     timeout.CancelAfter(TimeSpan.FromSeconds(10));
                     text = (await translator.TranslateAsync(e, timeout.Token)).Trim();
+                    model = translator.ModeloUsado;
                 }
                 if (!IsAcceptable(text)) throw new InvalidDataException();
-                e.TraducaoTexto = text; e.TraducaoEstado = TraducaoEstado.Traduzida; e.TraduzidaEm = DateTimeOffset.UtcNow;
+                e.TraducaoTexto = text; e.TraducaoModelo = model is null ? null : (model.Length > 80 ? model[..80] : model); e.TraducaoEstado = TraducaoEstado.Traduzida; e.TraduzidaEm = DateTimeOffset.UtcNow;
             }
             catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
             {
                 e.TraducaoTentativas++;
                 if (e.TraducaoTentativas >= MaxAttempts) e.TraducaoEstado = TraducaoEstado.Falhou;
-                logger.LogWarning("Tradução de risco falhou. Tipo={Tipo} Tentativa={Tentativa}", ex.GetType().Name, e.TraducaoTentativas);
+                // Só metadados: tipo da exceção e código HTTP (nunca corpo da resposta nem prompt).
+                logger.LogWarning("Tradução de risco falhou. Tipo={Tipo} Http={Http} Tentativa={Tentativa}",
+                    ex.GetType().Name, (ex as HttpRequestException)?.StatusCode is { } code ? (int)code : 0, e.TraducaoTentativas);
+                failed = true;
             }
             await db.SaveChangesAsync(ct);
+            // Uma falha encerra o lote: os demais eventos não gastam tentativas à toa e o provedor não é martelado.
+            if (failed) { LastRunFailed = true; break; }
         }
         return pending.Count;
     }
@@ -156,7 +178,7 @@ public sealed partial class RiskTranslationProcessor(AppDbContext db, IRiskTrans
     public async Task<int> PurgeExpiredAsync(int retentionDays, CancellationToken ct)
     {
         var cutoff = DateTimeOffset.UtcNow.AddDays(-retentionDays);
-        var old = await db.EventosSeguranca.Where(e => e.OcorridoEm < cutoff).Take(500).ToListAsync(ct);
+        var old = await db.EventosSeguranca.Where(e => e.OcorridoEm < cutoff).OrderBy(e => e.OcorridoEm).Take(500).ToListAsync(ct);
         db.EventosSeguranca.RemoveRange(old);
         await db.SaveChangesAsync(ct);
         return old.Count;
@@ -171,20 +193,30 @@ public sealed class RiskTranslationWorker(IServiceScopeFactory scopes, IConfigur
         var interval = TimeSpan.FromSeconds(Math.Max(5, config.GetValue("RiskTranslator:PollSeconds", 10)));
         var retention = config.GetValue("Security:RetentionDays", 90);
         using var timer = new PeriodicTimer(interval);
-        var ticks = 0;
-        while (await timer.WaitForNextTickAsync(stop))
+        var ticks = 0; var backoffTicks = 0;
+        try
         {
-            try
+            while (await timer.WaitForNextTickAsync(stop))
             {
-                using var scope = scopes.CreateScope();
-                var processor = scope.ServiceProvider.GetRequiredService<RiskTranslationProcessor>();
-                await processor.ProcessPendingAsync(5, stop);
-                if (ticks++ % 360 == 0) await processor.PurgeExpiredAsync(retention, stop);
+                if (backoffTicks > 0) { backoffTicks--; continue; }
+                try
+                {
+                    using var scope = scopes.CreateScope();
+                    var processor = scope.ServiceProvider.GetRequiredService<RiskTranslationProcessor>();
+                    await processor.ProcessPendingAsync(5, stop);
+                    // Após falha, espera ~60 s antes do próximo lote.
+                    if (processor.LastRunFailed) backoffTicks = Math.Max(1, (int)(60 / interval.TotalSeconds));
+                    if (ticks++ % 360 == 0) await processor.PurgeExpiredAsync(retention, stop);
+                }
+                catch (Exception e) when (e is not OperationCanceledException)
+                {
+                    logger.LogWarning("Ciclo de tradução de risco falhou. Tipo={Tipo}", e.GetType().Name);
+                }
             }
-            catch (Exception e) when (e is not OperationCanceledException)
-            {
-                logger.LogWarning("Ciclo de tradução de risco falhou. Tipo={Tipo}", e.GetType().Name);
-            }
+        }
+        catch (OperationCanceledException) when (stop.IsCancellationRequested)
+        {
+            // Encerramento normal da aplicação: não é falha do serviço.
         }
     }
 }
