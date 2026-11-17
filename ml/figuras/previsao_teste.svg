@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" viewBox="0 0 960 430">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="74" y="30" font-size="21" font-family="Arial" font-weight="700" fill="#14263d">Teste cronológico - realizado e previsto</text>
+<line x1="74" y1="352.0" x2="932" y2="352.0" stroke="#dce4ed"/>
+<text x="62" y="356.0" text-anchor="end" font-size="12" font-family="Arial" fill="#53657b">0</text>
+<line x1="74" y1="277.5" x2="932" y2="277.5" stroke="#dce4ed"/>
+<text x="62" y="281.5" text-anchor="end" font-size="12" font-family="Arial" fill="#53657b">21</text>
+<line x1="74" y1="203.0" x2="932" y2="203.0" stroke="#dce4ed"/>
+<text x="62" y="207.0" text-anchor="end" font-size="12" font-family="Arial" fill="#53657b">42</text>
+<line x1="74" y1="128.5" x2="932" y2="128.5" stroke="#dce4ed"/>
+<text x="62" y="132.5" text-anchor="end" font-size="12" font-family="Arial" fill="#53657b">64</text>
+<line x1="74" y1="54.0" x2="932" y2="54.0" stroke="#dce4ed"/>
+<text x="62" y="58.0" text-anchor="end" font-size="12" font-family="Arial" fill="#53657b">85</text>
+<polyline points="74.0,99.5 288.5,127.5 503.0,103.0 717.5,124.0 932.0,267.8" fill="none" stroke="#14263d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="74.0" cy="99.5" r="3.5" fill="#14263d"/>
+<circle cx="288.5" cy="127.5" r="3.5" fill="#14263d"/>
+<circle cx="503.0" cy="103.0" r="3.5" fill="#14263d"/>
+<circle cx="717.5" cy="124.0" r="3.5" fill="#14263d"/>
+<circle cx="932.0" cy="267.8" r="3.5" fill="#14263d"/>
+<line x1="74" y1="402" x2="94" y2="402" stroke="#14263d" stroke-width="3"/>
+<text x="101" y="406" font-size="12" font-family="Arial" fill="#33465c">Realizado</text>
+<polyline points="74.0,163.4 288.5,159.9 503.0,164.0 717.5,162.4 932.0,165.4" fill="none" stroke="#176b87" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="74.0" cy="163.4" r="3.5" fill="#176b87"/>
+<circle cx="288.5" cy="159.9" r="3.5" fill="#176b87"/>
+<circle cx="503.0" cy="164.0" r="3.5" fill="#176b87"/>
+<circle cx="717.5" cy="162.4" r="3.5" fill="#176b87"/>
+<circle cx="932.0" cy="165.4" r="3.5" fill="#176b87"/>
+<line x1="294" y1="402" x2="314" y2="402" stroke="#176b87" stroke-width="3"/>
+<text x="321" y="406" font-size="12" font-family="Arial" fill="#33465c">Random Forest</text>
+<polyline points="74.0,197.7 288.5,99.5 503.0,127.5 717.5,103.0 932.0,124.0" fill="none" stroke="#d97706" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="74.0" cy="197.7" r="3.5" fill="#d97706"/>
+<circle cx="288.5" cy="99.5" r="3.5" fill="#d97706"/>
+<circle cx="503.0" cy="127.5" r="3.5" fill="#d97706"/>
+<circle cx="717.5" cy="103.0" r="3.5" fill="#d97706"/>
+<circle cx="932.0" cy="124.0" r="3.5" fill="#d97706"/>
+<line x1="514" y1="402" x2="534" y2="402" stroke="#d97706" stroke-width="3"/>
+<text x="541" y="406" font-size="12" font-family="Arial" fill="#33465c">Último mês (ingênua)</text>
+<text x="74.0" y="374" text-anchor="middle" font-size="11" font-family="Arial" fill="#53657b">08/2024</text>
+<text x="288.5" y="374" text-anchor="middle" font-size="11" font-family="Arial" fill="#53657b">09/2024</text>
+<text x="503.0" y="374" text-anchor="middle" font-size="11" font-family="Arial" fill="#53657b">10/2024</text>
+<text x="717.5" y="374" text-anchor="middle" font-size="11" font-family="Arial" fill="#53657b">11/2024</text>
+<text x="932.0" y="374" text-anchor="middle" font-size="11" font-family="Arial" fill="#53657b">12/2024</text>
+</svg>

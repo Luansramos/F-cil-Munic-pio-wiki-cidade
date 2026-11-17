@@ -1,0 +1,3 @@
+# O experimento e o executor do notebook usam somente a biblioteca padrão do Python.
+# Dependência para recriar o PDF do relatório:
+reportlab==4.4.9

@@ -68,6 +68,7 @@ As instruções para executar a API estão em [apps/api/README.md](apps/api/READ
 
 | Pasta ou arquivo | Conteúdo |
 |---|---|
+| ml/ | Dados públicos, experimento acadêmico de ML, resultados e relatório; separado do runtime da API |
 | `planejamento/` | Visão, especificação, arquitetura, backlog e plano |
 | `docs/` | Contratos de integração, decisões e documentação das features |
 | `apps/api/` | API ASP.NET Core (na branch de SOA/C#) |
@@ -90,6 +91,7 @@ As pastas de cada frente entram na `main` após seus respectivos PRs. A estrutur
 - [Contratos da API](docs/contratos-de-integracao.md)
 - [Documentação por feature](docs/features/README.md)
 - [LLM Wiki e Azure OpenAI](docs/features/llm-wiki.md)
+- [Experimento acadêmico de ML](docs/features/machine-learning.md)
 - [Orientações para o grupo](AGENTS.md)
 
 Cada integrante trabalha em uma branch, registra o que fez na documentação da feature e abre um PR para revisão de outro integrante. Alterações nos contratos devem ser combinadas com as outras frentes.

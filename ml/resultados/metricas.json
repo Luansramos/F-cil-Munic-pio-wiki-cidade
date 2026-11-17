@@ -1,0 +1,112 @@
+{
+  "pergunta": "O histórico mensal ajuda a estimar o volume de manifestações registradas da Ouvidoria de Poá?",
+  "fonte": "https://poa.sp.gov.br/wp-content/uploads/2025/03/Relatorio-Ouvidoria-2024.pdf",
+  "observacoes_originais": 24,
+  "observacoes_modelaveis": 23,
+  "linhas_treino": 18,
+  "periodo_treino": "02/2023 a 07/2024",
+  "linhas_teste": 5,
+  "periodo_teste": "08/2024 a 12/2024",
+  "features": [
+    "mes_sin",
+    "mes_cos",
+    "ano",
+    "lag_1"
+  ],
+  "horizonte": "um mês à frente, com atualização rolling usando o valor observado do mês anterior",
+  "cv": {
+    "n_splits": 3,
+    "treino_apenas": true,
+    "folds": [
+      {
+        "treino": 6,
+        "validacao": 4
+      },
+      {
+        "treino": 10,
+        "validacao": 4
+      },
+      {
+        "treino": 14,
+        "validacao": 4
+      }
+    ],
+    "metric_selection": "MAE médio"
+  },
+  "combinacoes": 18,
+  "melhores_parametros": {
+    "n_estimators": 200,
+    "max_depth": 2,
+    "min_samples_leaf": 2
+  },
+  "melhor_mae_cv": 21.820144675925928,
+  "metricas": {
+    "modelo": {
+      "treino": {
+        "MAE": 9.724881423360593,
+        "RMSE": 13.21720377496778,
+        "R2": 0.6831932536826543
+      },
+      "teste": {
+        "MAE": 17.010971645021648,
+        "RMSE": 18.409565657253086,
+        "R2": -0.05989525797070394
+      }
+    },
+    "ingenua_ultimo_mes": {
+      "treino": {
+        "MAE": 18.61111111111111,
+        "RMSE": 24.272755646334566,
+        "R2": -0.06844806644986878
+      },
+      "teste": {
+        "MAE": 18.0,
+        "RMSE": 22.86482013924448,
+        "R2": -0.6349762321741306
+      }
+    }
+  },
+  "predicoes_teste": [
+    {
+      "mes": "08/2024",
+      "real": 72,
+      "random_forest": 53.762,
+      "ultimo_mes": 44
+    },
+    {
+      "mes": "09/2024",
+      "real": 64,
+      "random_forest": 54.7537,
+      "ultimo_mes": 72
+    },
+    {
+      "mes": "10/2024",
+      "real": 71,
+      "random_forest": 53.5861,
+      "ultimo_mes": 64
+    },
+    {
+      "mes": "11/2024",
+      "real": 65,
+      "random_forest": 54.0573,
+      "ultimo_mes": 71
+    },
+    {
+      "mes": "12/2024",
+      "real": 24,
+      "random_forest": 53.2139,
+      "ultimo_mes": 65
+    }
+  ],
+  "qualidade_dados": {
+    "linhas": 24,
+    "meses_consecutivos": true,
+    "duplicatas": 0,
+    "lacunas": 0,
+    "totais_anuais": {
+      "2023": 717,
+      "2024": 853
+    }
+  },
+  "alerta": "Experimento exploratório com série curta agregada; não prevê serviços individuais."
+}
