@@ -1,6 +1,6 @@
 # Contratos de integração — Fácil Município
 
-**Estado:** contratos de API implementados na branch `feat/soa-csharp-api`; consumidores Expo/React precisam validar compatibilidade antes do merge. O prefixo implementado é **`/api/v1`**, ao contrário do rascunho inicial sem prefixo.
+**Estado:** API e adaptador Azure OpenAI implementados; `gpt-5-mini` respondeu a uma chamada HTTP com JSON estruturado pelo endpoint OpenAI v1. O smoke pelo SDK .NET e a integração ponta a ponta com Expo/React ainda precisam de verificação. O prefixo implementado é **`/api/v1`**, ao contrário do rascunho inicial sem prefixo.
 
 ## Fronteiras
 
@@ -8,7 +8,7 @@
 - **App → API:** três rotas públicas; municípios e serviços publicados; perguntas sem login. Não enviar credencial para o app.
 - **API → PostgreSQL (EF Core):** municípios, usuários, fontes, rascunhos e versões ativas. Migração inicial versionada.
 - **API → Neo4j:** serviço, fonte, etapas, requisitos, órgão e canal com chaves contendo município e versão.
-- **API → LLM:** a interface `ILlmWiki` existe, mas o provedor de LLM real segue pendente; `Llm__Mode=demo` habilita um fallback determinístico explicitamente identificado.
+- **API → LLM:** `ILlmWiki` usa Azure OpenAI via SDK oficial `OpenAI` para .NET e API v1. O deployment configurado é `gpt-5-mini`; `LLM_AZURE_DEPLOYMENT` deve corresponder ao nome ativo no Azure. `Llm__Mode=demo` mantém o respondedor determinístico sem chamadas externas.
 
 ## Endpoints implementados
 
@@ -20,7 +20,7 @@
 | POST | `/api/v1/usuarios` | OPERADOR |
 | POST | `/api/v1/municipios/{id}/fontes` | ADMIN do município ou OPERADOR |
 | GET | `/api/v1/municipios/{id}/fontes` | ADMIN do município ou OPERADOR |
-| POST | `/api/v1/fontes/{id}/extracoes` | ADMIN / OPERADOR; LLM ainda indisponível |
+| POST | `/api/v1/fontes/{id}/extracoes` | ADMIN / OPERADOR; cria rascunho sugerido pela LLM para revisão (requer deployment ativo) |
 | POST | `/api/v1/fontes/{id}/rascunhos` | ADMIN / OPERADOR; criação manual |
 | GET | `/api/v1/rascunhos/{id}` | ADMIN / OPERADOR |
 | PUT | `/api/v1/rascunhos/{id}` | ADMIN / OPERADOR |
@@ -65,7 +65,7 @@ Resposta insuficiente tem `informacaoSuficiente:false`, `servicosRelacionados:[]
 
 Fonte cadastrada não é publicada. Rascunho registra revisão e aprovação; a publicação usa `revisaoId` como versão imutável. PostgreSQL controla `versaoAtivaId`; Neo4j recebe uma cópia versionada das entidades. Uma falha antes do commit mantém a versão anterior; nova tentativa é idempotente. O endpoint público lê exclusivamente `municipioId` + versão ativa. A API não salva perguntas, históricos ou logs de conteúdo sensível; histórico é responsabilidade local do Expo. Nunca associar resultados ou fontes de outro município à resposta.
 
-**Pendências para integração:** configurar provedor real de LLM, construir painel e Expo, cadastrar e validar links reais oficiais de Poá, executar fluxo real integrado, alinhar mudanças incompatíveis pelo PR.
+**Pendências para integração:** executar o smoke de inferência ao vivo pelo SDK, construir painel e Expo, cadastrar e validar links reais oficiais de Poá, executar o fluxo completo com dados publicados e alinhar mudanças incompatíveis pelo PR. A chamada sintética e os testes unitários não comprovam integração visual nem qualidade editorial das fontes do piloto.
 
 ## Conferência com a branch mobile
 
@@ -191,6 +191,12 @@ antes de afirmar que funciona. O mobile não faz retry automático.
 
 **Verificação feita na API:** teste HTTP do CORS, serialização compatível
 com `guardas.ts`, limites de entrada, isolamento municipal e seguimento
-contextual no respondedor de demonstração. **Ainda pendente:** testar
-o `apiReal.ts` de ponta a ponta com a tela Expo, validar o acordo
-P1/P2/P3 para os campos opcionais e integrar o provedor de LLM real.
+contextual no respondedor de demonstração. O adaptador Azure compila, e uma
+chamada HTTP direta com `gpt-5-mini` e JSON Schema retornou HTTP 200 em
+17/11/2026. Em 17/11/2026, 109 testes unitários sem integrações dependentes
+de bancos passaram no WSL; os testes do SDK usam transporte HTTP simulado. O
+smoke de inferência ao vivo pelo SDK ainda está pendente. O erro
+`DeploymentNotFound` dos testes anteriores dizia respeito aos aliases Luna e
+é histórico. **Ainda pendente:** executar o smoke com o SDK, testar o
+`apiReal.ts` de ponta a ponta com a tela Expo e validar o acordo P1/P2/P3
+para os campos opcionais.
