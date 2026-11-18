@@ -1,0 +1,16 @@
+FÁCIL MUNICÍPIO — WIKI CIDADE
+GLOBAL SOLUTION 2026 — FIAP
+DISCIPLINA: PHYSICAL COMPUTING — IoT & IoB
+
+INTEGRANTES:
+Fernanda Rocha Menon — RM 554673
+Luiza Macena Dantas — RM 556237
+Luan Ramos Garcia de Souza — RM 558537
+Matheus Ricciotti — RM 556930
+Matheus Bortolotto — RM 555189
+
+RESPONSÁVEL PELA IMPLEMENTAÇÃO IOT:
+Fernanda Rocha Menon — RM 554673
+
+LINK PÚBLICO WOKWI:
+https://wokwi.com/projects/480983207617445889
