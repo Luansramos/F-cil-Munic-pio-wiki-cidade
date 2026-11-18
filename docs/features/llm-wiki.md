@@ -1,6 +1,6 @@
 # LLM Wiki e Azure OpenAI
 
-- Status: integração implementada e testes unitários aprovados; o smoke via SDK foi executado em 18/11/2026, mas falhou com HTTP 404 `DeploymentNotFound` durante a extração.
+- Status: integração implementada e suíte unitária aprovada; o smoke Azure via SDK falha com HTTP 404 `DeploymentNotFound` para o nome configurado, então a aceitação de inferência ao vivo permanece pendente.
 - Backlog: A4, B5, B6 (integração da API), D2 e D3.
 - Componentes: API ASP.NET Core, `ILlmWiki`, Azure OpenAI.
 
@@ -39,13 +39,13 @@ dotnet run --project apps/api -- --llm-smoke
 
 O comando usa uma fonte e um serviço fictícios, faz uma chamada de extração e outra de resposta fundamentada e não imprime conteúdo nem credenciais. Ele não precisa dos bancos nem de chave JWT, mas requer deployment ativo, rede e cotas disponíveis. As chamadas podem gerar custo do Azure.
 
-Em 17/11/2026, uma chamada HTTP direta a `/chat/completions`, usando `gpt-5-mini` e um esquema JSON sintético, retornou HTTP 200 e o campo esperado. Uma execução anterior da suíte no WSL registrou 109 testes aprovados, sem as integrações que dependem de bancos reais, incluindo testes do adaptador SDK com transporte HTTP simulado.
+Em 17/11/2026, uma chamada HTTP direta a `/chat/completions`, usando `gpt-5-mini` e um esquema JSON sintético, retornou HTTP 200 e o campo esperado. Em 18/11/2026, a suíte `dotnet test tests/Api.Tests/Api.Tests.csproj --filter 'FullyQualifiedName!~IntegrationTests' --verbosity minimal` passou: 109 testes aprovados com .NET SDK 10.0.404. Os testes cobrem extração como proposta revisável, validação de evidências, resposta insuficiente, falhas do provedor e cancelamento; usam transporte simulado e não fazem inferência externa.
 
-Em 18/11/2026, o comando de smoke acima foi executado com .NET SDK 10.0.404. A etapa de extração falhou com HTTP 404 e código Azure `DeploymentNotFound`; a resposta segura do comando não exibiu endpoint, chave ou conteúdo da fonte. O arquivo `.env` não define `LLM_AZURE_DEPLOYMENT`, então o código usou o valor padrão `gpt-5-mini`. A inferência é que esse deployment não está disponível no endpoint configurado atualmente. Ajuste a combinação endpoint/deployment para um recurso ativo e repita o smoke antes de aceitar a validação Azure. Testes unitários com HTTP simulado não comprovam inferência ao vivo.
+O smoke pelo SDK também foi executado em 18/11/2026. A etapa de extração falhou com HTTP 404 e código Azure `DeploymentNotFound`; a resposta segura do comando não exibiu endpoint, chave ou conteúdo da fonte. O arquivo `.env` não define `LLM_AZURE_DEPLOYMENT`, então o código usou o padrão `gpt-5-mini`. Uma chamada GET a `/openai/v1/models` retornou HTTP 200, mas esse endpoint lista modelos disponíveis e não comprova que exista um deployment com esse nome ([referência da API Azure OpenAI Models](https://learn.microsoft.com/en-us/rest/api/aifoundry/azureopenai/models)). A Azure CLI autenticada não encontrou um recurso com o hostname configurado no escopo de assinatura acessível; isso não prova que o recurso inexista fora desse escopo. A causa exata permanece incerta: o nome de deployment, endpoint ou visibilidade da assinatura pode não corresponder. Corrija esses dados e repita o smoke antes de aceitar a inferência Azure.
 
 ## Limites
 
 - O filtro de privacidade atual remove padrões básicos de CPF, e-mail e senha; ele não é um mecanismo completo de anonimização.
 - A verificação de evidência exige que o trecho citado exista literalmente nos campos factuais do serviço publicado. Ela não garante, sozinha, a qualidade editorial da resposta.
-- O smoke sintético não verifica as fontes reais de Poá, a tela do painel, o Expo nem o caminho HTTP completo entre os bancos e o aplicativo.
+- O smoke sintético não verifica as fontes reais de Poá, a tela do painel, o Expo nem o caminho HTTP completo entre os bancos e o aplicativo. O smoke Azure ao vivo retorna `DeploymentNotFound` até a configuração ser corrigida.
 - Busca vetorial, atualização automática de páginas, resolução de contradições e lint de wiki continuam fora do escopo implementado.
