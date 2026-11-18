@@ -88,11 +88,11 @@ Testes manuais relatados na simulação Wokwi:
 - [x] Link público do Wokwi
 - [x] Documentação técnica e limitações da integração
 - [x] Lista de integrantes em `docs/iot/integrantes.txt`
-- [ ] Gravação e publicação de vídeo demonstrativo de até 4 minutos
-- [ ] Inserção do link do vídeo neste documento
+- [x] Gravação e publicação de vídeo demonstrativo de até 4 minutos
+- [x] Inserção do link do vídeo neste documento
 - [ ] Revisão da equipe e conferência da submissão no Teams / Portal do Aluno
 
-**Vídeo:** pendente.
+**Vídeo demonstrativo (YouTube):** https://youtu.be/x3IEq_ttazc
 
 ### Roteiro sugerido para o vídeo (até 4 minutos)
 
