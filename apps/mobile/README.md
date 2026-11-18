@@ -51,7 +51,7 @@ O app lê municípios, serviços e respostas da API real em C# rodando no mesmo 
 
 ## Vídeo de demonstração (até 3 minutos)
 
-**Link: a incluir antes da entrega.** O vídeo ainda não foi gravado nem publicado.
+**Link: <https://youtu.be/r4uhjS2fZNY>** (2 min 46 s, 2560×1440). O vídeo foi gerado em Remotion (projeto em [`video-mobile/`](../../video-mobile/README.md)), com a gravação real do app web em tela de celular, contra a API em C# em modo demonstração, e a narração da equipe. Não é um celular físico.
 
 ## Requisitos
 
