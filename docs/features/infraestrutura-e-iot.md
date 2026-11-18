@@ -54,3 +54,13 @@ Executado em 06/11/2026 numa VM Debian 13 (VirtualBox 7.2.6). Resultados reais, 
 - Integrar a API real quando disponível (2 pts de "funcionamento completo").
 - Publicar o vídeo e adicionar o link ao README.
 - Confirmar cedo a comunicação entre simulador e API; não representar simulação desconectada como integração concluída.
+
+
+## Atualização Physical Computing — 17/11/2026 (G5–G7)
+
+- **Responsável IoT:** Fernanda Rocha Menon — RM 554673.
+- **G5:** protótipo de totem ESP32 em Wokwi com contagem por botões, OLED, LEDs e buzzer. Simulação pública: https://wokwi.com/projects/480983207617445889.
+- **G6:** funcionamento local demonstrado; **integração real Wokwi ↔ API não implementada nem verificada**. A API atual não define endpoint de telemetria de filas. A integração depende de contrato e validação com a equipe de backend.
+- **G7:** documentação e arquivo de integrantes preparados em [docs/iot/README.md](../iot/README.md) e [docs/iot/integrantes.txt](../iot/integrantes.txt). **Vídeo de até 4 minutos pendente**.
+- **Evidências relatadas:** contador em zero, incremento por entrada, status crítico em 10 pessoas, decremento por atendimento e limite inferior zero. Confirmar LED vermelho, buzzer e transições na gravação final.
+- **Escopo preservado:** esta atualização não altera o trabalho de Operating Systems (G1–G4) nem afirma integração com o aplicativo.
