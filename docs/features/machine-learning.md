@@ -1,6 +1,6 @@
 # Feature - Experimento acadêmico de Machine Learning
 
-- Status: experimento e pacote documental executados; revisão acadêmica e gravação do vídeo pendentes
+- Status: experimento, notebook e relatório executados; vídeo fora do escopo desta entrega
 - Responsável sugerido: P3
 - Backlog: E1-E6
 - Escopo: artefato acadêmico independente da API, do painel e do Expo
@@ -17,48 +17,45 @@ O Relatório de 2025 informa 1.074 manifestações no ano e 557 ligações sem p
 
 ## Método
 
-- Modelo: Random Forest para regressão com bootstrap e árvores CART; parâmetros controlados: n_estimators, max_depth e min_samples_leaf.
+- Modelo: `RandomForestRegressor` do scikit-learn 1.9.1; parâmetros: `n_estimators`, `max_depth` e `min_samples_leaf`.
+- Justificativa: regressor não linear aceito na atividade, escolhido para combinar calendário cíclico e defasagem sem impor tendência linear. A escolha é didática; a amostra curta não demonstra superioridade sobre outros modelos.
 - Features: seno e cosseno do mês (ciclo anual), ano e contagem do mês anterior.
 - Janeiro de 2023 é excluído da matriz supervisionada por não ter defasagem; restam 23 linhas.
 - Divisão cronológica: 18 linhas de treino (02/2023-07/2024) e cinco de teste (08/2024-12/2024).
-- Horizonte avaliado: um mês à frente; cada previsão usa a contagem observada no mês anterior, inclusive no teste (atualização rolling mensal).
-- Busca: 18 combinações, em 3 folds de janela expansiva no treino: tamanhos de treino/validação 6/4, 10/4 e 14/4. O teste não é usado para selecionar parâmetros.
-- Seleção por MAE médio de validação; métricas finais MAE, RMSE e R2; baseline ingênuo repete o último mês.
+- Horizonte: um mês à frente; cada previsão usa a contagem observada do mês anterior, inclusive no teste (atualização mensal rolling).
+- Busca: `GridSearchCV` avalia 18 combinações, com `TimeSeriesSplit(n_splits=3)` somente no treino. Folds: 6/4, 10/4 e 14/4 linhas de treino/validação. O teste não participa da seleção.
+- Seleção por MAE médio de validação; métricas finais MAE, RMSE e R²; baseline ingênuo repete o último mês.
 - Semente fixa: 42.
-
-### Adaptação do ambiente
-
-O Python 3.12.14 disponível não tinha scikit-learn nem Jupyter, e o acesso ao PyPI falhou por resolução DNS. Para ainda executar o experimento, foi implementada em [experimento_ouvidoria.py](../../ml/experimento_ouvidoria.py) uma versão didática e autocontida de Random Forest e de TimeSeriesSplit, usando apenas a biblioteca padrão. A validação cruzada mantém os mesmos tamanhos cronológicos de janela expansiva, mas não usa as classes da biblioteca scikit-learn. O executor roda as células do notebook sequencialmente num processo Python limpo; esta execução não ocorreu num kernel Jupyter.
-
-Esta adaptação precisa de revisão de P3/P5. Se a rubrica exigir scikit-learn especificamente ou não aceitar implementação didática, rerodar a busca com scikit-learn num ambiente com pacotes disponíveis antes do envio.
 
 ## Resultados
 
-Melhores parâmetros encontrados no treino: 200 árvores, profundidade máxima 2, folha mínima 2. MAE médio nos três folds: 21,82.
+Melhores parâmetros encontrados no treino: 100 árvores, profundidade máxima 2, folha mínima 2. MAE médio nos três folds: 22,46.
 
-| Modelo | Partição | MAE | RMSE | R2 |
+| Modelo | Partição | MAE | RMSE | R² |
 |---|---|---:|---:|---:|
-| Random Forest | Treino | 9,72 | 13,22 | 0,68 |
-| Random Forest | Teste | 17,01 | 18,41 | -0,06 |
+| Random Forest | Treino | 10,75 | 14,62 | 0,61 |
+| Random Forest | Teste | 19,36 | 19,91 | -0,24 |
 | Último mês | Treino | 18,61 | 24,27 | -0,07 |
 | Último mês | Teste | 18,00 | 22,86 | -0,63 |
 
-No teste de cinco meses, o MAE da floresta foi 5,5% menor que o baseline. Contudo, o R2 do teste é negativo e o MAE aumenta de 9,72 no treino para 17,01 no teste. O resultado indica risco de sobreajuste e é insuficiente para afirmar que o histórico melhora decisões de atendimento.
+No teste de cinco meses, a MAE do Random Forest foi 7,5% maior que a do baseline (19,36 contra 18,00). A RMSE foi menor que a do baseline, mas o R² do modelo permaneceu negativo. O MAE aumentou de 10,75 no treino para 19,36 no teste. Com cinco observações, essa diferença é apenas descritiva e não permite concluir estabilidade nem sobreajuste de forma confiável.
+
+O resultado não demonstra que o histórico melhora de modo consistente a priorização de informações ao cidadão. A série curta e agregada serve como exercício acadêmico, não como previsão de demanda.
 
 ## Artefatos e aceite
 
-- Notebook executado: [experimento-ouvidoria-poa.ipynb](../../ml/notebooks/experimento-ouvidoria-poa.ipynb).
-- Dados, busca dos 18 parâmetros e previsões: pasta [ml/resultados](../../ml/resultados/).
-- Figuras SVG: pasta [ml/figuras](../../ml/figuras/).
+- Notebook executado em kernel Jupyter: [experimento-ouvidoria-poa.ipynb](../../ml/notebooks/experimento-ouvidoria-poa.ipynb).
+- Dados e extração: [ml/dados](../../ml/dados/).
+- Busca das 18 configurações, métricas e previsões: [ml/resultados](../../ml/resultados/).
+- Figuras SVG: [ml/figuras](../../ml/figuras/).
 - Relatório de duas páginas: [PDF](../../output/pdf/Relatorio_ML_Ouvidoria_Poa.pdf) e [fonte Markdown](../../ml/RELATORIO_ML.md).
-- Instruções e execução: [ml/README.md](../../ml/README.md).
-- [Roteiro do vídeo de até 5 minutos](../../ml/roteiro-video.md); vídeo não gravado nem enviado nesta execução.
+- Reprodutibilidade: [instruções](../../ml/README.md) e dependências fixadas em `ml/requirements.txt`.
 
 ## Verificação e limites
 
-Executado com o Python 3.12.14 incluído no runtime local por python ml/scripts/executar_notebook.py; duas células de código terminaram sem erro, criaram os resultados e salvaram saídas no notebook. O PDF foi gerado com ReportLab 4.4.9, conferido com pdfinfo (2 páginas A4) e renderizado para inspeção visual. A série foi verificada contra os totais publicados.
+O notebook foi executado de cima a baixo com Python 3.12.14, scikit-learn 1.9.1 e seis células de código em kernel Jupyter; não houve erros. A execução criou os resultados e os três gráficos SVG. O PDF foi gerado com ReportLab 4.4.9, renderizado e inspecionado em duas páginas A4. Os totais da série foram conferidos contra o relatório oficial.
 
-Há somente 23 exemplos supervisionados e cinco pontos de teste. Os relatórios podem mudar categorias ou canais entre anos, e a série agregada não revela quais serviços geram manifestações. Não usar como previsão oficial, dimensionamento ou priorização por serviço. Revisar a transcrição, a implementação e os critérios acadêmicos antes do envio.
+Há somente 23 exemplos supervisionados e cinco pontos de teste. Os relatórios podem mudar categorias ou canais entre anos, e a série agregada não revela quais serviços geram manifestações. Não usar como previsão oficial, dimensionamento ou priorização por serviço.
 
 Fontes:
 

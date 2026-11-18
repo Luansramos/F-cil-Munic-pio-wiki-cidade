@@ -393,7 +393,9 @@ def markdown_report(result: dict[str, object], predictions: list[dict[str, str]]
         "",
         f"Foram avaliadas {result['combinacoes']} configurações de Random Forest, variando n_estimators = 50/100/200, max_depth = 2/4/ilimitado e min_samples_leaf = 1/2. A seleção usou MAE médio de validação. Melhor configuração: {result['melhores_parametros']}; MAE médio de CV = {result['melhor_mae_cv']:.2f}. O comparador ingênuo prevê o valor do mês anterior.",
         "",
-        "A implementação do Random Forest e da divisão temporal é autocontida em Python padrão. Foi usada porque a sessão não tinha scikit-learn/Jupyter e o PyPI estava inacessível. O código explicita bootstrap e árvores CART; deve ser revisado antes da entrega acadêmica.",
+        "O Random Forest foi escolhido por ser um regressor não linear incluído entre os modelos aceitos na atividade e por combinar calendário cíclico e defasagem sem impor uma tendência linear. A escolha é didática: com 23 linhas modeláveis e menos de dois ciclos anuais, os dados não demonstram superioridade sobre outros modelos.",
+        "",
+        f"O modelo RandomForestRegressor e a validação com TimeSeriesSplit são do scikit-learn {result['versao_scikit_learn']}. GridSearchCV comparou as 18 configurações e ajustou a melhor apenas com os dados de treino.",
         "",
         "## Resultados",
         "",
@@ -428,7 +430,7 @@ def markdown_report(result: dict[str, object], predictions: list[dict[str, str]]
             "",
             "O relatório de 2025 informa 1.074 manifestações registradas no ano e 557 ligações sem protocolo. Esses números contextualizam a evolução, mas não entraram na série mensal: não foram transcritos valores mensais de 2025 com segurança, e ligações sem protocolo não são manifestações registradas.",
             "",
-            "Os arquivos de busca, métricas, previsões, notebook executado e gráficos SVG acompanham o código em ml/. A gravação e o envio do vídeo de até cinco minutos ainda precisam ser feitos pela equipe.",
+            "Os arquivos de busca, métricas, previsões, notebook executado e gráficos SVG acompanham o código em ml/. A gravação do vídeo está fora do escopo desta entrega.",
             "",
             "## Fontes",
             "",
@@ -456,16 +458,19 @@ def build_pdf(result: dict[str, object], predictions: list[dict[str, str]]) -> N
     story.append(Paragraph("Ouvidoria de Poá", styles["ReportTitle"]))
     story.append(
         Paragraph(
-            "Estimativa exploratória do volume mensal de manifestações | 17/11/2026",
+            "Estimativa exploratória do volume mensal de manifestações | 18/11/2026",
             styles["SubTitle"],
         )
     )
+    model_mae = result["metricas"]["modelo"]["teste"]["MAE"]
+    baseline_mae = result["metricas"]["ingenua_ultimo_mes"]["teste"]["MAE"]
+    mae_difference_pct = 100 * (model_mae - baseline_mae) / baseline_mae
     answer = (
         f"Resultado: no teste cronológico, o Random Forest obteve MAE de "
-        f"{result['metricas']['modelo']['teste']['MAE']:.2f}, contra "
-        f"{result['metricas']['ingenua_ultimo_mes']['teste']['MAE']:.2f} do "
-        "baseline. O ganho pontual não torna o modelo adequado para previsão "
-        "operacional: o R2 de teste é negativo e há somente cinco meses no teste."
+        f"{model_mae:.2f}, contra {baseline_mae:.2f} do baseline. O erro foi "
+        f"{abs(mae_difference_pct):.1f}% maior que o baseline. O R2 de teste "
+        "é negativo e há somente cinco meses no teste; o resultado não sustenta "
+        "previsão operacional."
     )
     callout = Table([[Paragraph(answer, styles["Callout"])]], colWidths=[doc.width])
     callout.setStyle(
@@ -545,7 +550,7 @@ def build_pdf(result: dict[str, object], predictions: list[dict[str, str]]) -> N
         Paragraph(
             "Variáveis: mês cíclico (seno e cosseno), ano e contagem do mês "
             "anterior. A divisão cronológica reservou 18 meses para treino "
-            "(02/2023-07/2024) e cinco para teste (08/2024-12/2024). Foram "
+            "(02/2023-07/2024) e cinco para teste (08/2024-12/2024). "
             "Cada previsão é de um mês à frente, usando a contagem observada "
             "do mês anterior. A busca avaliou 18 configurações: "
             "n_estimators = 50/100/200, "
@@ -561,10 +566,21 @@ def build_pdf(result: dict[str, object], predictions: list[dict[str, str]]) -> N
     )
     story.append(
         Paragraph(
-            "A implementação do Random Forest e do particionador temporal é "
-            "autocontida em Python padrão. O ambiente não tinha scikit-learn "
-            "nem acesso ao PyPI. O código explicita bootstrap e árvores CART; "
-            "a equipe deve revisar a implementação antes da apresentação.",
+            "O RandomForestRegressor do scikit-learn foi escolhido por ser um regressor não linear "
+            "incluído entre os modelos aceitos na atividade e por combinar "
+            "calendário cíclico e defasagem sem impor uma tendência linear. "
+            "A escolha é didática: com 23 linhas modeláveis e menos de dois "
+            "ciclos anuais, os dados não demonstram superioridade sobre outros "
+            "modelos.",
+            styles["BodySmall"],
+        )
+    )
+    story.append(
+        Paragraph(
+            f"O ajuste e a busca foram executados com scikit-learn {result['versao_scikit_learn']}, "
+            "RandomForestRegressor, GridSearchCV e TimeSeriesSplit. A escolha "
+            "do estimador é didática; a amostra curta não demonstra superioridade "
+            "sobre outros modelos.",
             styles["Tiny"],
         )
     )
@@ -612,9 +628,11 @@ def build_pdf(result: dict[str, object], predictions: list[dict[str, str]]) -> N
             f"{fmt(result['metricas']['modelo']['teste']['R2'])}: o modelo não "
             "superou a previsão pela média do próprio teste. O MAE aumentou de "
             f"{fmt(result['metricas']['modelo']['treino']['MAE'])} no treino para "
-            f"{fmt(result['metricas']['modelo']['teste']['MAE'])} no teste. O "
-            "gap e a amostra reduzida indicam risco de sobreajuste e baixa "
-            "estabilidade, apesar da pequena melhora contra o último mês.",
+            f"{fmt(result['metricas']['modelo']['teste']['MAE'])} no teste. A "
+            f"RMSE do modelo ({fmt(result['metricas']['modelo']['teste']['RMSE'])}) "
+            f"ficou abaixo da do baseline ({fmt(result['metricas']['ingenua_ultimo_mes']['teste']['RMSE'])}), "
+            "mas cinco observações não permitem concluir generalização ou "
+            "sobreajuste de forma estável.",
             styles["BodySmall"],
         )
     )

@@ -10,28 +10,30 @@ A fonte é o Relatório Anual da Ouvidoria de Poá de 2024, tabela mensal da pá
 
 Variáveis: mês cíclico (seno e cosseno), ano e contagem do mês anterior. A divisão cronológica reservou os últimos 5 meses (08/2024 a 12/2024) para teste e usou 18 meses (02/2023 a 07/2024) para treino. Cada previsão de teste é um passo à frente e usa a contagem observada do mês anterior. A validação cruzada tem três folds de janela expansiva somente no treino (6/4, 10/4 e 14/4 observações de treino/validação).
 
-Foram avaliadas 18 configurações de Random Forest, variando n_estimators = 50/100/200, max_depth = 2/4/ilimitado e min_samples_leaf = 1/2. A seleção usou MAE médio de validação. Melhor configuração: {'n_estimators': 200, 'max_depth': 2, 'min_samples_leaf': 2}; MAE médio de CV = 21.82. O comparador ingênuo prevê o valor do mês anterior.
+Foram avaliadas 18 configurações de Random Forest, variando n_estimators = 50/100/200, max_depth = 2/4/ilimitado e min_samples_leaf = 1/2. A seleção usou MAE médio de validação. Melhor configuração: {'n_estimators': 100, 'max_depth': '2', 'min_samples_leaf': 2}; MAE médio de CV = 22.46. O comparador ingênuo prevê o valor do mês anterior.
 
-A implementação do Random Forest e da divisão temporal é autocontida em Python padrão. Foi usada porque a sessão não tinha scikit-learn/Jupyter e o PyPI estava inacessível. O código explicita bootstrap e árvores CART; deve ser revisado antes da entrega acadêmica.
+O Random Forest foi escolhido por ser um regressor não linear incluído entre os modelos aceitos na atividade e por combinar calendário cíclico e defasagem sem impor uma tendência linear. A escolha é didática: com 23 linhas modeláveis e menos de dois ciclos anuais, os dados não demonstram superioridade sobre outros modelos.
+
+O modelo RandomForestRegressor e a validação com TimeSeriesSplit são do scikit-learn 1.9.1. GridSearchCV comparou as 18 configurações e ajustou a melhor apenas com os dados de treino.
 
 ## Resultados
 
 | Modelo | Partição | MAE | RMSE | R2 |
 |---|---|---:|---:|---:|
-| Random Forest | Treino | 9.72 | 13.22 | 0.68 |
-| Random Forest | Teste | 17.01 | 18.41 | -0.06 |
+| Random Forest | Treino | 10.75 | 14.62 | 0.61 |
+| Random Forest | Teste | 19.36 | 19.91 | -0.24 |
 | Último mês | Treino | 18.61 | 24.27 | -0.07 |
 | Último mês | Teste | 18.00 | 22.86 | -0.63 |
 
-No teste de cinco meses, o Random Forest reduziu o MAE em 5.5% frente ao baseline (MAE 17.01 contra 18.00). O R2 do modelo foi -0.06, abaixo de zero, e o MAE subiu de 9.72 no treino para 17.01 no teste. A diferença de generalização e o R2 negativo não sustentam uso operacional.
+No teste de cinco meses, o Random Forest aumentou o MAE em 7.5% frente ao baseline (MAE 19.36 contra 18.00). O R2 do modelo foi -0.24, abaixo de zero, e o MAE subiu de 10.75 no treino para 19.36 no teste. A diferença de generalização e o R2 negativo não sustentam uso operacional.
 
 | Mês de teste | Real | Random Forest | Último mês |
 |---|---:|---:|---:|
-| 08/2024 | 72 | 53.76 | 44 |
-| 09/2024 | 64 | 54.75 | 72 |
-| 10/2024 | 71 | 53.59 | 64 |
-| 11/2024 | 65 | 54.06 | 71 |
-| 12/2024 | 24 | 53.21 | 65 |
+| 08/2024 | 72 | 53.36 | 44 |
+| 09/2024 | 64 | 50.06 | 72 |
+| 10/2024 | 71 | 50.13 | 64 |
+| 11/2024 | 65 | 49.02 | 71 |
+| 12/2024 | 24 | 51.36 | 65 |
 
 ## Leitura para o cidadão e limites
 
@@ -39,7 +41,7 @@ O experimento não mostra que conhecer o histórico mensal melhora de forma conf
 
 O relatório de 2025 informa 1.074 manifestações registradas no ano e 557 ligações sem protocolo. Esses números contextualizam a evolução, mas não entraram na série mensal: não foram transcritos valores mensais de 2025 com segurança, e ligações sem protocolo não são manifestações registradas.
 
-Os arquivos de busca, métricas, previsões, notebook executado e gráficos SVG acompanham o código em ml/. A gravação e o envio do vídeo de até cinco minutos ainda precisam ser feitos pela equipe.
+Os arquivos de busca, métricas, previsões, notebook executado e gráficos SVG acompanham o código em ml/. A gravação do vídeo está fora do escopo desta entrega.
 
 ## Fontes
 

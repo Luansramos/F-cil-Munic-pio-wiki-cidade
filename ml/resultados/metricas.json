@@ -1,6 +1,8 @@
 {
   "pergunta": "O histórico mensal ajuda a estimar o volume de manifestações registradas da Ouvidoria de Poá?",
   "fonte": "https://poa.sp.gov.br/wp-content/uploads/2025/03/Relatorio-Ouvidoria-2024.pdf",
+  "biblioteca_modelo": "scikit-learn",
+  "versao_scikit_learn": "1.9.1",
   "observacoes_originais": 24,
   "observacoes_modelaveis": 23,
   "linhas_treino": 18,
@@ -15,6 +17,7 @@
   ],
   "horizonte": "um mês à frente, com atualização rolling usando o valor observado do mês anterior",
   "cv": {
+    "metodo": "sklearn.model_selection.TimeSeriesSplit",
     "n_splits": 3,
     "treino_apenas": true,
     "folds": [
@@ -35,22 +38,22 @@
   },
   "combinacoes": 18,
   "melhores_parametros": {
-    "n_estimators": 200,
-    "max_depth": 2,
+    "n_estimators": 100,
+    "max_depth": "2",
     "min_samples_leaf": 2
   },
-  "melhor_mae_cv": 21.820144675925928,
+  "melhor_mae_cv": 22.455800264550266,
   "metricas": {
     "modelo": {
       "treino": {
-        "MAE": 9.724881423360593,
-        "RMSE": 13.21720377496778,
-        "R2": 0.6831932536826543
+        "MAE": 10.754139490139492,
+        "RMSE": 14.622496038633157,
+        "R2": 0.6122442251551882
       },
       "teste": {
-        "MAE": 17.010971645021648,
-        "RMSE": 18.409565657253086,
-        "R2": -0.05989525797070394
+        "MAE": 19.358467388167384,
+        "RMSE": 19.906259053918514,
+        "R2": -0.2392392717091345
       }
     },
     "ingenua_ultimo_mes": {
@@ -68,33 +71,33 @@
   },
   "predicoes_teste": [
     {
-      "mes": "08/2024",
+      "rotulo": "08/2024",
       "real": 72,
-      "random_forest": 53.762,
+      "random_forest": 53.361421,
       "ultimo_mes": 44
     },
     {
-      "mes": "09/2024",
+      "rotulo": "09/2024",
       "real": 64,
-      "random_forest": 54.7537,
+      "random_forest": 50.055705,
       "ultimo_mes": 72
     },
     {
-      "mes": "10/2024",
+      "rotulo": "10/2024",
       "real": 71,
-      "random_forest": 53.5861,
+      "random_forest": 50.125205,
       "ultimo_mes": 64
     },
     {
-      "mes": "11/2024",
+      "rotulo": "11/2024",
       "real": 65,
-      "random_forest": 54.0573,
+      "random_forest": 49.022657,
       "ultimo_mes": 71
     },
     {
-      "mes": "12/2024",
+      "rotulo": "12/2024",
       "real": 24,
-      "random_forest": 53.2139,
+      "random_forest": 51.357324,
       "ultimo_mes": 65
     }
   ],

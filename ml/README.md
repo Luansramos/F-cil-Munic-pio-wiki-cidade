@@ -4,27 +4,31 @@ Pergunta: o histórico mensal agregado ajuda a estimar o volume de manifestaçõ
 
 ## Arquivos
 
-- dados/ouvidoria_poa_mensal.csv: série pública transcrita e rastreável.
-- dados/README.md: fonte, extração, reconciliação e limitações.
-- notebooks/experimento-ouvidoria-poa.ipynb: notebook com células e saídas salvas.
-- scripts/executar_notebook.py: executa as células em ordem num processo Python limpo e atualiza as saídas do notebook.
-- experimento_ouvidoria.py: implementação didática reprodutível do Random Forest para regressão e utilitários de avaliação.
-- resultados/: combinações avaliadas, previsões e métricas produzidas pelo notebook.
-- figuras/: gráficos vetoriais SVG produzidos pelo notebook.
-- Relatório PDF: ../output/pdf/Relatorio_ML_Ouvidoria_Poa.pdf.
-- roteiro-video.md: roteiro de gravação de até 5 minutos.
+- `dados/ouvidoria_poa_mensal.csv`: série pública transcrita e rastreável.
+- `dados/README.md`: fonte, extração, reconciliação e limitações.
+- `notebooks/experimento-ouvidoria-poa.ipynb`: notebook executado, com código e saídas salvas.
+- `scripts/executar_notebook.py`: executa o notebook usando `nbclient` e um kernel Jupyter real.
+- `experimento_ouvidoria.py`: valida os dados, prepara features, salva métricas e previsões e gera gráficos.
+- `resultados/`: 18 configurações avaliadas, previsões e métricas produzidas pelo notebook.
+- `figuras/`: gráficos SVG gerados com Matplotlib.
+- Relatório de duas páginas: `../output/pdf/Relatorio_ML_Ouvidoria_Poa.pdf` e `RELATORIO_ML.md`.
+- `roteiro-video.md`: roteiro de apoio; a gravação do vídeo está fora do escopo desta entrega.
 
 ## Execução
 
-Requer Python 3.10 ou superior. Não há dependências de terceiros para executar o experimento:
+Requer Python 3.12 ou superior. Instale as dependências fixadas e registre o kernel:
+
+    python -m pip install -r ml/requirements.txt
+    python -m ipykernel install --user --name python3 --display-name "Python 3 (ML)"
+
+Execute todas as células do notebook em ordem, em kernel Jupyter:
 
     python ml/scripts/executar_notebook.py
 
-Para abrir e rodar as células em Jupyter, a máquina do integrante precisa ter Jupyter instalado; o experimento em si usa apenas Python padrão. O código não busca dados pela rede: trabalha com o CSV documentado no repositório. Para recriar o relatório PDF, instale a dependência declarada e execute:
+O notebook usa `scikit-learn` (`RandomForestRegressor`, `GridSearchCV` e `TimeSeriesSplit`) para comparar 18 combinações; o teste cronológico fica separado da seleção. A execução atual foi feita com scikit-learn 1.9.1 e as versões de dependências declaradas em `requirements.txt`.
 
-    python -m pip install -r ml/requirements.txt
+O código não busca dados pela rede: trabalha com o CSV documentado no repositório. Para recriar o relatório após executar o notebook:
+
     python ml/scripts/gerar_relatorio_pdf.py
 
-O Random Forest foi implementado de forma autocontida porque a sessão de preparação não tinha scikit-learn/Jupyter e não conseguia acessar o PyPI. A implementação explicita bootstrap, árvores CART de regressão, max_depth, min_samples_leaf e desempate aleatório. A busca e o TimeSeriesSplit seguem divisão cronológica; não há embaralhamento. Isso mantém o experimento executável sem baixar dependências, mas não substitui uma revisão acadêmica do código do algoritmo.
-
-O relatório registra os resultados gerados e os limites da amostra. A gravação e o envio do vídeo ficam a cargo da equipe; o roteiro está preparado no arquivo acima.
+O resultado é exploratório. São 24 observações mensais originais, 23 linhas supervisionadas e cinco meses de teste; portanto, as métricas são instáveis e não representam previsão operacional.
