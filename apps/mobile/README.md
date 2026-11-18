@@ -1,6 +1,6 @@
 # App mobile do cidadão
 
-App Expo (SDK 58) do Fácil Município. Protótipo acadêmico em desenvolvimento. O escopo, a arquitetura, as decisões e as verificações estão em [docs/features/mobile-app.md](../../docs/features/mobile-app.md).
+App Expo (SDK 58) do Fácil Município. Protótipo acadêmico para a Global Solution CitizenTech 2026. O escopo, a arquitetura, as decisões e as verificações estão em [docs/features/mobile-app.md](../../docs/features/mobile-app.md).
 
 ## Ficha da CitizenTech
 
@@ -11,13 +11,35 @@ App Expo (SDK 58) do Fácil Município. Protótipo acadêmico em desenvolvimento
 | Cidadão beneficiado | Moradores que precisam encontrar informações sobre serviços urbanos |
 | Problema, em uma frase | É difícil saber qual serviço procurar e onde encontrar orientações confiáveis |
 | Como funciona | O cidadão escolhe o município, faz uma pergunta em linguagem simples e recebe uma orientação baseada só no conhecimento revisado e publicado, com a fonte consultada |
-| O que cada parte faz | **App Expo (esta pasta):** perguntas, fontes e histórico salvo no celular. **API em C# (`apps/api` na `main`):** cadastro, revisão, publicação e consulta, com PostgreSQL e Neo4j. Demais partes: ver o [README da raiz](../../README.md) na `main` |
-| Link do repositório | https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade |
+| O que cada parte faz | **App Expo (esta pasta):** perguntas, fontes e histórico salvo no celular. **API em C# (`apps/api` na `main`):** cadastro, revisão, publicação e consulta, com PostgreSQL e Neo4j. Demais partes: ver o [README da raiz na main](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/blob/main/README.md) |
+| Link da entrega Mobile | [apps/mobile na branch feature/mobile](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/tree/feature/mobile/apps/mobile) |
 | Indicador de impacto (proposta) | Respostas acompanhadas de fonte e acerto das orientações nos testes do grupo. Ainda não são resultados de impacto |
 | ODS conectados | ODS 11 (facilitar o acesso a informações sobre serviços urbanos) e ODS 16 (acesso à informação pública e transparência) |
 | Integrantes | Fernanda Rocha Menon (RM 554673), Luiza Macena Dantas (RM 556237), Luan Ramos Garcia de Souza (RM 558537), Matheus Ricciotti (RM 556930), Matheus Bortolotto (RM 555189) |
 
 A Prefeitura de Poá é uma referência para o piloto, não uma parceira do projeto.
+
+## Atendimento aos critérios de Mobile
+
+| Critério | Implementação na entrega | Onde conferir |
+|---|---|---|
+| Telas e navegação | Quatro telas: Início, Conversa, Histórico e Preferências. Abas para as áreas principais, abertura e retomada de conversas e painel de fontes. | Prints, vídeo, `app/` e `screens/` |
+| Consumo de dados | Cliente de API com seleção entre mock local e API HTTP em C#. Consulta municípios, serviços e respostas; trata carregamento, falhas e ausência de informação suficiente. | Prints da integração e `services/api/` |
+| Banco de dados | SQLite local com conversas, trocas e preferências; permite reabrir o histórico e excluir conversas. | Tela Histórico e `services/banco/` |
+| Acessibilidade | Ampliação persistida do texto, rótulos de acessibilidade, anúncios de estado e mensagens de orientação e erro. | Preferências, prints de texto maior e componentes das telas |
+| Aderência ao problema | O morador descreve sua necessidade em linguagem simples e recebe orientação por município, com fontes e indicação de quando não há conhecimento suficiente. | Ficha CitizenTech, Conversa e painel de fontes |
+| Documentação | Ficha, integrantes, requisitos, configuração, instruções de execução, prints e vídeo de até três minutos. | Este README |
+
+Os recursos de acessibilidade estão implementados; não há evidência de avaliação com VoiceOver ou TalkBack. O impacto social descrito na ficha é uma hipótese a avaliar com usuários.
+
+## Telas e jornada
+
+1. **Início:** escolher o município, consultar os serviços disponíveis e iniciar uma conversa.
+2. **Conversa:** enviar a pergunta, ler a orientação e consultar suas fontes. Sem cobertura suficiente, o app apresenta uma orientação para procurar o canal oficial.
+3. **Histórico:** consultar e retomar conversas salvas, filtrar por município e excluir registros com confirmação.
+4. **Preferências:** ajustar o tamanho do texto, consultar informações de privacidade e apagar o histórico.
+
+O mock permite demonstrar a jornada sem depender do backend. Novas respostas da API exigem conexão; o histórico e as preferências ficam armazenados localmente. O aplicativo orienta o cidadão, sem protocolar solicitações junto à prefeitura.
 
 ## Prints das telas
 
@@ -25,7 +47,7 @@ As capturas foram feitas em 17/11/2026 no **navegador** (Chrome, tela de 393 × 
 
 ### Modo demonstrativo (`EXPO_PUBLIC_USAR_MOCK=true`)
 
-Respostas de exemplo, marcadas com "(Exemplo)" e com o selo "Demonstração". O município "São Paulo" é fictício para o protótipo.
+Respostas de exemplo, marcadas com "(Exemplo)" e com o selo "Demonstração". Os serviços e as orientações associados a "São Paulo" são exemplos fictícios do protótipo, sem vínculo com o atendimento oficial da cidade.
 
 | 1. Início | 2. Resposta com fonte | 3. Fontes da resposta | 4. Sem informação suficiente |
 |---|---|---|---|
@@ -51,7 +73,7 @@ O app lê municípios, serviços e respostas da API real em C# rodando no mesmo 
 
 ## Vídeo de demonstração (até 3 minutos)
 
-**Link: <https://youtu.be/r4uhjS2fZNY>** (2 min 46 s, 2560×1440). O vídeo foi gerado em Remotion (projeto em [`video-mobile/`](../../video-mobile/README.md)), com a gravação real do app web em tela de celular, contra a API em C# em modo demonstração, e a narração da equipe. Não é um celular físico.
+**Link: <https://youtu.be/r4uhjS2fZNY>** (2 min 46 s, 2560×1440). O vídeo foi gerado em Remotion, com a gravação real do app web em tela de celular, contra a API em C# em modo demonstração, e a narração da equipe. Não é um celular físico.
 
 ## Requisitos
 
@@ -83,39 +105,62 @@ npm run web
 
 O `expo run` não serve para isso. O SQLite na web usa WebAssembly e o armazenamento do navegador (OPFS); o `metro.config.js` empacota o `.wasm` e envia os cabeçalhos `Cross-Origin-Embedder-Policy: credentialless` e `Cross-Origin-Opener-Policy: same-origin` nas respostas do Metro. Se abrir o app em duas abas ao mesmo tempo, a segunda não consegue abrir o banco (acesso exclusivo ao arquivo) e mostra "Não foi possível abrir seus dados".
 
+## Rodar a versão web exportada
+
+Para reproduzir o caminho usado nas capturas, execute em `apps/mobile`:
+
+```bash
+npx expo export --platform web
+```
+
+Com Python 3 instalado, sirva a pasta exportada com os cabeçalhos exigidos pelo SQLite web:
+
+```bash
+python -c "import os
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+os.chdir('dist')
+class Handler(SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header('Cross-Origin-Embedder-Policy', 'credentialless')
+        self.send_header('Cross-Origin-Opener-Policy', 'same-origin')
+        super().end_headers()
+ThreadingHTTPServer(('127.0.0.1', 8081), Handler).serve_forever()
+"
+```
+
+Abra `http://localhost:8081` no Chrome, mantendo apenas uma aba do app aberta. No Windows, se necessário, use `py -3` no lugar de `python`. Encerre qualquer servidor que já esteja usando a porta 8081. Alterações nas variáveis `EXPO_PUBLIC_*` exigem uma nova exportação.
+
 ## Rodar no Expo Go em um celular
 
-**iPhone: verificado pelo autor.** O autor leu o QR code em um iPhone com o Expo Go e relatou que enviar pergunta (com o mock), o Histórico e as Preferências funcionaram, inclusive depois de fechar e reabrir o app. Versão do iOS e do Expo Go não foram registradas.
-
-**Android: NÃO VERIFICADO.** O passo a passo abaixo vem da documentação da Expo e não foi executado em um aparelho Android. Se algo divergir, corrija aqui.
-
-1. No celular, instale o **Expo Go** pela Google Play (Android) ou pela App Store (iPhone) e atualize para a versão mais recente. O SDK 58 exige um Expo Go compatível (a API de versões da Expo lista a 58.0.5 para Android).
+1. No celular, instale o **Expo Go** pela Google Play (Android) ou pela App Store (iPhone) com uma versão compatível com o SDK 58 utilizado pelo projeto.
 2. Conecte o celular e o computador **na mesma rede Wi-Fi**.
 3. No computador, em `apps/mobile`:
    ```bash
    npm install
    npm start
    ```
-4. No terminal aparece um QR code. No Android, abra o Expo Go e toque em **Scan QR code**. A câmera do celular sozinha pode não abrir o Expo Go. No iPhone, o QR code foi lido com sucesso; não registrei se pela câmera ou pelo Expo Go.
+4. No terminal aparece um QR code. No Android, abra o Expo Go e toque em **Scan QR code**. A câmera do celular sozinha pode não abrir o Expo Go. No iPhone, leia o QR code com a câmera e abra o link no Expo Go.
 5. Se o celular não achar o computador, libere o Node.js no firewall do Windows para redes privadas (porta 8081) ou tente `npx expo start --tunnel` (pode pedir para instalar um pacote de túnel).
-6. Para conferir o banco local: escolha "Município Exemplo" no Início, feche o Expo Go por completo (deslizando-o para fora dos apps recentes) e reabra o app. O município escolhido deve continuar o mesmo.
+6. Para conferir o banco local: escolha um município no Início, feche o Expo Go por completo (deslizando-o para fora dos apps recentes) e reabra o app. O município escolhido deve continuar o mesmo.
 
 `npm run android` (`expo run:android`) gera o app nativo e exige o Android Studio; não é necessário para o Expo Go.
 
-O `app.json` está preparado para Android: `android.package` definido e `android.allowBackup: false` (ver "Dados no aparelho"). Nada disso foi testado em Android.
+O `app.json` está preparado para Android: `android.package` definido e `android.allowBackup: false` (ver "Dados no aparelho").
 
 ## Rodar contra a API em C#
 
 1. Suba a API em C# (pasta `apps/api` da `main`; as instruções estão no README dela: PostgreSQL, Neo4j, `--migrate`, `--bootstrap`). Para o conhecimento sem LLM use `Llm__Mode=demo`. A integração com a LLM (Azure OpenAI) fica em outra branch e **não foi testada com o app**.
 2. Se quiser dados de teste, rode `python scripts/demo_fluxo_http.py` da API. Ele publica Poá e um município fictício.
-3. No app, em `apps/mobile`:
+3. Configure o arquivo `.env` em `apps/mobile`:
    ```bash
-   # navegador no mesmo computador
-   EXPO_PUBLIC_USAR_MOCK=false EXPO_PUBLIC_API_URL=http://127.0.0.1:5055/api/v1 npm run web
+   # No arquivo .env de apps/mobile (compatível com Windows e Linux):
+   EXPO_PUBLIC_USAR_MOCK=false
+   EXPO_PUBLIC_API_URL=http://127.0.0.1:5055/api/v1
    ```
+   Depois, execute `npm run web` para desenvolvimento ou siga **Rodar a versão web exportada** para reproduzir as capturas. Se usar a API em outra porta, ajuste a URL.
 4. Celular: a URL precisa usar o **IP do computador na rede Wi-Fi** (`http://<IP>:<porta>/api/v1`, veja o IP com `ipconfig`), a API precisa escutar em todas as interfaces (`--urls http://0.0.0.0:<porta>`) e o firewall do Windows precisa liberar a porta. Reinicie o Expo com `--clear` depois de mudar a variável. O CORS da API só afeta o navegador (origem padrão `http://localhost:8081`); o app nativo não usa CORS.
 
-**Verificado (17/11/2026):** no navegador, contra a API local, o app listou municípios e serviços, enviou perguntas (a seguinte leva o histórico) e mostrou resposta com fonte e o aviso de informação insuficiente (prints acima). **Não verificado:** celular físico contra a API (HTTP sem HTTPS no Expo Go), Android, resposta de LLM real e tempo de resposta real (o limite do app é 15 s e o da API 12 s).
+**Verificado (17/11/2026):** no navegador, contra a API local, o app listou municípios e serviços, enviou perguntas (a seguinte leva o histórico) e mostrou resposta com fonte e o aviso de informação insuficiente (prints acima). Essa evidência refere-se à integração web com a API em modo demonstração; não comprova resposta de LLM real nem tempo de resposta em produção.
 
 ## Dados no aparelho
 
@@ -136,3 +181,9 @@ Variáveis `EXPO_PUBLIC_*` ficam visíveis no app. Não coloque segredos nelas.
 ## Estrutura
 
 `app/` rotas finas (abas em `(tabs)`, conversa em `conversa/[id]`), `screens/` composição das telas, `components/` interface reutilizável, `hooks/` casos de uso, `services/` acesso externo (`api/` com cliente real e mock, `banco/` com SQLite), `contexts/` estado compartilhado, `theme/` tokens, `types/` contrato e domínio, `config/` ambiente e limites, `utils/` funções puras.
+
+## Entrega e acesso
+
+O README, os prints e o vídeo estão disponíveis nesta branch. Para a avaliação, utilize o link direto de `feature/mobile/apps/mobile` informado na ficha; o conteúdo da branch pode diferir da `main`. Se o repositório estiver privado, o avaliador precisa ter permissão de leitura. O vídeo está publicado no link acima.
+
+O [documento técnico](../../docs/features/mobile-app.md) mantém o histórico das decisões e verificações do desenvolvimento. Para o escopo e as instruções atuais da entrega Mobile, considere este README.
