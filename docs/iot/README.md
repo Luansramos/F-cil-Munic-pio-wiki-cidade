@@ -1,126 +1,239 @@
 # Physical Computing — Totem Inteligente de Atendimento (IoT)
 
-**Projeto:** Fácil Município — Wiki Cidade (Global Solution 2026 — FIAP)  
-**Disciplina:** Physical Computing — IoT & IoB  
-**Responsável pela frente IoT:** Fernanda Rocha Menon — RM 554673  
-**Backlog:** G5, G6 e G7  
-**Simulação pública:** https://wokwi.com/projects/480983207617445889
+**Global Solution 2026 | FIAP — Engenharia de Software**
 
-## 1. Contexto e objetivo
+## Visão geral
 
-O Fácil Município — Wiki Cidade orienta moradores na consulta de informações e fontes sobre serviços municipais, com piloto em Poá (SP). O totem de atendimento é uma **extensão demonstrativa de IoT**, voltada à representação do fluxo de cidadãos em uma unidade pública. Não faz parte do fluxo principal já implementado de consulta de serviços do aplicativo.
+O **Totem Inteligente de Atendimento** é um protótipo de Internet das Coisas (IoT) desenvolvido como parte do projeto **Fácil Município — Wiki Cidade**.
 
-O protótipo usa um ESP32 simulado no Wokwi para registrar entradas e atendimentos, exibir a quantidade de pessoas aguardando e sinalizar diferentes níveis de ocupação.
+A solução utiliza um microcontrolador ESP32, simulado na plataforma Wokwi, para representar o gerenciamento de filas em unidades de atendimento público, permitindo registrar entradas e atendimentos, acompanhar a quantidade de pessoas aguardando e identificar situações de maior demanda.
 
-## 2. Componentes e conexões
+O objetivo é demonstrar como tecnologias de IoT podem contribuir para a organização e o monitoramento de serviços públicos.
 
-| Componente | Conexão / função |
+### Informações do projeto
+
+| Informação | Descrição |
 |---|---|
-| ESP32 | Microcontrolador responsável pela lógica |
-| Botão de entrada | GPIO 18 — incrementa a fila |
-| Botão de atendimento | GPIO 19 — decrementa a fila sem ficar negativa |
-| LED verde | GPIO 25 — fila tranquila |
-| LED amarelo | GPIO 26 — fila moderada |
-| LED vermelho | GPIO 27 — fila crítica |
-| Buzzer | GPIO 23 — alerta ao atingir o limite crítico |
-| OLED I2C 128×64 | SDA GPIO 21, SCL GPIO 22, endereço 0x3C — contador e status |
+| Projeto | Fácil Município — Wiki Cidade |
+| Instituição | FIAP |
+| Disciplina | Physical Computing — IoT & IoB |
+| Responsável pela frente IoT | Fernanda Rocha Menon — RM 554673 |
+| Backlog | G5, G6 e G7 |
+| Microcontrolador | ESP32 |
+| Ambiente | Wokwi |
+| Linguagem | C++ |
+| Modalidade | Simulação funcional |
 
-## 3. Regras de funcionamento
+### Demonstração do projeto
 
-- Inicialização: contador de pessoas em zero.
-- Botão de entrada: acrescenta uma pessoa.
-- Botão de atendimento: retira uma pessoa, respeitando o mínimo de zero.
-- O display OLED e os LEDs são atualizados conforme a contagem.
-- Os limites são **parâmetros acadêmicos de demonstração**, não normas oficiais de atendimento.
+**▶ [Assistir ao vídeo demonstrativo no YouTube](https://youtu.be/x3IEq_ttazc)**
 
-| Pessoas aguardando | Status | Indicador |
+**🔗 [Acessar a simulação interativa no Wokwi](https://wokwi.com/projects/480983207617445889)**
+
+---
+
+## 1. Contexto e problema
+
+O Fácil Município — Wiki Cidade tem como proposta facilitar o acesso dos cidadãos a informações sobre serviços municipais, utilizando como piloto o município de Poá, em São Paulo.
+
+Além da dificuldade de localizar informações e orientações sobre serviços públicos, o atendimento presencial pode apresentar desafios relacionados ao acompanhamento da demanda e à organização de filas.
+
+Como extensão demonstrativa da proposta, desenvolvemos um totem inteligente capaz de representar o fluxo de pessoas em uma unidade pública.
+
+**O protótipo não substitui nem integra atualmente o fluxo principal de consulta de serviços do aplicativo.** Sua finalidade é demonstrar uma possível aplicação complementar de IoT.
+
+## 2. Objetivos da solução
+
+### Objetivo geral
+
+Desenvolver um protótipo funcional de monitoramento de filas utilizando ESP32, com indicadores visuais e sonoros que representem diferentes níveis de ocupação em um ambiente de atendimento público.
+
+### Objetivos específicos
+
+- Simular a entrada e a saída de pessoas de uma fila.
+- Manter um contador atualizado de cidadãos aguardando atendimento.
+- Impedir que a contagem apresente valores negativos.
+- Classificar automaticamente o nível de ocupação.
+- Apresentar informações em um display OLED.
+- Utilizar LEDs para sinalizar visualmente a situação da fila.
+- Acionar um alerta sonoro ao atingir o limite crítico previsto.
+- Demonstrar o funcionamento do circuito no simulador Wokwi.
+
+## 3. Arquitetura e componentes
+
+A solução utiliza um ESP32 como unidade central de processamento, responsável por interpretar os comandos dos botões e atualizar os dispositivos de saída.
+
+### Componentes utilizados
+
+| Componente | GPIO / Configuração | Finalidade |
 |---|---|---|
-| 0 a 4 | Fila tranquila | Verde |
-| 5 a 9 | Fila moderada | Amarelo |
-| 10 ou mais | Fila crítica | Vermelho |
- 
-O código prevê aviso sonoro ao alcançar o limiar crítico de 10 pessoas.
+| ESP32 | Microcontrolador principal | Executar a lógica do sistema |
+| Botão de entrada | GPIO 18 | Registrar chegada de pessoa |
+| Botão de atendimento | GPIO 19 | Registrar atendimento concluído |
+| LED verde | GPIO 25 | Indicar fila tranquila |
+| LED amarelo | GPIO 26 | Indicar fila moderada |
+| LED vermelho | GPIO 27 | Indicar fila crítica |
+| Buzzer | GPIO 23 | Emitir alerta sonoro |
+| Display OLED 128×64 | SDA 21 / SCL 22 / I2C 0x3C | Exibir contador e status |
 
-### Fluxo local
+### Fluxo de funcionamento
 
 ```text
-Botões de entrada/atendimento
-            ↓
-        ESP32 (contador)
-            ↓
-   Classificação da ocupação
-            ↓
-       OLED + LEDs
-            ↓
-   Buzzer no limiar crítico
+       INÍCIO DA SIMULAÇÃO
+                |
+                v
+        ESP32 inicializado
+        Contador de fila = 0
+                |
+                v
+       Leitura dos botões
+                |
+       +--------+--------+
+       |                 |
+       v                 v
+ Botão entrada     Botão atendimento
+       |                 |
+       v                 v
+ Incrementa +1     Decrementa -1
+                   (mínimo = 0)
+       |                 |
+       +--------+--------+
+                |
+                v
+       Atualiza contador
+                |
+                v
+       Classifica a fila
+                |
+       +--------+--------+
+       |        |        |
+       v        v        v
+    0 a 4     5 a 9     10+
+    VERDE    AMARELO   VERMELHO
+       |        |        |
+       +--------+--------+
+                |
+                v
+      Atualiza display OLED
+       e indicadores LED
+                |
+                v
+     Alerta sonoro ao atingir
+         o limite crítico
+                |
+                v
+      Aguarda nova interação
 ```
 
-## 4. Relação com o produto e integração (G6)
+## 4. Regras de funcionamento
 
-O aplicativo Fácil Município permite ao cidadão encontrar orientações sobre serviços municipais. O totem demonstra uma possível etapa complementar de **acompanhamento de atendimento presencial**. O usuário poderia consultar um serviço pelo aplicativo e, em uma evolução futura, uma unidade municipal poderia monitorar sua demanda por meio de dispositivos IoT.
+O sistema utiliza um contador de pessoas que aguardam atendimento.
 
-**Estado real:** a demonstração funcional é **local no Wokwi**. O código possui possibilidade de envio de dados por Wi-Fi/HTTP, mas a URL da API não está configurada e **não houve comunicação ponta a ponta validada com a aplicação principal**. O contrato existente em `docs/contratos-de-integracao.md` não define uma rota para telemetria de filas. Não há persistência remota, painel de filas nem visualização dessa informação no Expo comprovados.
+Ao iniciar a simulação, o contador é definido como zero. Cada acionamento do botão de entrada acrescenta uma pessoa, enquanto o botão de atendimento reduz a contagem, respeitando o limite mínimo de zero.
 
-Qualquer integração futura exige alinhamento com a equipe da API para definição de endpoint, estrutura de dados, isolamento municipal, autenticação apropriada, tratamento de falhas e testes. Nenhuma rota nova é declarada como existente nesta documentação.
+A classificação da fila é realizada automaticamente de acordo com os seguintes parâmetros:
 
-## 5. Verificações e evidências (G5)
+| Quantidade de pessoas | Classificação | LED |
+|---|---|---|
+| 0 a 4 | Fila tranquila | 🟢 Verde |
+| 5 a 9 | Fila moderada | 🟡 Amarelo |
+| 10 ou mais | Fila crítica | 🔴 Vermelho |
 
-Testes manuais relatados na simulação Wokwi:
+Quando a fila alcança dez pessoas, a lógica do protótipo prevê um aviso sonoro pelo buzzer.
 
-| Cenário | Resultado observado |
+**Observação:** os limites definidos são parâmetros acadêmicos utilizados para demonstrar o comportamento do sistema. Não representam normas oficiais de atendimento municipal.
+
+### Monitoramento das informações
+
+O acompanhamento do funcionamento ocorre por dois recursos:
+
+**Display OLED:** apresenta a quantidade de pessoas aguardando e a classificação atual da fila.
+
+**Monitor serial:** permite acompanhar mensagens de execução e informações relacionadas ao estado do protótipo.
+
+## 5. Implementação no Wokwi — G5
+
+A implementação foi realizada no ambiente de simulação Wokwi, utilizando um ESP32 e componentes eletrônicos virtuais.
+
+O circuito demonstra a interação entre entradas digitais, processamento das informações e dispositivos de saída.
+
+### Cenários de teste
+
+| Cenário | Comportamento observado |
 |---|---|
-| Inicialização | OLED exibe contador em 0 e estado tranquilo |
-| Pressionar entrada | Contador incrementa |
-| Atingir 10 pessoas | OLED exibe estado `FILA CRITICA` |
-| Pressionar atendimento | Contador decrementa |
-| Retornar a zero | Contador não fica negativo |
-| Comunicação HTTP | Monitor serial indica modo local / API não configurada |
+| Inicialização do circuito | Contador inicia em zero |
+| Acionamento do botão de entrada | Contador incrementa |
+| Acionamento do botão de atendimento | Contador decrementa |
+| Tentativa de reduzir abaixo de zero | Contador permanece em zero |
+| Contagem de dez pessoas | OLED apresenta `FILA CRITICA` |
 
-**Verificações adicionais antes da entrega:** confirmar em demonstração o acionamento visual do LED vermelho, o alerta do buzzer e a transição de estados em 4/5 e 9/10. Esses comportamentos constam da lógica proposta, mas não devem ser declarados testados sem evidência.
+### Verificações complementares
 
-**Ambiente:** simulador Wokwi; não houve teste em hardware físico nem teste integrado com backend.
+Antes da entrega final, devem ser confirmados na demonstração:
 
-**Link da simulação:** https://wokwi.com/projects/480983207617445889
+- Transição da fila tranquila para moderada, de quatro para cinco pessoas.
+- Transição da fila moderada para crítica, de nove para dez pessoas.
+- Acionamento visual do LED vermelho.
+- Funcionamento do buzzer no limite crítico.
 
-## 6. Entregáveis (G7)
+Esses comportamentos estão previstos na lógica do projeto, mas não são apresentados como testes validados sem evidência específica.
 
-- [x] Circuito ESP32 funcional no Wokwi, relacionado à proposta do grupo
-- [x] Link público do Wokwi
-- [x] Documentação técnica e limitações da integração
-- [x] Lista de integrantes em `docs/iot/integrantes.txt`
-- [ ] Gravação e publicação de vídeo demonstrativo de até 4 minutos
-- [ ] Inserção do link do vídeo neste documento
-- [ ] Revisão da equipe e conferência da submissão no Teams / Portal do Aluno
+**Ambiente de execução:** simulação virtual. Não foram realizados testes com ESP32 físico.
 
-**Vídeo:** pendente.
+## 6. Relação com o Fácil Município — G6
 
-### Roteiro sugerido para o vídeo (até 4 minutos)
+O projeto Fácil Município tem como foco orientar cidadãos sobre serviços públicos municipais, apresentando informações e referências oficiais.
 
-1. Apresentar o Fácil Município e o papel complementar do totem.
-2. Mostrar ESP32, dois botões, OLED, LEDs e buzzer.
-3. Iniciar simulação com zero pessoas e demonstrar entradas.
-4. Mostrar os estados tranquilo, moderado e crítico, inclusive o alerta.
-5. Simular atendimentos e demonstrar o retorno a zero.
-6. Explicar que o circuito opera localmente e a API ainda não está integrada.
+O totem inteligente representa uma possível evolução complementar voltada ao acompanhamento do atendimento presencial.
 
-## 7. Limitações e melhorias possíveis
+Em um cenário futuro, uma unidade municipal poderia utilizar dispositivos IoT para monitorar a demanda de atendimento e fornecer informações operacionais para sistemas autorizados.
 
-A contagem depende de acionamento manual, não há sensores físicos de presença, armazenamento remoto ou telemetria integrada ao aplicativo. Os limiares de ocupação são demonstrativos.
+## 7. Evidências e entregáveis — G7
 
-Como evolução, a equipe poderia definir uma API de telemetria, adicionar persistência e painel de monitoramento, utilizar sensores automáticos e avaliar dados agregados de atendimento, respeitando os limites de privacidade e a arquitetura municipal.
+### Links da demonstração
 
-## 8. Integrantes
+**Simulação ESP32 — Wokwi**
 
-- Fernanda Rocha Menon — RM 554673
-- Luiza Macena Dantas — RM 556237
-- Luan Ramos Garcia de Souza — RM 558537
-- Matheus Ricciotti — RM 556930
-- Matheus Bortolotto — RM 555189
+https://wokwi.com/projects/480983207617445889
 
-## 9. Referências internas
+**Vídeo demonstrativo — YouTube**
 
-- [Backlog G5–G7](../../planejamento/04-backlog.md)
+https://youtu.be/x3IEq_ttazc
+
+
+### Possibilidades de evolução
+
+- Integrar o ESP32 a uma API de telemetria.
+- Implementar persistência e histórico de atendimentos.
+- Desenvolver um painel para acompanhamento da demanda.
+- Utilizar sensores automáticos para detecção de entradas e saídas.
+- Criar alertas operacionais com base em parâmetros definidos por cada unidade.
+- Aplicar medidas de segurança e privacidade no tratamento dos dados.
+
+Essas melhorias representam possibilidades futuras e não funcionalidades já implementadas.
+
+## 9. Integrantes
+
+| Integrante | RM |
+|---|---|
+| Fernanda Rocha Menon | 554673 |
+| Luiza Macena Dantas | 556237 |
+| Luan Ramos Garcia de Souza | 558537 |
+| Matheus Ricciotti | 556930 |
+| Matheus Bortolotto | 555189 |
+
+**Responsável pela implementação e documentação da frente IoT:** Fernanda Rocha Menon.
+
+## 10. Referências do projeto
+
+- [Backlog — G5 a G7](../../planejamento/04-backlog.md)
 - [Entregas por disciplina](../../planejamento/06-entregas-por-disciplina.md)
 - [Especificação do MVP](../../planejamento/02-especificacao-mvp.md)
 - [Contratos de integração](../contratos-de-integracao.md)
-- [Registro da feature de infraestrutura e IoT](../features/infraestrutura-e-iot.md)
+- [Documentação de infraestrutura e IoT](../features/infraestrutura-e-iot.md)
+
+---
+
+**FIAP — Global Solution 2026**
+
+*Fácil Município — Wiki Cidade | Physical Computing — IoT & IoB*
