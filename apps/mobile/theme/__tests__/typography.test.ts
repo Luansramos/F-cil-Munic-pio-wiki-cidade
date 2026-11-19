@@ -1,0 +1,50 @@
+import {
+  NIVEIS_TEXTO,
+  NIVEL_TEXTO_PADRAO,
+  escalarEstilo,
+  multiplicadorDoNivel,
+  nivelParaVariante,
+  typography,
+} from '../typography';
+
+describe('escalarEstilo', () => {
+  it('no nível padrão mantém os tamanhos do mockup', () => {
+    expect(NIVEL_TEXTO_PADRAO).toBe(0);
+    expect(escalarEstilo(typography.body, NIVEL_TEXTO_PADRAO)).toEqual(typography.body);
+  });
+
+  it('aumenta fonte e altura da linha a cada nível, sem mudar o peso', () => {
+    for (const token of Object.keys(typography) as (keyof typeof typography)[]) {
+      const tamanhos = NIVEIS_TEXTO.map((nivel) => escalarEstilo(typography[token], nivel));
+
+      for (let indice = 1; indice < tamanhos.length; indice += 1) {
+        expect(tamanhos[indice].fontSize).toBeGreaterThan(tamanhos[indice - 1].fontSize);
+        expect(tamanhos[indice].lineHeight).toBeGreaterThan(tamanhos[indice - 1].lineHeight);
+        expect(tamanhos[indice].fontWeight).toBe(typography[token].fontWeight);
+      }
+    }
+  });
+
+  it('usa os multiplicadores provisórios e arredonda', () => {
+    expect(multiplicadorDoNivel(3)).toBe(1.5);
+    expect(escalarEstilo(typography.body, 3)).toEqual({
+      fontSize: 26,
+      lineHeight: 36,
+      fontWeight: '400',
+    });
+  });
+});
+
+describe('nivelParaVariante', () => {
+  it('limita só o título ao nível 3 de 4, para caber em telas estreitas', () => {
+    expect(nivelParaVariante('title', 3)).toBe(2);
+    expect(nivelParaVariante('title', 2)).toBe(2);
+    expect(nivelParaVariante('title', 0)).toBe(0);
+  });
+
+  it('não altera as outras variantes', () => {
+    for (const variante of ['heading', 'button', 'label', 'body', 'small', 'caption'] as const) {
+      expect(nivelParaVariante(variante, 3)).toBe(3);
+    }
+  });
+});
