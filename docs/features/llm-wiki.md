@@ -1,6 +1,6 @@
 # LLM Wiki e Azure OpenAI
 
-- Status: integração Azure implementada, suíte unitária aprovada e smoke do SDK aprovado com a configuração validada; a validação ponta a ponta pela API com fonte oficial e bancos reais permanece pendente.
+- Status: integração Azure implementada; smoke do SDK aprovado com a configuração validada; fluxo da API com fonte oficial e bancos reais verificado em CI com dublê determinístico. A execução da rota HTTP usando Azure real permanece pendente.
 - Backlog: A4, B5, B6 (integração da API), D2 e D3.
 - Componentes: API ASP.NET Core, `ILlmWiki`, Azure OpenAI.
 
@@ -43,9 +43,11 @@ Em 17/11/2026, uma chamada HTTP direta a `/chat/completions`, usando `gpt-5-mini
 
 O smoke pela SDK foi executado em 18/11/2026. A tentativa com o `.env` local deste repositório falhou com HTTP 404 `DeploymentNotFound`, pois ele não define `LLM_AZURE_DEPLOYMENT` e o código usa `gpt-5-mini` por padrão. Depois, usando somente nas variáveis de ambiente do processo a configuração local indicada pelo usuário como válida — endpoint `https://city-wiki.services.ai.azure.com/openai/v1`, deployment `gpt-5-mini` e a chave correspondente — o comando terminou com código 0. O código só retorna 0 após validar extração estruturada não vazia e resposta fundamentada com evidência, serviço correspondente e texto não vazio. A chave não foi exibida, gravada ou commitada; o `.env` deste repositório permaneceu inalterado e sua configuração não foi validada. A fonte desse smoke é sintética: ele não substitui a validação da extração de fonte oficial de Poá, revisão humana, insuficiência de evidência, isolamento municipal ou fluxo HTTP com os bancos reais.
 
+Em 18/11/2026, o CI do PR #3 (run 108) compilou a API, verificou as migrações e aprovou 111 testes com PostgreSQL e Neo4j reais. `LlmApiIntegrationTests` percorre a rota de extração com o dublê determinístico `TestLlm` e um excerto da [publicação oficial de Poá sobre o Cata Treco](https://poa.sp.gov.br/programa-cata-treco-reforca-limpeza-urbana-e-evita-descarte-irregular-em-poa/): confirma que a proposta nasce como rascunho não publicado, que a publicação é bloqueada antes da revisão, e que após aprovação a API retorna resposta com serviço e fonte. O teste também verifica insuficiência, município sem acesso ao conhecimento de outra cidade e HTTP 503 quando o provedor falha. Esse teste valida o contrato e o fluxo da API; não chama Azure. A execução HTTP em modo `demo` no mesmo workflow também permanece determinística.
+
 ## Limites
 
 - O filtro de privacidade atual remove padrões básicos de CPF, e-mail e senha; ele não é um mecanismo completo de anonimização.
 - A verificação de evidência exige que o trecho citado exista literalmente nos campos factuais do serviço publicado. Ela não garante, sozinha, a qualidade editorial da resposta.
-- O smoke Azure do SDK passou com fonte sintética, mas não valida extração de fonte oficial de Poá, revisão humana pela API, resposta insuficiente por rota, isolamento municipal com bancos reais, tela do painel, Expo ou caminho HTTP ponta a ponta. O `.env` local deste repositório continua diferente da configuração que passou e não foi validado.
+- O smoke Azure do SDK passou com fonte sintética, mas não valida chamada Azure através da rota HTTP nem a qualidade de uma extração real da página de Poá. A rota, a revisão humana, a resposta suficiente/insuficiente, o isolamento municipal e a falha do provedor foram exercitados por CI com dublê e bancos reais; não confundir esse teste com inferência Azure. O `.env` local deste repositório continua diferente da configuração que passou e não foi validado.
 - Busca vetorial, atualização automática de páginas, resolução de contradições e lint de wiki continuam fora do escopo implementado.
