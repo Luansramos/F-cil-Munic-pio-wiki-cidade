@@ -123,7 +123,7 @@ public class IntegrationTests
             var accessor = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Http.IHttpContextAccessor>();
             accessor.HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext { User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity([
                 new(System.Security.Claims.ClaimTypes.Role,"OPERADOR")], "test")) };
-            var publisher = new PublicationService(db, new FailingGraph(scope.ServiceProvider.GetRequiredService<IKnowledgeGraph>()), new(accessor));
+            var publisher = new PublicationService(db, new FailingGraph(scope.ServiceProvider.GetRequiredService<IKnowledgeGraph>()), new(accessor), scope.ServiceProvider.GetRequiredService<FacilMunicipio.Api.Security.SinkGuard>());
             await Assert.ThrowsAsync<InvalidOperationException>(() => publisher.PublishAsync(draftId, default));
         }
         using (var scope = factory.Services.CreateScope())
@@ -133,6 +133,20 @@ public class IntegrationTests
         }
         await Json(await admin.PostAsync($"/api/v1/rascunhos/{draftId}/publicacao", null));
         Assert.Single(await citizen.GetFromJsonAsync<ServicoDto[]>($"/api/v1/municipios/{city}/servicos") ?? []);
+        // Cybersecurity: a draft with personal data (e.g. created outside the API) must not reach the graph.
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var accessor = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Http.IHttpContextAccessor>();
+            accessor.HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext { User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity([
+                new(System.Security.Claims.ClaimTypes.Role,"OPERADOR")], "test")) };
+            var dirty = new FacilMunicipio.Api.Domain.Rascunho { FonteId = sourceId, MunicipioId = city };
+            dirty.Revisar(JsonSerializer.Serialize(service with { Descricao = "Contato: pessoa@example.org" }), true, Guid.NewGuid());
+            db.Rascunhos.Add(dirty); await db.SaveChangesAsync();
+            var publisher = new PublicationService(db, scope.ServiceProvider.GetRequiredService<IKnowledgeGraph>(), new(accessor),
+                scope.ServiceProvider.GetRequiredService<FacilMunicipio.Api.Security.SinkGuard>());
+            await Assert.ThrowsAsync<ApiException>(() => publisher.PublishAsync(dirty.Id, default));
+        }
         // OpenAPI generation and rate-limit behavior are verified through actual HTTP middleware.
         var openApi = await Json(await citizen.GetAsync("/swagger/v1/swagger.json"));
         var authScheme = openApi.GetProperty("components")

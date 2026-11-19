@@ -82,6 +82,11 @@ else if (string.IsNullOrWhiteSpace(llmMode) || string.Equals(llmMode, "azure", S
 }
 else
     throw new InvalidOperationException("Llm__Mode deve ser demo ou azure.");
+builder.Services.AddSingleton<SecurityAudit>();
+builder.Services.AddScoped<SinkGuard>();
+builder.Services.AddHttpClient<IRiskTranslator, OpenAiCompatibleRiskTranslator>(c => c.Timeout = TimeSpan.FromSeconds(8));
+builder.Services.AddScoped<RiskTranslationProcessor>();
+if (builder.Configuration.GetValue("RiskTranslator:WorkerEnabled", true)) builder.Services.AddHostedService<RiskTranslationWorker>();
 builder.Services.AddScoped<ConversationService>();
 builder.Services.AddScoped<PublicationService>();
 builder.Services.AddHttpContextAccessor();
@@ -126,6 +131,21 @@ app.Use(async (context, next) =>
             Title = e is ApiException apiErrorDetail ? apiErrorDetail.Message : status == 503 ? "Serviço temporariamente indisponível." : "Não foi possível concluir a operação." });
     }
 });
+// Sem MapGet para /auditoria: um endpoint casado (mesmo com barra final) impede o arquivo estático.
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path == "/auditoria") context.Response.Redirect("/auditoria/");
+    else await next(context);
+});
+app.UseDefaultFiles();
+app.UseStaticFiles(new StaticFileOptions { OnPrepareResponse = c =>
+{
+    // Página do painel é estática e pública, sem dados; os eventos vêm só das APIs autorizadas.
+    c.Context.Response.Headers["Cache-Control"] = "no-store";
+    c.Context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    c.Context.Response.Headers["Referrer-Policy"] = "no-referrer";
+    c.Context.Response.Headers["X-Frame-Options"] = "DENY";
+} });
 app.UseCors(); app.UseRateLimiter(); app.UseAuthentication(); app.UseAuthorization();
 app.UseSwagger(); app.UseSwaggerUI();
 app.MapControllers();

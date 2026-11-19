@@ -1,0 +1,126 @@
+{
+  "base": "http://127.0.0.1:5055",
+  "gerado_em_utc": "2026-11-17T00:55:30+00:00",
+  "municipio_com_servico": "poa-demo-b21f845128",
+  "outro_municipio": "cidade-ficticia-b21f845128",
+  "cenarios": [
+    {
+      "cenario": "C2",
+      "descricao": "Pergunta normal (menciona 'senha' sem informar uma senha) não gera evento",
+      "requisicao": "POST /api/v1/municipios/poa-demo-b21f845128/conversas",
+      "corpo_enviado": {
+        "pergunta": "Como alterar minha senha? E como funciona o Cata Treco?"
+      },
+      "status_http": 200,
+      "resposta": {
+        "informacaoSuficiente": true,
+        "eventos_antes": 5,
+        "eventos_depois": 5
+      },
+      "esperado": "200 e nenhum evento novo",
+      "confere": true,
+      "horario_utc": "2026-11-17T00:55:30+00:00"
+    },
+    {
+      "cenario": "C1",
+      "descricao": "Pergunta e histórico (ambos os lados) com PII simulada: sanitizado antes de seguir",
+      "requisicao": "POST /api/v1/municipios/poa-demo-b21f845128/conversas",
+      "corpo_enviado": "pergunta com CPF e saúde; histórico com e-mail, senha e RG (dados simulados)",
+      "status_http": 200,
+      "resposta": {
+        "informacaoSuficiente": true,
+        "resposta_contem_dados_enviados": false
+      },
+      "esperado": "200 e resposta sem os dados enviados",
+      "confere": true,
+      "horario_utc": "2026-11-17T00:55:30+00:00"
+    },
+    {
+      "cenario": "C3",
+      "descricao": "Fonte com CPF simulado é rejeitada antes da persistência",
+      "requisicao": "POST /api/v1/municipios/poa-demo-b21f845128/fontes",
+      "corpo_enviado": "texto com CPF simulado",
+      "status_http": 422,
+      "resposta": {
+        "title": "O conteúdo informado parece conter dados pessoais (CPF, RG, e-mail, senha ou informação de saúde). Remova esses dados e envie novamente.",
+        "fontes_antes": 1,
+        "fontes_depois": 1
+      },
+      "esperado": "422 e nada gravado",
+      "confere": true,
+      "horario_utc": "2026-11-17T00:55:30+00:00"
+    },
+    {
+      "cenario": "C3b",
+      "descricao": "Rascunho com senha em campo textual é rejeitado antes da persistência",
+      "requisicao": "POST /api/v1/fontes/{id}/rascunhos",
+      "corpo_enviado": "etapa com 'senha=…' (simulada)",
+      "status_http": 422,
+      "resposta": {
+        "title": "O conteúdo informado parece conter dados pessoais (CPF, RG, e-mail, senha ou informação de saúde). Remova esses dados e envie novamente."
+      },
+      "esperado": "422 e nada gravado",
+      "confere": true,
+      "horario_utc": "2026-11-17T00:55:30+00:00"
+    },
+    {
+      "cenario": "C9",
+      "descricao": "Sem token",
+      "requisicao": "GET /api/v1/municipios/poa-demo-b21f845128/seguranca/painel",
+      "corpo_enviado": "perfil: anônimo",
+      "status_http": 401,
+      "resposta": null,
+      "esperado": "401",
+      "confere": true,
+      "horario_utc": "2026-11-17T00:55:30+00:00"
+    },
+    {
+      "cenario": "C9",
+      "descricao": "ADMIN consulta o próprio município",
+      "requisicao": "GET /api/v1/municipios/poa-demo-b21f845128/seguranca/painel",
+      "corpo_enviado": "perfil: ADMIN",
+      "status_http": 200,
+      "resposta": {
+        "total_eventos": 12
+      },
+      "esperado": "200",
+      "confere": true,
+      "horario_utc": "2026-11-17T00:55:30+00:00"
+    },
+    {
+      "cenario": "C9",
+      "descricao": "ADMIN tenta consultar outro município",
+      "requisicao": "GET /api/v1/municipios/cidade-ficticia-b21f845128/seguranca/painel",
+      "corpo_enviado": "perfil: ADMIN",
+      "status_http": 403,
+      "resposta": null,
+      "esperado": "403",
+      "confere": true,
+      "horario_utc": "2026-11-17T00:55:30+00:00"
+    },
+    {
+      "cenario": "C9",
+      "descricao": "OPERADOR consulta outro município (política administrativa)",
+      "requisicao": "GET /api/v1/municipios/cidade-ficticia-b21f845128/seguranca/painel",
+      "corpo_enviado": "perfil: OPERADOR",
+      "status_http": 200,
+      "resposta": {
+        "total_eventos": 0
+      },
+      "esperado": "200",
+      "confere": true,
+      "horario_utc": "2026-11-17T00:55:30+00:00"
+    },
+    {
+      "cenario": "C9",
+      "descricao": "ADMIN tenta listar fontes de outro município",
+      "requisicao": "GET /api/v1/municipios/cidade-ficticia-b21f845128/fontes",
+      "corpo_enviado": "perfil: ADMIN",
+      "status_http": 403,
+      "resposta": null,
+      "esperado": "403",
+      "confere": true,
+      "horario_utc": "2026-11-17T00:55:30+00:00"
+    }
+  ]
+}

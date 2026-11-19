@@ -4,6 +4,37 @@ O Fácil Município é um projeto da Global Solution 2026 da FIAP. A ideia é fa
 
 O projeto começou com o nome Nexo Cidadão, que ainda aparece em alguns documentos de planejamento.
 
+## Entrega de Cybersecurity
+
+Esta branch contém o módulo de privacidade da API e o painel de auditoria do Fácil Município.
+
+- **Vídeo do dashboard:** [assistir à apresentação no YouTube](https://www.youtube.com/watch?v=qcuguRsH8UE).
+- **Código-fonte:** disponível nesta branch, em `apps/api/`, com testes em `tests/Api.Tests/`.
+- **Auditoria e evidências:** [capturas do painel, chamadas HTTP, consulta SQL e resultados dos testes](docs/evidencias-cybersecurity/README.md).
+- **Políticas e limites:** [documentação de segurança](docs/features/seguranca.md).
+- **Execução:** [instruções da API e configuração do tradutor de eventos](apps/api/README.md).
+- **Documento de entrega:** `Facil_Municipio_Cybersecurity_Tecnico_Final.pdf`, enviado separadamente do código na tarefa da disciplina. O PDF de evidências presente em `docs/evidencias-cybersecurity/` é um material de apoio.
+
+| Requisito | Implementação | Evidência |
+|---|---|---|
+| Parsing de PII | `PrivacyFilter`: CPF, RG contextual, e-mail, senha e saúde | Chamadas HTTP e testes com dados simulados |
+| Taint Analysis | `SinkGuard`: marcação em memória por requisição e verificação das saídas instrumentadas | Sanitização de conversas, rejeição de fonte/rascunho com HTTP 422 e testes dos demais sinks |
+| Auditoria | Tabela `EventosSeguranca` no PostgreSQL, com metadados e retenção padrão de 90 dias | Consulta SQL sem os valores pessoais originais |
+| IA generativa | Tradução dos metadados dos eventos para linguagem simples | Chamada real ao Gemini com HTTP 200; modelo registrado na evidência |
+| Dashboard | Indicador Risco Cidadão, contagens, eventos e explicações | Capturas e vídeo; autenticação JWT e restrição por município |
+
+A execução registrada nas evidências terminou com **99 testes aprovados e nenhuma falha**, incluindo integração com PostgreSQL e Neo4j reais. As capturas mostram **12 eventos: 10 sanitizações e 2 bloqueios**. A IA explica os eventos; a classificação de gravidade e o indicador são definidos pelas regras do código.
+
+A demonstração das consultas municipais usa `Llm__Mode=demo`: devolve conhecimento revisado e publicado, sem chamar uma LLM para responder ao cidadão. A chamada real de IA demonstrada em Cybersecurity é a tradução dos eventos de segurança.
+
+### Abrir o painel
+
+Siga o [README da API](apps/api/README.md) para configurar os bancos, aplicar as migrações, criar o operador e iniciar o servidor. Acesse `/auditoria/` na mesma origem da API e entre com o usuário administrativo criado. A tradução por IA é configurada no servidor por variáveis de ambiente; nenhuma chave deve ser colocada no painel ou no repositório.
+
+### Limites da proteção
+
+A detecção usa regex e contexto e pode ter falsos positivos e negativos. A proteção cobre os caminhos instrumentados, não toda a aplicação automaticamente. O histórico local do app mobile está fora do escopo deste módulo. Nenhum caminho atual produz proteção `Pendente`, portanto o indicador vermelho não aparece na demonstração; bloqueio bem-sucedido não significa vazamento confirmado.
+
 ## Ficha do projeto
 
 | Item | Descrição |
@@ -46,7 +77,7 @@ Aplicativo do cidadão (Expo) ───┘          ├────── Neo4j
 - **API C#:** cadastro, autorização, revisão, publicação e consulta.
 - **Azure OpenAI:** sugere rascunhos sujeitos à revisão humana e responde com contexto publicado; a API valida evidências e associa as fontes.
 - **Painel React:** interface prevista para cadastro e revisão.
-- **Expo:** interface prevista para perguntas, fontes e histórico salvo no celular.
+- **Expo:** aplicativo do cidadão, desenvolvido na branch mobile.
 
 O piloto começa com Poá. Um segundo município fictício é usado nos testes para verificar se os dados não se misturam.
 
@@ -60,7 +91,9 @@ A API de SOA e C# foi integrada à `main` pelo [PR #2](https://github.com/Luansr
 
 Ela já permite cadastrar fontes, criar e revisar rascunhos manualmente, publicar serviços no Neo4j e consultá-los pelas rotas públicas. Há testes automatizados com PostgreSQL e Neo4j. Também foi executado um roteiro HTTP que faz o caminho de uma fonte municipal até uma resposta com o link correspondente.
 
-O backend tem o adaptador Azure OpenAI pela SDK oficial .NET, configurado para o deployment `gpt-5-mini` via endpoint OpenAI v1. Uma chamada HTTP sintética com saída JSON estruturada foi confirmada em 17/11/2026. Os testes unitários da integração passaram no WSL; o smoke de inferência ao vivo pelo SDK ainda não foi executado. A LLM sugere rascunhos sujeitos à revisão humana e, na conversa, recebe somente dados publicados do município; a API valida trechos de evidência e fornece os links das fontes. `Llm__Mode=demo` continua disponível sem chamadas externas. O painel e a integração da conversa no Expo ainda precisam ser conectados e verificados ponta a ponta.
+O backend tem o adaptador Azure OpenAI pela SDK oficial .NET, configurado para o deployment `gpt-5-mini` via endpoint OpenAI v1. O smoke pela SDK e um fluxo HTTP em ambiente isolado com Azure real e fonte oficial passaram; veja os limites e a necessidade de revisão editorial humana em [LLM Wiki e Azure OpenAI](docs/features/llm-wiki.md). A LLM sugere rascunhos sujeitos à revisão humana e, na conversa, recebe somente dados publicados do município; a API valida trechos de evidência e fornece os links das fontes. `Llm__Mode=demo` continua disponível sem chamadas externas. O painel e a integração da conversa no Expo ainda precisam ser conectados e verificados ponta a ponta.
+
+O módulo de Cybersecurity acrescenta as verificações de privacidade, a auditoria e o painel descritos acima.
 
 As instruções para executar a API estão em [apps/api/README.md](apps/api/README.md). O [relatório de SOA e C#](docs/entrega-soa-csharp.md) relaciona cada critério do professor ao código. As capturas e os testes estão em [docs/evidencias-soa-csharp.md](docs/evidencias-soa-csharp.md).
 
@@ -71,7 +104,7 @@ As instruções para executar a API estão em [apps/api/README.md](apps/api/READ
 | ml/ | Dados públicos, experimento acadêmico de ML, resultados e relatório; separado do runtime da API |
 | `planejamento/` | Visão, especificação, arquitetura, backlog e plano |
 | `docs/` | Contratos de integração, decisões e documentação das features |
-| `apps/api/` | API ASP.NET Core (na branch de SOA/C#) |
+| `apps/api/` | API ASP.NET Core e módulo de Cybersecurity nesta branch |
 | `apps/mobile/` | Aplicativo Expo (na branch de desenvolvimento mobile) |
 | `infra/` | Scripts e registros de infraestrutura Linux |
 | `tests/Api.Tests/` | Testes da API |

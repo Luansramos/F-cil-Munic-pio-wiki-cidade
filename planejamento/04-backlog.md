@@ -75,6 +75,8 @@ E1 foi atendido para uma análise exploratória de volume agregado com a série 
 
 ## F. Cybersecurity
 
+Estado em `feature/cybersecurity` (não integrada): F2 a F5 implementados no código e testados em memória; F1 resolvido pela especificação em `docs/cybersecurity.md`; F4 sem chamada real a provedor de IA; F5 sem captura e vídeo; F6 pendente de PDF e evidências reais. Detalhes em [entrega-cybersecurity.md](../docs/entrega-cybersecurity.md).
+
 | ID | Pri. | Responsável | Tarefa e critério de aceite | Depende de |
 |---|---|---|---|---|
 | F1 | P0 | P4 | Identificar código-base e instruções da atividade no Teams; registrar o que precisa ser adaptado. | — |

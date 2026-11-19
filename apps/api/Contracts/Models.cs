@@ -11,6 +11,9 @@ public record RespostaConversa(string Resposta, string[] ServicosRelacionados, F
     public static RespostaConversa Insuficiente(string? canal) => new(
         "Não encontrei informação suficiente na base publicada deste município. Consulte o canal oficial para confirmar a orientação.",
         [], [], false, canal);
+    public static RespostaConversa Bloqueada(string? canal) => new(
+        "Não foi possível exibir esta resposta com segurança. Consulte o canal oficial para confirmar a orientação.",
+        [], [], false, canal);
 }
 public record TrocaResumida(
     [param: Required, StringLength(1000, MinimumLength = 1)] string Pergunta,
@@ -63,3 +66,9 @@ public sealed class HttpsUrlAttribute : ValidationAttribute
     public override bool IsValid(object? value) => value is null || value is string s &&
         Uri.TryCreate(s, UriKind.Absolute, out var u) && u.Scheme == "https" && string.IsNullOrEmpty(u.UserInfo) && s.Length <= 2048;
 }
+// Painel de auditoria de privacidade. Somente metadados; nunca conteúdo original.
+public record IndicadorRisco(string Nivel, string Rotulo, string Descricao);
+public record ResumoSeguranca(int Total, int Sanitizados, int Bloqueados, int Pendentes, int TraducoesPendentes);
+public record EventoSegurancaDto(Guid Id, DateTimeOffset OcorridoEm, string Categoria, string Origem, string Destino,
+    string Acao, string Gravidade, string Codigo, string TraducaoEstado, string Explicacao, string OrigemExplicacao, string? ModeloIa);
+public record PainelSeguranca(int PeriodoHoras, DateTimeOffset GeradoEm, IndicadorRisco Indicador, ResumoSeguranca Resumo, EventoSegurancaDto[] Eventos);

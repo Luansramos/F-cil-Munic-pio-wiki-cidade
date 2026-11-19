@@ -67,6 +67,37 @@ Fonte cadastrada não é publicada. Rascunho registra revisão e aprovação; a 
 
 **Pendências para integração:** alinhar o endpoint e o deployment Azure no ambiente de execução deste repositório (o `.env` local não foi validado), extrair uma fonte oficial de Poá e fazer a revisão humana pela API, validar resposta insuficiente e isolamento municipal com bancos reais, construir painel e Expo, cadastrar os links oficiais e executar o fluxo ponta a ponta. A chamada sintética e os testes unitários não comprovam integração visual nem qualidade editorial das fontes do piloto.
 
+## Auditoria de privacidade (Cybersecurity)
+
+Contrato novo; **não altera** `POST /municipios/{id}/conversas` quanto a campos. Mudanças de comportamento:
+
+- A pergunta e cada pergunta/resposta do histórico têm CPF, RG, e-mail, senha e informação pessoal de saúde substituídos por `[DADO REMOVIDO]` antes de chegar à LLM (o app não precisa mudar).
+- Se a resposta da LLM contiver PII ou valor marcado, a API devolve 200 com `informacaoSuficiente:false`, listas vazias e a mensagem “Não foi possível exibir esta resposta com segurança…”; `canalOficialUrl` só quando cadastrado.
+- Cadastro de fonte, criação/revisão de rascunho e publicação respondem **422** (`ProblemDetails.title` com mensagem segura, sem valores) quando o conteúdo parece conter dados pessoais.
+- A API grava somente eventos de metadados; continua sem salvar pergunta ou histórico.
+
+### `GET /api/v1/municipios/{id}/seguranca/painel?horas=24`
+
+Requer JWT (`ADMIN` do próprio município ou `OPERADOR`). `horas`: 1 a 168 (padrão 24). Erros: 401 sem token; 403 outro município; 404 município inexistente (para quem tem acesso); 422 período inválido.
+
+```json
+{
+  "periodoHoras": 24,
+  "geradoEm": "2026-11-16T22:00:00+00:00",
+  "indicador": { "nivel": "VERDE|AMARELO|VERMELHO", "rotulo": "Monitorar", "descricao": "…" },
+  "resumo": { "total": 2, "sanitizados": 1, "bloqueados": 1, "pendentes": 0, "traducoesPendentes": 1 },
+  "eventos": [{
+    "id": "guid", "ocorridoEm": "…", "categoria": "Cpf|Rg|Email|Senha|Saude",
+    "origem": "conversa.historico[0].resposta", "destino": "Llm|RespostaPublica|Persistencia|Grafo",
+    "acao": "Sanitizado|Bloqueado|Pendente", "gravidade": "Baixa|Media|Alta", "codigo": "PII_SANITIZADA",
+    "traducaoEstado": "Pendente|Traduzida|Falhou",
+    "explicacao": "…", "origemExplicacao": "IA|PADRAO", "modeloIa": "modelo configurado (só quando origemExplicacao = IA)"
+  }]
+}
+```
+
+`origemExplicacao = PADRAO` indica mensagem padrão do sistema, não gerada por IA. Até 50 eventos, do mais recente ao mais antigo. A página `/auditoria/` é estática e consome somente este endpoint e `/auth/login`. Regra do indicador e retenção: [seguranca.md](features/seguranca.md).
+
 ## Conferência com a branch mobile
 
 Referência conferida: `feat/mobile-scaffold-theme`, nos arquivos

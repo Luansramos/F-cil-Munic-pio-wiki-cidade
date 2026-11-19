@@ -10,7 +10,8 @@ O código fica em `apps/api/`:
 - `Data/`: `AppDbContext`, configurações do Entity Framework Core e migrações.
 - `Controllers/`: endpoints REST para autenticação, administração e consulta pública.
 - `Services/`: publicação no Neo4j, consulta e montagem das respostas.
-- `Security/`: identificação do administrador e tratamento básico de dados sensíveis.
+- `Security/`: identificação do administrador, detecção de PII (`PrivacyFilter`) e proteção das saídas (`SinkGuard`).
+- `wwwroot/auditoria/`: página estática do painel de auditoria de privacidade.
 - `Contracts/`: objetos de requisição e resposta.
 
 O PostgreSQL guarda municípios, usuários, fontes, rascunhos e versões. O Neo4j guarda os serviços publicados e os vínculos com as fontes. Antes de disponibilizar um serviço, o administrador precisa aprovar o rascunho. Se a publicação falhar, a versão anterior continua ativa.
@@ -80,7 +81,7 @@ A rota de conversa recebe, por exemplo:
 }
 ```
 
-A resposta traz o texto de orientação, os serviços relacionados, as fontes, a indicação `informacaoSuficiente` e, quando cadastrado, o campo `canalOficialUrl`. A API não salva as perguntas dos cidadãos. O histórico fica sob responsabilidade do aplicativo. A API recebe até três trocas e elimina padrões básicos de CPF, e-mail e senha antes de encaminhar o contexto ao respondedor.
+A resposta traz o texto de orientação, os serviços relacionados, as fontes, a indicação `informacaoSuficiente` e, quando cadastrado, o campo `canalOficialUrl`. A API não salva as perguntas dos cidadãos. O histórico fica sob responsabilidade do aplicativo. A API recebe até três trocas e remove CPF, RG, e-mail, senha e informação pessoal de saúde (em frases contextuais) da pergunta e dos dois lados do histórico antes de encaminhar o contexto ao respondedor; a resposta do respondedor também é verificada antes de sair.
 
 O contrato foi conferido com o app: os campos opcionais que estiverem vazios não são enviados como `null`; os IDs retornados são dos serviços publicados; a resposta usa texto simples e listas numeradas. O orçamento interno é de 12 segundos para respeitar os 15 segundos de timeout do app. Em desenvolvimento, CORS permite `http://localhost:8081`.
 
@@ -91,6 +92,28 @@ dotnet run --project apps/api -- --llm-smoke
 ```
 
 O comando faz uma extração e uma resposta com evidência, sem imprimir textos enviados, respostas, chave ou endpoint. Requer deployment ativo e pode gerar custo de inferência. Consulte [LLM Wiki e Azure OpenAI](../../docs/features/llm-wiki.md) para detalhes de configuração e limites.
+
+## Cybersecurity: PII, taint analysis, auditoria e painel
+
+Detalhes, políticas e limites em [docs/features/seguranca.md](../../docs/features/seguranca.md); documentação da entrega em [docs/entrega-cybersecurity.md](../../docs/entrega-cybersecurity.md).
+
+| Método | Rota | Uso |
+|---|---|---|
+| GET | `/municipios/{id}/seguranca/painel?horas=24` | Indicador Risco Cidadão, contagens e eventos (JWT; ADMIN só do próprio município) |
+| — | `/auditoria/` (fora de `/api/v1`) | Página estática do painel; login via `/auth/login`; token só em memória |
+
+**Migração:** a tabela `EventosSeguranca` vem na migração `EventosSeguranca`; aplique com `dotnet run --project apps/api -- --migrate`.
+
+**Tradução por IA (opcional).** Sem estas variáveis a API funciona normalmente e os eventos ficam com tradução pendente (o painel mostra uma mensagem padrão identificada como tal):
+
+```bash
+export RiskTranslator__BaseUrl="https://<ENDPOINT_COMPATIVEL_COM_CHAT_COMPLETIONS>/v1"
+export RiskTranslator__Model="<MODELO_CONFIRMADO_NA_DOCUMENTACAO_DO_PROVEDOR>"
+export RiskTranslator__ApiKey="<CHAVE_DO_PROVEDOR>"   # nunca versionar nem colar em chat
+# opcionais: RiskTranslator__PollSeconds=10  RiskTranslator__WorkerEnabled=true  Security__RetentionDays=90
+```
+
+O código chama `POST {BaseUrl}/chat/completions` com `Authorization: Bearer`. Nenhum modelo é fixado; confirme o identificador atual na documentação oficial do provedor. A chamada real foi validada em 16/11/2026 com `gemini-3.1-flash-lite` no endpoint compatível do Google (detalhes em `docs/features/seguranca.md`); confirme o modelo na documentação do provedor antes de usar em outro ambiente.
 
 ## Demonstração com Cata Treco
 

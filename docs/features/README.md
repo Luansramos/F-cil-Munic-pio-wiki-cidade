@@ -10,7 +10,7 @@ Cada feature significativa possui especificação ligada aos IDs do backlog. O r
 | [Grafo e publicação](grafo-e-publicacao.md) | C1–C6 | Planejada |
 | [Consulta e aplicativo](consulta-e-aplicativo.md) | D1–D8 | API implementada; Expo ainda precisa de integração ponta a ponta |
 | [ML acadêmico](machine-learning.md) | E1–E6 | Série, experimento, notebook e relatório executados; vídeo fora do escopo |
-| [Segurança](seguranca.md) | F1–F6 | Código-base a identificar |
+| [Segurança](seguranca.md) | F1–F6 | Implementada em `feature/cybersecurity`; IA real validada; veja os detalhes e limites na feature |
 | [Infraestrutura e IoT](infraestrutura-e-iot.md) | G1–G7 | Integração Wokwi a comprovar |
 | [Qualidade e entregas](qualidade-e-entregas.md) | H1–H8 | Planejada |
 
