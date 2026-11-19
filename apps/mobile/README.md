@@ -149,20 +149,102 @@ Abra `http://localhost:8081` no Chrome, mantendo apenas uma aba do app aberta. N
 
 O `app.json` está preparado para Android: `android.package` definido e `android.allowBackup: false` (ver "Dados no aparelho").
 
-## Rodar contra a API em C#
+## Rodar o app com a API em C# e Azure OpenAI
 
-1. Suba a API em C# (pasta `apps/api` da `main`; as instruções estão no README dela: PostgreSQL, Neo4j, `--migrate`, `--bootstrap`). Para o conhecimento sem LLM use `Llm__Mode=demo`. A integração com a LLM (Azure OpenAI) fica em outra branch e **não foi testada com o app**.
-2. Se quiser dados de teste, rode `python scripts/demo_fluxo_http.py` da API. Ele publica Poá e um município fictício.
-3. Configure o arquivo `.env` em `apps/mobile`:
-   ```bash
-   # No arquivo .env de apps/mobile (compatível com Windows e Linux):
-   EXPO_PUBLIC_USAR_MOCK=false
-   EXPO_PUBLIC_API_URL=http://127.0.0.1:5055/api/v1
-   ```
-   Depois, execute `npm run web` para desenvolvimento ou siga **Rodar a versão web exportada** para reproduzir as capturas. Se usar a API em outra porta, ajuste a URL.
-4. Celular: a URL precisa usar o **IP do computador na rede Wi-Fi** (`http://<IP>:<porta>/api/v1`, veja o IP com `ipconfig`), a API precisa escutar em todas as interfaces (`--urls http://0.0.0.0:<porta>`) e o firewall do Windows precisa liberar a porta. Reinicie o Expo com `--clear` depois de mudar a variável. O CORS da API só afeta o navegador (origem padrão `http://localhost:8081`); o app nativo não usa CORS.
+O app usa dados locais de exemplo por padrão. Para integrar com a API, configure o app com `EXPO_PUBLIC_USAR_MOCK=false`. A API pode responder em modo demonstrativo, sem LLM, ou em modo Azure OpenAI. O app nunca precisa receber a chave do Azure.
 
-**Verificado (17/11/2026):** no navegador, contra a API local, o app listou municípios e serviços, enviou perguntas (a seguinte leva o histórico) e mostrou resposta com fonte e o aviso de informação insuficiente (prints acima). Essa evidência refere-se à integração web com a API em modo demonstração; não comprova resposta de LLM real nem tempo de resposta em produção.
+### Pré-requisitos
+
+- Node.js 22.13 ou superior e npm 10 ou superior.
+- .NET SDK 10.
+- Docker Desktop com Docker Compose.
+- Python 3 para executar o roteiro de dados de teste.
+
+### 1. Preparar os bancos e a API
+
+Na raiz do repositório, copie `.env.example` para `.env` (se ainda não existir) e substitua as senhas de exemplo. No mesmo arquivo, configure também:
+
+```dotenv
+ConnectionStrings__Postgres=Host=localhost;Database=facil_municipio;Username=facil;Password=<MESMA_SENHA_DE_POSTGRES_PASSWORD>
+Neo4j__Uri=bolt://localhost:7687
+Neo4j__User=neo4j
+Neo4j__Password=<MESMA_SENHA_DE_NEO4J_PASSWORD>
+Jwt__Key=<SEGREDO_ALEATORIO_COM_PELO_MENOS_32_BYTES>
+Bootstrap__Email=operador@example.test
+Bootstrap__Password=<SENHA_LOCAL_COM_12_OU_MAIS_CARACTERES>
+Llm__Mode=demo
+```
+
+O `.env.example` já contém `POSTGRES_PASSWORD` e `NEO4J_PASSWORD`, usados pelo Docker Compose. Use as mesmas senhas na connection string do PostgreSQL e em `Neo4j__Password`. Mantenha esse `.env` somente na máquina local: ele é ignorado pelo Git.
+
+Abra um terminal na raiz e execute:
+
+```bash
+docker compose up -d
+dotnet restore apps/api/FacilMunicipio.Api.csproj
+dotnet run --project apps/api -- --migrate
+dotnet run --project apps/api -- --bootstrap
+dotnet run --project apps/api -- --urls http://127.0.0.1:5055
+```
+
+Esse primeiro modo (`Llm__Mode=demo`) não chama um provedor de IA. Para criar dados locais de Poá e publicar o exemplo do Cata Treco, abra outro terminal na raiz e informe ao roteiro o mesmo usuário operador configurado no `.env`:
+
+```powershell
+$env:API_BASE_URL = "http://127.0.0.1:5055"
+$env:Bootstrap__Email = "operador@example.test"
+$env:Bootstrap__Password = "<A_MESMA_SENHA_DO_ENV>"
+python scripts/demo_fluxo_http.py
+```
+
+O roteiro cria municípios de teste com identificadores aleatórios e publica uma orientação de demonstração baseada em fonte pública. Ele aprova automaticamente apenas esse conteúdo de teste; não use esse roteiro para publicar conteúdo real.
+
+### 2. Conectar e iniciar o app
+
+Crie ou edite `apps/mobile/.env`:
+
+```dotenv
+EXPO_PUBLIC_USAR_MOCK=false
+EXPO_PUBLIC_API_URL=http://127.0.0.1:5055/api/v1
+```
+
+Em outro terminal:
+
+```bash
+cd apps/mobile
+npm install
+npm run web
+```
+
+Abra o endereço mostrado pelo Expo, normalmente `http://localhost:8081`, e escolha Poá na lista. Se o navegador não abrir o SQLite no servidor de desenvolvimento, use o procedimento da seção [Rodar a versão web exportada](#rodar-a-versão-web-exportada), que inclui os cabeçalhos necessários ao banco local. As alterações em `EXPO_PUBLIC_*` exigem reiniciar o Expo ou gerar uma nova exportação.
+
+Para executar no Expo Go, use o IP do computador na rede Wi-Fi no lugar de `127.0.0.1` e inicie a API escutando em todas as interfaces:
+
+```bash
+dotnet run --project apps/api -- --urls http://0.0.0.0:5055
+```
+
+O celular e o computador devem estar na mesma rede; libere a porta 5055 no firewall. As demais instruções estão em [Rodar no Expo Go em um celular](#rodar-no-expo-go-em-um-celular).
+
+### 3. Habilitar chamadas Azure OpenAI
+
+Depois de preparar e publicar os dados de teste, pare a API com `Ctrl+C`. No `.env` da raiz, troque o modo demonstrativo por uma configuração Azure válida:
+
+```dotenv
+LLM__MODE=azure
+ENDPOINT_AZURE=https://<RECURSO>.services.ai.azure.com/openai/v1
+LLM_KEY_AZURE=<CHAVE_SECRETA_DO_AZURE>
+LLM_AZURE_DEPLOYMENT=gpt-5-mini
+```
+
+Inicie novamente a API com o comando da etapa 1. Faça uma pergunta sobre o serviço publicado no app. As chamadas reais podem gerar custo no Azure. Também é possível conferir a conexão do SDK, sem bancos ou app, com `dotnet run --project apps/api -- --llm-smoke`.
+
+**Segredos:** `LLM_KEY_AZURE` fica apenas no `.env` da raiz, no ambiente do backend ou no cofre de segredos do provedor de hospedagem. Não coloque a chave em `apps/mobile/.env`, em variáveis `EXPO_PUBLIC_*`, nem em commits.
+
+**Esforço do modelo:** o teste local de ponta a ponta em 18/11/2026 usou `gpt-5-mini` com esforço de raciocínio `minimal` e limite de saída ajustado em uma cópia local da API. Esses ajustes temporários não estão neste PR #7 nem no código da API em `main`; portanto, a configuração Azure acima habilita o provedor, mas não aplica por si só o esforço mínimo daquele teste. A API ainda precisa receber e validar esses ajustes para que o comportamento seja reproduzível a partir do repositório.
+
+### O que foi verificado e o que falta
+
+No commit do PR #7 `2c8aee6`, os testes do app, o typecheck e o lint passaram localmente. O teste web com API, PostgreSQL, Neo4j e Azure também foi executado em ambiente local isolado em 18/11/2026; ele usou os ajustes temporários da API descritos acima. No momento do registro, o GitHub indicava o PR como mergeável, mas não apresentava checks automáticos nem revisões submetidas. Essas verificações do PR não substituem uma execução limpa do backend Azure com os ajustes versionados.
 
 ## Dados no aparelho
 
