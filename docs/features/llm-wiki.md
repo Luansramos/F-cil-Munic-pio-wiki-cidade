@@ -47,5 +47,5 @@ O smoke pela SDK foi executado em 18/11/2026. A tentativa com o `.env` local des
 
 - O filtro de privacidade atual remove padrões básicos de CPF, e-mail e senha; ele não é um mecanismo completo de anonimização.
 - A verificação de evidência exige que o trecho citado exista literalmente nos campos factuais do serviço publicado. Ela não garante, sozinha, a qualidade editorial da resposta.
-- O smoke sintético não verifica as fontes reais de Poá, a tela do painel, o Expo nem o caminho HTTP completo entre os bancos e o aplicativo. O smoke Azure ao vivo retorna `DeploymentNotFound` até a configuração ser corrigida.
+- O smoke Azure do SDK passou com fonte sintética, mas não valida extração de fonte oficial de Poá, revisão humana pela API, resposta insuficiente por rota, isolamento municipal com bancos reais, tela do painel, Expo ou caminho HTTP ponta a ponta. O `.env` local deste repositório continua diferente da configuração que passou e não foi validado.
 - Busca vetorial, atualização automática de páginas, resolução de contradições e lint de wiki continuam fora do escopo implementado.

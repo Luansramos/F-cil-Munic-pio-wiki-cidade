@@ -65,7 +65,7 @@ Resposta insuficiente tem `informacaoSuficiente:false`, `servicosRelacionados:[]
 
 Fonte cadastrada não é publicada. Rascunho registra revisão e aprovação; a publicação usa `revisaoId` como versão imutável. PostgreSQL controla `versaoAtivaId`; Neo4j recebe uma cópia versionada das entidades. Uma falha antes do commit mantém a versão anterior; nova tentativa é idempotente. O endpoint público lê exclusivamente `municipioId` + versão ativa. A API não salva perguntas, históricos ou logs de conteúdo sensível; histórico é responsabilidade local do Expo. Nunca associar resultados ou fontes de outro município à resposta.
 
-**Pendências para integração:** executar o smoke de inferência ao vivo pelo SDK, construir painel e Expo, cadastrar e validar links reais oficiais de Poá, executar o fluxo completo com dados publicados e alinhar mudanças incompatíveis pelo PR. A chamada sintética e os testes unitários não comprovam integração visual nem qualidade editorial das fontes do piloto.
+**Pendências para integração:** alinhar o endpoint e o deployment Azure no ambiente de execução deste repositório (o `.env` local não foi validado), extrair uma fonte oficial de Poá e fazer a revisão humana pela API, validar resposta insuficiente e isolamento municipal com bancos reais, construir painel e Expo, cadastrar os links oficiais e executar o fluxo ponta a ponta. A chamada sintética e os testes unitários não comprovam integração visual nem qualidade editorial das fontes do piloto.
 
 ## Conferência com a branch mobile
 
@@ -194,9 +194,13 @@ com `guardas.ts`, limites de entrada, isolamento municipal e seguimento
 contextual no respondedor de demonstração. O adaptador Azure compila, e uma
 chamada HTTP direta com `gpt-5-mini` e JSON Schema retornou HTTP 200 em
 17/11/2026. Em 17/11/2026, 109 testes unitários sem integrações dependentes
-de bancos passaram no WSL; os testes do SDK usam transporte HTTP simulado. O
-smoke de inferência ao vivo pelo SDK ainda está pendente. O erro
-`DeploymentNotFound` dos testes anteriores dizia respeito aos aliases Luna e
-é histórico. **Ainda pendente:** executar o smoke com o SDK, testar o
-`apiReal.ts` de ponta a ponta com a tela Expo e validar o acordo P1/P2/P3
-para os campos opcionais.
+de bancos passaram no WSL; os testes do SDK usam transporte HTTP simulado. Em
+18/11/2026, o smoke pelo SDK terminou com código 0 usando o endpoint e
+deployment validados pelo usuário, passados somente por variáveis de ambiente
+do processo. O comando validou extração estruturada e resposta com evidência
+sintética; nenhuma chave ou resposta foi registrada. A tentativa anterior com
+o `.env` deste repositório falhou com `DeploymentNotFound`; esse arquivo
+permaneceu inalterado e não foi validado. **Ainda pendente:** validar pela API
+uma fonte oficial de Poá e a revisão humana, resposta insuficiente e
+isolamento com bancos reais, testar o `apiReal.ts` de ponta a ponta com a tela
+Expo e validar o acordo P1/P2/P3 para os campos opcionais.
