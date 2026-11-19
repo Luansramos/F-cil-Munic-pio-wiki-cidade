@@ -14,8 +14,25 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using FacilMunicipio.Api.OpenApi;
 using Neo4j.Driver;
+using OpenAI.Chat;
 
+// .env é apenas uma conveniência de desenvolvimento; variáveis reais do ambiente têm prioridade.
+DotNetEnv.Env.NoClobber().TraversePath().Load();
 var builder = WebApplication.CreateBuilder(args);
+if (args.Contains("--llm-smoke"))
+{
+    var smokeSettings = AzureOpenAiSettings.FromConfiguration(builder.Configuration);
+    if (smokeSettings is null)
+    {
+        Console.Error.WriteLine("Configure ENDPOINT_AZURE e LLM_KEY_AZURE antes do smoke.");
+        Environment.ExitCode = 2;
+        return;
+    }
+
+    Environment.ExitCode = await LlmSmokeCommand.RunAsync(smokeSettings);
+    return;
+}
+
 var key = builder.Configuration["Jwt:Key"] ?? "";
 if (Encoding.UTF8.GetByteCount(key) < 32) throw new InvalidOperationException("Configure Jwt__Key com pelo menos 32 bytes aleatórios.");
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 131072);
@@ -42,11 +59,29 @@ builder.Services.AddSingleton<IDriver>(_ => GraphDatabase.Driver(builder.Configu
     AuthTokens.Basic(builder.Configuration["Neo4j:User"] ?? "neo4j", builder.Configuration["Neo4j:Password"] ?? ""),
     c => c.WithConnectionTimeout(TimeSpan.FromSeconds(3)).WithMaxTransactionRetryTime(TimeSpan.FromSeconds(1))));
 builder.Services.AddSingleton<IKnowledgeGraph, Neo4jKnowledgeGraph>();
-// The demonstration mode only repeats published and reviewed text; it is NOT an LLM.
-if (string.Equals(builder.Configuration["Llm:Mode"], "demo", StringComparison.OrdinalIgnoreCase))
+// Demo is deterministic. Azure mode uses the OpenAI SDK with the selected Azure deployment.
+var llmMode = builder.Configuration["Llm:Mode"] ?? builder.Configuration["LLM_MODE"];
+if (string.Equals(llmMode, "demo", StringComparison.OrdinalIgnoreCase))
     builder.Services.AddScoped<ILlmWiki, DemoGroundedWiki>();
+else if (string.IsNullOrWhiteSpace(llmMode) || string.Equals(llmMode, "azure", StringComparison.OrdinalIgnoreCase))
+{
+    var azureSettings = AzureOpenAiSettings.FromConfiguration(builder.Configuration);
+    if (azureSettings is null)
+    {
+        if (string.Equals(llmMode, "azure", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Configure ENDPOINT_AZURE e LLM_KEY_AZURE para habilitar o provedor Azure.");
+        builder.Services.AddScoped<ILlmWiki, LlmUnavailable>();
+    }
+    else
+    {
+        builder.Services.AddSingleton(azureSettings);
+        builder.Services.AddSingleton<ChatClient>(_ => azureSettings.CreateChatClient());
+        builder.Services.AddSingleton<IAzureOpenAiJsonCompletionClient, AzureOpenAiJsonCompletionClient>();
+        builder.Services.AddScoped<ILlmWiki, AzureOpenAiWiki>();
+    }
+}
 else
-    builder.Services.AddScoped<ILlmWiki, LlmUnavailable>();
+    throw new InvalidOperationException("Llm__Mode deve ser demo ou azure.");
 builder.Services.AddSingleton<SecurityAudit>();
 builder.Services.AddScoped<SinkGuard>();
 builder.Services.AddHttpClient<IRiskTranslator, OpenAiCompatibleRiskTranslator>(c => c.Timeout = TimeSpan.FromSeconds(8));

@@ -18,7 +18,11 @@ public sealed class LlmUnavailable : ILlmWiki
     public Task<ResultadoLlm> ResponderAsync(string pergunta, TrocaResumida[] historico,
         IReadOnlyList<Conhecimento> contexto, CancellationToken ct) => throw new LlmUnavailableException();
 }
-public sealed class LlmUnavailableException : Exception { }
+public sealed class LlmUnavailableException : Exception
+{
+    public LlmUnavailableException() { }
+    public LlmUnavailableException(Exception innerException) : base("O provedor de LLM não concluiu a solicitação.", innerException) { }
+}
 public sealed class ApiException(int status, string message) : Exception(message)
 {
     public int Status { get; } = status;

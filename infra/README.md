@@ -4,6 +4,16 @@ Entrega de **Operating Systems** (GS CitizenTech 2026.2). Provisiona, de forma a
 
 > **Estado:** a infraestrutura está implementada e verificada com uma **aplicação web própria da camada de infraestrutura** (`app/`): uma página de status do Nexo Cidadão com CPU, memória, disco, serviços e alertas em tempo real, mais os endpoints `/health` e `/api/status`. A API real do Nexo (C#/ASP.NET Core) ainda **não** foi integrada; a troca é descrita em [Integração com a API real](#integração-com-a-api-real).
 
+## Integrantes
+
+- Fernanda Rocha Menon — RM 554673
+- Luiza Macena Dantas — RM 556237
+- Luan Ramos Garcia de Souza — RM 558537
+- Matheus Ricciotti — RM 556930
+- Matheus Bortolotto — RM 555189
+
+Vídeo de demonstração (3 min 47 s): **https://youtu.be/xE7B7_obxFU**
+
 ## Ambiente testado
 
 | Item | Valor |
@@ -36,7 +46,8 @@ infra/
 └── tests/
     ├── falha-app.sh              # kill -9 na aplicação
     ├── falha-recursos.sh         # estresse de CPU e memória
-    └── falha-disco.sh            # enche o disco acima do limite
+    ├── falha-disco.sh            # enche o disco acima do limite
+    └── falha-script.sh           # falha controlada: o erro deve ir para o log
 ```
 
 ## Preparar a VM
@@ -107,14 +118,14 @@ Não há segredos neste repositório. Valores sensíveis da API real devem ficar
 | Provisionamento da aplicação | `02-app.sh`: dependências, usuário de serviço `nexo`, diretórios, `nexo.env`, units systemd, logrotate |
 | Monitoramento com alertas | `monitor.sh`: lê CPU, memória e disco a cada `INTERVAL` s; acima do limite registra `ALERT` e grava em `alertas.log`; também alerta se `nexo-app` estiver fora do ar |
 | Monitor como serviço tolerante a falhas | `nexo-monitor.service` com `Restart=always` e sem limite de reinícios |
-| Logs de auditoria e execução | `lib/log.sh`: timestamp, nível e script de origem, em `/var/log/nexo/` |
+| Logs de auditoria e execução | `lib/log.sh`: timestamp, nível e script de origem, em `/var/log/nexo/`; `habilitar_trap_erro` registra como `ERROR` qualquer comando que falhe (código, linha e comando) |
 | Funcionamento completo | aplicação web servida como serviço systemd (`:5000`, no host `:8080`), lendo o estado real da VM; troca pela API real descrita abaixo |
 
 ## Logs
 
 | Arquivo (`/var/log/nexo/`) | Conteúdo |
 |---|---|
-| `provision.log` | execução dos scripts de provisionamento |
+| `provision.log` | execução dos scripts de provisionamento e erros de scripts (`ERROR`) |
 | `monitor.log` | leituras periódicas de CPU, memória e disco |
 | `alertas.log` | alertas de limite e de serviço fora do ar |
 | `testes.log` | execução dos testes de falha |
@@ -131,20 +142,23 @@ Rodar como `sudo`, na VM provisionada.
 | Memória | `stress-ng --vm 1 --vm-bytes 95% --timeout 40s` | alertas `Memoria alta: 87%` e `88%` |
 | Disco | `bash infra/tests/falha-disco.sh` | alerta `Disco cheio: 84%`; arquivo removido ao final |
 | Provisionamento do zero | restaurar o snapshot limpo e rodar `01-infra.sh` e `02-app.sh` | concluído sem erro em 24 s; serviços `active` e app respondendo em `:5000` |
+| Monitor morto | `sudo kill -9 $(systemctl show nexo-monitor -p MainPID --value)` | PID 1368 morto; o systemd recriou o processo (PID 1532) em poucos segundos e o serviço voltou `active` |
+| Falha controlada em script | `sudo bash infra/tests/falha-script.sh` | `cp` de arquivo inexistente; o script sai com código 1 e o `provision.log` registra `[ERROR] [falha-script.sh] falha (codigo 1) na linha 7: cp ...` |
 | Reinício da VM | `sudo reboot` | os dois serviços sobem `active`, IP `192.168.56.10/24` e hostname mantidos, monitor volta a logar |
 
 ## Integração com a API real
 
-1. Gerar o build da API: `dotnet publish -c Release -o publish` e copiar para `/opt/nexo/app/`.
-2. Instalar o runtime .NET (adicionar ao `apt-get` do `02-app.sh` ou usar o script oficial da Microsoft).
-3. Em `systemd/nexo-app.service`, trocar o `ExecStart` por `/usr/bin/dotnet /opt/nexo/app/<Api>.dll`.
-4. Incluir as variáveis da API (strings de conexão, etc.) em `/etc/nexo/nexo.env`.
-5. PostgreSQL e Neo4j: subir por Docker Compose a partir do `02-app.sh` (a definir com o responsável pela API).
+A API do projeto está em `apps/api/` (ASP.NET Core 10, PostgreSQL e Neo4j, ver `apps/api/README.md`). Ela ainda **não** foi integrada a esta infraestrutura. Os passos previstos são:
+
+1. Instalar o .NET 10 (SDK para publicar, runtime para executar) e o Docker Compose na VM, adicionando-os ao `apt-get` do `02-app.sh`.
+2. Subir PostgreSQL e Neo4j com `docker compose up -d` a partir de `compose.yaml`, usando um `.env` com senhas locais (fora do Git).
+3. Publicar a API: `dotnet publish apps/api -c Release -o /opt/nexo/app`, e aplicar `--migrate` e `--bootstrap`.
+4. Colocar `ConnectionStrings__Postgres`, `Neo4j__*`, `Jwt__Key` e `Bootstrap__*` em `/etc/nexo/nexo.env`.
+5. Em `systemd/nexo-app.service`, trocar o `ExecStart` por `/usr/bin/dotnet /opt/nexo/app/FacilMunicipio.Api.dll`. A verificação final do `02-app.sh` hoje consulta `/`; com a API real, trocar para `/health`, que ela já expõe.
 
 ## Limitações e pendências
 
 - A aplicação hospedada é uma página de status da infraestrutura, **não** a plataforma Nexo; a API real e seus bancos ainda não foram integrados.
-- Falta gravar o vídeo de demonstração e anexar as capturas de tela.
 - Testado apenas em Debian 13 com VirtualBox 7.2.6; não foi validado em outras distribuições.
 - O monitor depende do formato de saída de `top` e `free` com `LC_ALL=C`.
 
@@ -162,5 +176,8 @@ Capturas de 06/11/2026, feitas numa VM restaurada do snapshot limpo, em [`eviden
 | `09-alertas-log.png` | alertas de CPU e memória registrados |
 | `10-falha-app-recuperacao.png` | `kill -9` e recuperação pelo systemd |
 | `11-logs-auditoria.png` | arquivos de log e execução dos scripts |
+| `12-falha-script-erro-log.png` | falha controlada em script registrada como `ERROR` no log |
+| `13-kill-monitor-recuperacao.png` | `kill -9` no `nexo-monitor` e recriação do processo (PID 1368 → 1532) |
+| `14-reboot-persistencia.png` | após `reboot`: serviços `active` e `/health` ok |
 
-Vídeo de demonstração (2 min 57 s): *link a adicionar após a publicação*.
+Vídeo de demonstração (3 min 47 s): **https://youtu.be/xE7B7_obxFU**.

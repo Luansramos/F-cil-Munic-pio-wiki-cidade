@@ -22,7 +22,7 @@ A API usa interfaces, injeção de dependência, EF Core, LINQ, `async/await` e 
 
 Pré-requisitos: .NET SDK 10, Docker com Compose e Git.
 
-1. Na raiz, copie `.env.example` para `.env` e substitua as senhas de exemplo por senhas locais. O arquivo `.env` não deve ser enviado ao GitHub.
+1. Na raiz, copie `.env.example` para `.env` e substitua as senhas de exemplo por senhas locais. A API lê esse `.env` em desenvolvimento; variáveis do processo têm prioridade. O arquivo `.env` não deve ser enviado ao GitHub.
 2. Execute `docker compose up -d` para iniciar PostgreSQL e Neo4j.
 3. Configure as variáveis da API no terminal:
 
@@ -35,6 +35,8 @@ export Jwt__Key="<CHAVE_ALEATORIA_COM_PELO_MENOS_32_BYTES>"
 export Bootstrap__Email="operador@example.test"
 export Bootstrap__Password="<SENHA_LOCAL_COM_12_OU_MAIS_CARACTERES>"
 ```
+
+Para usar a LLM, inclua no `.env` da raiz ou configure no ambiente do processo `LLM__MODE=azure`, `ENDPOINT_AZURE=https://<recurso>.services.ai.azure.com/openai/v1`, `LLM_KEY_AZURE=<chave>` e `LLM_AZURE_DEPLOYMENT=gpt-5-mini`. O endpoint deve ser o endereço OpenAI v1 mostrado pelo Azure; o deployment deve ser exatamente o nome criado no recurso. O padrão do código é `gpt-5-mini`. A chave fica somente no backend. O modo `LLM__MODE=demo` executa a demonstração sem chamadas externas. No plano da Vercel, estas configurações serão cadastradas como segredos/variáveis do ambiente da API; `.env` não será publicado.
 
 Os valores entre `< >` são marcadores, não senhas funcionais. Para gerar uma chave JWT no terminal, pode ser usado `openssl rand -hex 32`.
 
@@ -61,7 +63,7 @@ Todas as rotas abaixo, exceto `/swagger` e `/health`, começam com `/api/v1`.
 | POST | `/municipios/{id}/fontes` | Cadastrar fonte |
 | GET | `/municipios/{id}/fontes` | Consultar fontes cadastradas |
 | POST | `/fontes/{id}/rascunhos` | Criar rascunho manual |
-| POST | `/fontes/{id}/extracoes` | Solicitar extração (LLM real ainda não configurada) |
+| POST | `/fontes/{id}/extracoes` | Solicitar proposta estruturada pela LLM para revisão |
 | GET | `/rascunhos/{id}` | Consultar rascunho |
 | PUT | `/rascunhos/{id}` | Revisar rascunho |
 | POST | `/rascunhos/{id}/publicacao` | Publicar versão aprovada |
@@ -82,6 +84,14 @@ A rota de conversa recebe, por exemplo:
 A resposta traz o texto de orientação, os serviços relacionados, as fontes, a indicação `informacaoSuficiente` e, quando cadastrado, o campo `canalOficialUrl`. A API não salva as perguntas dos cidadãos. O histórico fica sob responsabilidade do aplicativo. A API recebe até três trocas e remove CPF, RG, e-mail, senha e informação pessoal de saúde (em frases contextuais) da pergunta e dos dois lados do histórico antes de encaminhar o contexto ao respondedor; a resposta do respondedor também é verificada antes de sair.
 
 O contrato foi conferido com o app: os campos opcionais que estiverem vazios não são enviados como `null`; os IDs retornados são dos serviços publicados; a resposta usa texto simples e listas numeradas. O orçamento interno é de 12 segundos para respeitar os 15 segundos de timeout do app. Em desenvolvimento, CORS permite `http://localhost:8081`.
+
+Para validar as duas operações do SDK com dados sintéticos, sem subir a API nem os bancos:
+
+```bash
+dotnet run --project apps/api -- --llm-smoke
+```
+
+O comando faz uma extração e uma resposta com evidência, sem imprimir textos enviados, respostas, chave ou endpoint. Requer deployment ativo e pode gerar custo de inferência. Consulte [LLM Wiki e Azure OpenAI](../../docs/features/llm-wiki.md) para detalhes de configuração e limites.
 
 ## Cybersecurity: PII, taint analysis, auditoria e painel
 
@@ -122,7 +132,7 @@ dotnet run --project apps/api -- --urls http://127.0.0.1:5055
 python3 scripts/demo_fluxo_http.py
 ```
 
-O modo `demo` não chama uma LLM. Ele apenas monta a resposta usando as informações que já foram revisadas e publicadas. A extração com LLM real e a integração com a tela do Expo ainda não foram concluídas.
+O modo `demo` não chama uma LLM. Ele apenas monta a resposta usando as informações que já foram revisadas e publicadas. A integração da tela do Expo ainda não foi concluída; extração e resposta Azure podem ser exercitadas com o smoke do SDK.
 
 ## Testes e evidências
 
