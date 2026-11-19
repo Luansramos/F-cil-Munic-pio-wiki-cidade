@@ -5,7 +5,7 @@ Cada feature significativa possui especificação ligada aos IDs do backlog. O r
 | Feature | Backlog | Estado atual |
 |---|---|---|
 | [Fundação e contratos](fundacao-e-contratos.md) | A1–A6 | Planejada |
-| [LLM Wiki e Azure OpenAI](llm-wiki.md) | A4, B5–B6, D2–D3 | Smoke Azure SDK aprovado; fluxo API com fonte oficial e bancos reais coberto por dublê; rota Azure ponta a ponta pendente |
+| [LLM Wiki e Azure OpenAI](llm-wiki.md) | A4, B5–B6, D2–D3 | Fluxo HTTP Azure com fonte oficial aprovado em ambiente isolado; revisão editorial humana pendente |
 | [Fontes e revisão](fontes-e-revisao.md) | B1–B8 | API implementada; telas administrativas pendentes |
 | [Grafo e publicação](grafo-e-publicacao.md) | C1–C6 | Planejada |
 | [Consulta e aplicativo](consulta-e-aplicativo.md) | D1–D8 | API implementada; Expo ainda precisa de integração ponta a ponta |

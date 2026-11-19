@@ -1,6 +1,6 @@
 # LLM Wiki e Azure OpenAI
 
-- Status: integração Azure implementada; smoke do SDK aprovado com a configuração validada; fluxo da API com fonte oficial e bancos reais verificado em CI com dublê determinístico. A execução da rota HTTP usando Azure real permanece pendente.
+- Status: integração Azure implementada; smoke do SDK e fluxo HTTP com Azure real e fonte oficial aprovados em ambiente isolado. Revisão editorial por integrante da equipe permanece necessária antes do uso real.
 - Backlog: A4, B5, B6 (integração da API), D2 e D3.
 - Componentes: API ASP.NET Core, `ILlmWiki`, Azure OpenAI.
 
@@ -45,9 +45,11 @@ O smoke pela SDK foi executado em 18/11/2026. A tentativa com o `.env` local des
 
 Em 18/11/2026, o CI do PR #3 (run 108) compilou a API, verificou as migrações e aprovou 111 testes com PostgreSQL e Neo4j reais. `LlmApiIntegrationTests` percorre a rota de extração com o dublê determinístico `TestLlm` e um excerto da [publicação oficial de Poá sobre o Cata Treco](https://poa.sp.gov.br/programa-cata-treco-reforca-limpeza-urbana-e-evita-descarte-irregular-em-poa/): confirma que a proposta nasce como rascunho não publicado, que a publicação é bloqueada antes da revisão, e que após aprovação a API retorna resposta com serviço e fonte. O teste também verifica insuficiência, município sem acesso ao conhecimento de outra cidade e HTTP 503 quando o provedor falha. Esse teste valida o contrato e o fluxo da API; não chama Azure. A execução HTTP em modo `demo` no mesmo workflow também permanece determinística.
 
+Em 18/11/2026, a API foi executada em modo Azure com `gpt-5-mini`, PostgreSQL e Neo4j temporários isolados. Uma síntese da publicação oficial de Poá foi cadastrada como fonte. A extração real pela rota criou um rascunho não aprovado, e a publicação anterior à aprovação retornou 409. Uma proposta predefinida, conferida pelo assistente contra a fonte, foi enviada à rota de revisão e aprovada para o ensaio; a publicação e uma resposta Azure com o link oficial passaram. A consulta sem evidência retornou insuficiência e outra cidade não recebeu a informação. A falha do provedor é coberta pelo teste de integração com dublê, não foi induzida na chamada Azure real. Os bancos temporários foram removidos. Esta aprovação de ensaio não substitui a revisão editorial humana da equipe antes do uso real.
+
 ## Limites
 
 - O filtro de privacidade atual remove padrões básicos de CPF, e-mail e senha; ele não é um mecanismo completo de anonimização.
 - A verificação de evidência exige que o trecho citado exista literalmente nos campos factuais do serviço publicado. Ela não garante, sozinha, a qualidade editorial da resposta.
-- O smoke Azure do SDK passou com fonte sintética, mas não valida chamada Azure através da rota HTTP nem a qualidade de uma extração real da página de Poá. A rota, a revisão humana, a resposta suficiente/insuficiente, o isolamento municipal e a falha do provedor foram exercitados por CI com dublê e bancos reais; não confundir esse teste com inferência Azure. O `.env` local deste repositório continua diferente da configuração que passou e não foi validado.
+- O ensaio HTTP Azure usou uma síntese da notícia oficial, e não a página integral. A revisão foi feita pelo assistente para o ensaio; a equipe precisa revisar e aprovar conteúdo antes do uso real. O `.env` local deste repositório continua diferente da configuração que passou e não foi validado.
 - Busca vetorial, atualização automática de páginas, resolução de contradições e lint de wiki continuam fora do escopo implementado.
