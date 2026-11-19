@@ -38,24 +38,29 @@ A arquitetura foi dividida assim:
 Painel administrativo (React) ──┐
                                 ├── API ASP.NET Core ── PostgreSQL
 Aplicativo do cidadão (Expo) ───┘          ├────── Neo4j
-                                           └────── LLM (integração pendente)
+                                           └────── Azure OpenAI (SDK .NET)
 ```
 
 - **PostgreSQL e EF Core:** municípios, usuários, fontes, rascunhos e versões.
 - **Neo4j:** serviços publicados, vínculos entre as informações e suas fontes.
 - **API C#:** cadastro, autorização, revisão, publicação e consulta.
+- **Azure OpenAI:** sugere rascunhos sujeitos à revisão humana e responde com contexto publicado; a API valida evidências e associa as fontes.
 - **Painel React:** interface prevista para cadastro e revisão.
 - **Expo:** interface prevista para perguntas, fontes e histórico salvo no celular.
 
 O piloto começa com Poá. Um segundo município fictício é usado nos testes para verificar se os dados não se misturam.
 
+## Plano de implantação
+
+O plano do grupo é publicar a solução final na Vercel. O painel React pode usar o runtime correspondente ao framework; a API ASP.NET Core está planejada como função baseada em contêiner, com Dockerfile próprio. PostgreSQL e Neo4j precisam de serviços externos compatíveis. A Vercel documenta esse caminho de contêiner HTTP como Functions, mas o runtime de contêiner está em beta; compatibilidade, limites, custos e conexões dos bancos precisam ser validados antes da publicação. Este repositório ainda não representa um deploy concluído.
+
 ## O que já foi desenvolvido
 
-A API de SOA e C# está na branch `feat/soa-csharp-api`, no [PR #2](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/pull/2), ainda sem merge na `main`.
+A API de SOA e C# foi integrada à `main` pelo [PR #2](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/pull/2).
 
 Ela já permite cadastrar fontes, criar e revisar rascunhos manualmente, publicar serviços no Neo4j e consultá-los pelas rotas públicas. Há testes automatizados com PostgreSQL e Neo4j. Também foi executado um roteiro HTTP que faz o caminho de uma fonte municipal até uma resposta com o link correspondente.
 
-Para a demonstração, usamos `Llm__Mode=demo`. Nesse modo a API organiza a resposta a partir do serviço revisado, sem chamar uma LLM. A extração por LLM real, o painel e a integração da conversa no Expo continuam com as frentes responsáveis. Portanto, o fluxo está validado **no backend**, mas ainda não no aplicativo completo.
+O backend tem o adaptador Azure OpenAI pela SDK oficial .NET, configurado para o deployment `gpt-5-mini` via endpoint OpenAI v1. Uma chamada HTTP sintética com saída JSON estruturada foi confirmada em 17/11/2026. Os testes unitários da integração passaram no WSL; o smoke de inferência ao vivo pelo SDK ainda não foi executado. A LLM sugere rascunhos sujeitos à revisão humana e, na conversa, recebe somente dados publicados do município; a API valida trechos de evidência e fornece os links das fontes. `Llm__Mode=demo` continua disponível sem chamadas externas. O painel e a integração da conversa no Expo ainda precisam ser conectados e verificados ponta a ponta.
 
 As instruções para executar a API estão em [apps/api/README.md](apps/api/README.md). O [relatório de SOA e C#](docs/entrega-soa-csharp.md) relaciona cada critério do professor ao código. As capturas e os testes estão em [docs/evidencias-soa-csharp.md](docs/evidencias-soa-csharp.md).
 
@@ -63,6 +68,7 @@ As instruções para executar a API estão em [apps/api/README.md](apps/api/READ
 
 | Pasta ou arquivo | Conteúdo |
 |---|---|
+| ml/ | Dados públicos, experimento acadêmico de ML, resultados e relatório; separado do runtime da API |
 | `planejamento/` | Visão, especificação, arquitetura, backlog e plano |
 | `docs/` | Contratos de integração, decisões e documentação das features |
 | `apps/api/` | API ASP.NET Core (na branch de SOA/C#) |
@@ -84,6 +90,8 @@ As pastas de cada frente entram na `main` após seus respectivos PRs. A estrutur
 - [Entregas por disciplina](planejamento/06-entregas-por-disciplina.md)
 - [Contratos da API](docs/contratos-de-integracao.md)
 - [Documentação por feature](docs/features/README.md)
+- [LLM Wiki e Azure OpenAI](docs/features/llm-wiki.md)
+- [Experimento acadêmico de ML](docs/features/machine-learning.md)
 - [Orientações para o grupo](AGENTS.md)
 
 Cada integrante trabalha em uma branch, registra o que fez na documentação da feature e abre um PR para revisão de outro integrante. Alterações nos contratos devem ser combinadas com as outras frentes.

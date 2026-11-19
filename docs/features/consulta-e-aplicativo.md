@@ -18,7 +18,9 @@ A consulta recupera somente serviços da versão ativa do município escolhido. 
 
 ## Demonstração e testes
 
-Enquanto não há LLM real, `Llm__Mode=demo` permite consultar o conteúdo publicado por uma rotina determinística. Ela usa apenas a descrição, as etapas e os requisitos revisados. Se a fonte não sustentar um detalhe da pergunta, a API informa que não há dados suficientes.
+Em `Llm__Mode=azure`, a API envia a pergunta e o histórico sanitizados junto com os serviços publicados da cidade e versão ativa. O modelo só pode responder com esses dados; a API valida as citações de evidência e os IDs dos serviços antes de retornar a resposta. Fontes e canais continuam vindo do backend. Se a evidência faltar, a API responde com insuficiência. `Llm__Mode=demo` continua disponível para consultar deterministicamente conteúdo revisado sem chamar um provedor externo.
+
+O adaptador e o comando de smoke do SDK estão descritos em [LLM Wiki e Azure OpenAI](llm-wiki.md). O smoke sintético não substitui o teste com as fontes reais de Poá nem a integração com a tela Expo.
 
 O [workflow de 10/11/2026](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/actions/runs/42902618547) passou com 41 testes e com o roteiro HTTP que retorna uma orientação sobre Cata Treco acompanhada da fonte. O roteiro também pergunta sobre atendimento aos sábados, que não está confirmado nas informações usadas.
 

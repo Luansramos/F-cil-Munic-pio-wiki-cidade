@@ -4,6 +4,8 @@ Projeto: **Fácil Município — Wiki Cidade**
 Disciplinas: **Arquitetura Orientada a Serviços e Web Services** e **C# Software Development**  
 Referência: briefing CitizenTech 2026.2, páginas 27 e 30.
 
+**Atualização de 17/11/2026:** o backend de SOA/C# foi integrado à `main` pelo PR #2. Depois da evidência original, foi implementado o adaptador Azure OpenAI para a LLM Wiki e configurado o deployment `gpt-5-mini` pelo endpoint OpenAI v1. Uma chamada HTTP sintética com JSON estruturado retornou HTTP 200; 109 testes unitários sem integrações dependentes de bancos passaram no WSL. O smoke de inferência ao vivo pelo SDK não foi executado. As evidências HTTP deste relatório continuam descrevendo o modo demonstrativo e rascunho manual.
+
 ## Integrantes
 
 - Fernanda Rocha Menon — RM 554673
@@ -28,7 +30,7 @@ flowchart LR
     M["App Expo<br/>(integração pendente)"] --> API
     API --> P[("PostgreSQL<br/>dados administrativos")]
     API --> G[("Neo4j<br/>wiki publicada")]
-    API -. "Interface ILlmWiki" .-> L["LLM real<br/>(pendente)"]
+    API --> L["Azure OpenAI SDK .NET<br/>(deployment a ativar)"]
 ```
 
 **PostgreSQL:** guarda os municípios, usuários, fontes cadastradas, rascunhos e versões da wiki. O Entity Framework Core cuida das consultas e da persistência. A migração inicial está em `apps/api/Data/Migrations`.
@@ -92,7 +94,7 @@ As rotas são documentadas pelo Swagger e seguem o prefixo `/api/v1`. A API reto
 | POST | `/usuarios` | Operador |
 | GET/POST | `/municipios/{id}/fontes` | Administração autorizada |
 | POST | `/fontes/{id}/rascunhos` | Administração autorizada |
-| POST | `/fontes/{id}/extracoes` | Administração; LLM pendente |
+| POST | `/fontes/{id}/extracoes` | Administração; proposta por Azure OpenAI (deployment necessário) |
 | GET/PUT | `/rascunhos/{id}` | Administração autorizada |
 | POST | `/rascunhos/{id}/publicacao` | Administração autorizada |
 | GET | `/municipios/{id}/versoes` | Administração autorizada |
@@ -177,6 +179,6 @@ A execução automatizada também gera Swagger/OpenAPI, capturas do navegador, r
 
 ## 10. Pendências de integração e envio
 
-O backend está na branch `feat/soa-csharp-api` e no [PR #2](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/pull/2). Os cinco integrantes foram identificados no README e neste relatório. Ainda é necessário revisar o PR com outro integrante, integrá-lo à `main` e enviar o link final na tarefa de cada disciplina.
+O backend de SOA/C# entrou na `main` pelo [PR #2](https://github.com/Luansramos/F-cil-Munic-pio-wiki-cidade/pull/2). A alteração posterior do adaptador LLM está nesta branch e ainda precisa de revisão e PR. Os cinco integrantes foram identificados no README e neste relatório; o link final deve ser enviado na tarefa de cada disciplina.
 
-A integração visual com Expo, o painel React e a LLM real pertencem ao projeto como um todo, mas ainda não foram homologados por este backend. Não há evidência de um aplicativo completo executado com a API.
+A integração visual com Expo e o painel React continuam pendentes. O adaptador LLM está implementado; uma chamada sintética direta ao deployment `gpt-5-mini` retornou HTTP 200, mas o smoke de inferência ao vivo pelo SDK ainda não foi executado. Não há evidência de um aplicativo completo executado com a API.

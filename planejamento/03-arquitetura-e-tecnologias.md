@@ -23,12 +23,17 @@ Cidadão → App Expo ──────────┘        │          → 
 | Histórico local do app | Expo SQLite |
 | Autenticação administrativa | JWT emitido pela API |
 | Documentação de API | Swagger ou equivalente |
+| Provedor de LLM | Azure OpenAI pela SDK oficial `OpenAI` para .NET, API v1 |
 | Desenvolvimento local | Docker Compose para PostgreSQL e Neo4j |
 | Infraestrutura da disciplina | Linux, Bash, systemd e logs |
 | ML acadêmico | Python, notebook e biblioteca adequada ao modelo escolhido |
 | Physical Computing | ESP32 no Wokwi |
 
-Versões compatíveis devem ser fixadas e registradas no repositório no começo do desenvolvimento. A API encapsulará o provedor de LLM atrás de uma interface. O provedor e seu acesso devem ser escolhidos no primeiro dia; a chave permanece no backend e fora do repositório.
+Versões compatíveis devem ser fixadas e registradas no repositório no começo do desenvolvimento. A API encapsula o provedor de LLM atrás da interface `ILlmWiki`. O deployment escolhido para a integração é `gpt-5-mini`, chamado pela API v1 (`/openai/v1`). Para inferência, a API recebe o nome do deployment configurado no Azure; o nome de catálogo ou uma URI `azureml://` não substitui um deployment ativo. A chave permanece no backend e fora do repositório.
+
+## Plano de implantação
+
+O plano atual é publicar a solução final na Vercel. O painel usa o runtime compatível com React; a API ASP.NET Core deve ser empacotada em um contêiner HTTP para Vercel Functions, com `Dockerfile.vercel`. PostgreSQL e Neo4j serão serviços externos, configurados por variáveis/segredos do ambiente. O Compose continua sendo a forma de desenvolvimento local e não é o artefato de produção. O runtime de contêiner da Vercel está em beta; validar build, porta `$PORT`, limites de execução, regiões, conectividade e custos antes de considerar o deploy concluído. O aplicativo Expo tem seu próprio processo de build e distribuição.
 
 ## Fonte de verdade e publicação
 
@@ -64,6 +69,8 @@ Campos mínimos: identificador, município, versão, nome ou descrição e refer
 
 **Consulta:** município e pergunta → API encontra candidatos publicados → API recupera relações e fontes do grafo → LLM formula a resposta com o contexto → API entrega resposta e fontes. A LLM não executa Cypher livre nem altera o grafo diretamente.
 
+A implementação atual usa saídas JSON Schema estritas. Na conversa, a API só aceita IDs de serviços existentes na versão ativa e exige trechos literais de evidência para todos os serviços citados; os links e canais são montados a partir dos registros publicados, não do texto gerado pelo modelo. A revisão humana da ingestão continua obrigatória.
+
 Com poucos serviços, iniciar com busca por nomes, descrições e termos relacionados; avaliar busca vetorial somente após o fluxo funcionar. Uma resposta sem evidência suficiente deve assumir essa limitação.
 
 ## Contratos iniciais de API
@@ -86,7 +93,7 @@ Contrato mínimo de resposta de conversa: `resposta`, `servicosRelacionados`, `f
 ## Limites e riscos
 
 - Dois bancos aumentam trabalho e exigem tratamento explícito de falhas de publicação.
-- O provedor e o acesso à LLM não foram selecionados; confirmar disponibilidade e custo antes de depender dele.
+- O deployment Azure, sua disponibilidade regional, cotas e custo devem ser confirmados no ambiente de cada execução.
 - As páginas públicas de Poá podem não conter todos os detalhes desejados; responder somente com evidência.
 - Não usar dados pessoais reais no protótipo ou nas evidências de segurança.
 - O totem ESP32 e sua comunicação com a API precisam ser demonstrados no Wokwi; o desenho de comunicação ainda não foi comprovado.

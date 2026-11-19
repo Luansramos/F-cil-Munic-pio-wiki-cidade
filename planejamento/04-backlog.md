@@ -4,6 +4,8 @@ Referência: [especificação](02-especificacao-mvp.md), [arquitetura](03-arquit
 
 **P0:** começar imediatamente; pode bloquear trabalho ou disciplina. **P1:** necessário para MVP ou entrega. **P2:** melhoria posterior ao núcleo funcional. P1 a P5 são responsáveis sugeridos, não nomes confirmados.
 
+**Atualização de implementação (17/11/2026):** A4, B5, B6 (parte da API), D2 e D3 têm adaptador Azure OpenAI configurado para `gpt-5-mini`; uma chamada HTTP sintética com JSON Schema retornou HTTP 200 e 109 testes unitários sem as integrações dependentes de bancos passaram no WSL. O smoke de inferência ao vivo pelo SDK .NET ainda não foi executado. Telas administrativas, fontes reais de Poá e integração visual do Expo permanecem no escopo de suas frentes. Detalhes em [LLM Wiki e Azure OpenAI](../docs/features/llm-wiki.md).
+
 ## A. Base e contratos
 
 | ID | Pri. | Responsável | Tarefa e critério de aceite | Depende de |
@@ -67,7 +69,9 @@ O experimento de ML é separado da LLMWiki. Dados simulados não são aceitos pe
 | E5 | P1 | P3 | Apresentar métricas e gráficos de treino/teste e discutir sobreajuste e significado para o cidadão. | E4 |
 | E6 | P1 | P3 | Entregar `ml/` com notebook executado, `dados/README.md`, `requirements.txt`, relatório e vídeo de até 5 min. | E5 |
 
-E1 é um risco aberto: as páginas de serviços usadas pelo app não foram demonstradas como conjunto de dados suficiente para ML. Não fabricar dados para cumprir a disciplina. O briefing menciona tanto relatório de 2 a 4 páginas quanto 2 páginas; preparar 2 e conferir a tarefa oficial.
+E1 foi atendido para uma análise exploratória de volume agregado com a série pública de Poá descrita abaixo. As páginas de serviço do app continuam insuficientes para avaliar ocorrências por serviço. Não fabricar dados para cumprir a disciplina. O briefing menciona tanto relatório de 2 a 4 páginas quanto 2 páginas; preparar 2 e conferir a tarefa oficial.
+
+**Atualização (17/11/2026):** foi encontrada uma série pública mensal agregada de Poá para 2023-2024, reconciliada com 717 e 853 manifestações anuais. Notebook, avaliação temporal de 18 combinações, resultados e relatório de duas páginas foram executados. A execução usa uma implementação autocontida de Random Forest porque scikit-learn e acesso ao PyPI não estavam disponíveis; a aderência dessa adaptação à rubrica deve ser confirmada por P3/P5. O vídeo ainda precisa ser gravado e o pacote revisado.
 
 ## F. Cybersecurity
 
