@@ -1,0 +1,53 @@
+# Evidência: tabela EventosSeguranca (PostgreSQL 17.6 local) — somente metadados
+# Consulta executada em 2026-11-17T00:59:49Z. Município demonstrativo de Poá; dados simulados.
+
+## Estrutura da tabela (nenhuma coluna guarda pergunta, valor detectado, senha, token, IP ou hash)
+    column_name     |        data_type         | character_maximum_length 
+--------------------+--------------------------+--------------------------
+ Id                 | uuid                     |                         
+ CorrelacaoId       | uuid                     |                         
+ MunicipioId        | character varying        |                       60
+ OcorridoEm         | timestamp with time zone |                         
+ Categoria          | character varying        |                       20
+ Origem             | character varying        |                       80
+ Destino            | character varying        |                       30
+ Acao               | character varying        |                       20
+ Gravidade          | character varying        |                       20
+ Codigo             | character varying        |                       40
+ TraducaoEstado     | character varying        |                       20
+ TraducaoTentativas | integer                  |                         
+ TraducaoTexto      | character varying        |                      500
+ TraduzidaEm        | timestamp with time zone |                         
+ TraducaoModelo     | character varying        |                       80
+(15 linhas)
+
+## Contagem por ação, destino e código
+    Acao    |   Destino    |       Codigo       | count 
+------------+--------------+--------------------+-------
+ Bloqueado  | Persistencia | CONTEUDO_REJEITADO |     2
+ Sanitizado | Llm          | PII_SANITIZADA     |    10
+(2 linhas)
+
+## Últimos eventos (sem a explicação)
+ hora_utc | Categoria |             Origem             |   Destino    |    Acao    | Gravidade |       Codigo       | TraducaoEstado |    TraducaoModelo     
+----------+-----------+--------------------------------+--------------+------------+-----------+--------------------+----------------+-----------------------
+ 00:55:30 | Senha     | rascunho.etapas[0]             | Persistencia | Bloqueado  | Alta      | CONTEUDO_REJEITADO | Traduzida      | gemini-3.1-flash-lite
+ 00:55:30 | Cpf       | fonte.texto                    | Persistencia | Bloqueado  | Media     | CONTEUDO_REJEITADO | Traduzida      | gemini-3.1-flash-lite
+ 00:55:30 | Rg        | conversa.historico[1].pergunta | Llm          | Sanitizado | Media     | PII_SANITIZADA     | Traduzida      | gemini-3.1-flash-lite
+ 00:55:30 | Senha     | conversa.historico[0].resposta | Llm          | Sanitizado | Alta      | PII_SANITIZADA     | Traduzida      | gemini-3.1-flash-lite
+ 00:55:30 | Email     | conversa.historico[0].pergunta | Llm          | Sanitizado | Baixa     | PII_SANITIZADA     | Traduzida      | gemini-3.1-flash-lite
+ 00:55:30 | Saude     | conversa.pergunta              | Llm          | Sanitizado | Alta      | PII_SANITIZADA     | Traduzida      | gemini-3.1-flash-lite
+ 00:55:30 | Cpf       | conversa.pergunta              | Llm          | Sanitizado | Media     | PII_SANITIZADA     | Traduzida      | gemini-3.1-flash-lite
+ 23:47:34 | Email     | conversa.pergunta              | Llm          | Sanitizado | Baixa     | PII_SANITIZADA     | Traduzida      | gemini-3.1-flash-lite
+ 23:29:18 | Saude     | conversa.pergunta              | Llm          | Sanitizado | Alta      | PII_SANITIZADA     | Traduzida      | gemini-3.1-flash-lite
+ 23:29:18 | Cpf       | conversa.pergunta              | Llm          | Sanitizado | Media     | PII_SANITIZADA     | Traduzida      | gemini-3.1-flash-lite
+ 22:52:39 | Saude     | conversa.pergunta              | Llm          | Sanitizado | Alta      | PII_SANITIZADA     | Traduzida      | gemini-3.1-flash-lite
+ 22:52:39 | Cpf       | conversa.pergunta              | Llm          | Sanitizado | Media     | PII_SANITIZADA     | Traduzida      | gemini-3.1-flash-lite
+(12 linhas)
+
+## Verificação: nenhum valor simulado enviado nos testes aparece em qualquer coluna de texto
+ linhas_com_valor_original 
+---------------------------
+                         0
+(1 linha)
+
