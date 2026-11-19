@@ -1,10 +1,10 @@
 # Feature — Aplicativo mobile do cidadão (Expo)
 
-- Status: em desenvolvimento (tarefas 1+2, 3 e 4+5 commitadas em `09380e5` e tarefa 6 em `e6198e2`, sem PR; tarefa 7 em `fdb6a5c`, sem PR; tarefa 8 (Histórico) em `a9f36c7` e tarefa 9 (Preferências) em `c5e3cf8`, sem PR; tarefa 10 (acessibilidade) implementada no working tree, sem commit)
+- Status: aplicativo implementado no PR #7; consulta web com API em modo demonstrativo verificada. Execução nativa e leitores de tela ainda precisam de verificação; veja o [README do aplicativo](../../apps/mobile/README.md) para o estado e as evidências atuais.
 - Responsável e colaboradores: Matheus (mobile e Cybersecurity); API P1; LLM P3
 - Itens do backlog / issue: D4, D5, D6, D7, D8 (apoio em D1–D3 para o contrato)
 - Componentes e disciplinas afetados: `apps/mobile`; Mobile Development & IoT (integração com a API de SOA e C#)
-- Última atualização: 09/11/2026
+- Última atualização de status: 18/11/2026. As anotações de tarefas e verificações abaixo registram etapas históricas e podem mencionar estados anteriores.
 - Observação: o backlog (`planejamento/04-backlog.md`) e `consulta-e-aplicativo.md` atribuem o app a P1/P2. O responsável pelo mobile é Matheus. A atualização desses documentos será combinada com o grupo.
 
 ## Problema e objetivo

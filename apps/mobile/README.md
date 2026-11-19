@@ -2,6 +2,8 @@
 
 App Expo (SDK 58) do Fácil Município. Protótipo acadêmico para a Global Solution CitizenTech 2026. O escopo, a arquitetura, as decisões e as verificações estão em [docs/features/mobile-app.md](../../docs/features/mobile-app.md).
 
+Respostas marcadas como insuficientes exibem a mensagem recebida da API, inclusive quando a orientação é bloqueada por privacidade. Se a mensagem vier vazia, o app mostra uma orientação genérica.
+
 ## Ficha da CitizenTech
 
 | Item | Descrição |

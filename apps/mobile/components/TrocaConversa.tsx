@@ -10,6 +10,7 @@ import { Selo } from '@/components/Selo';
 import { borderWidth, colors, radii, spacing } from '@/theme';
 import type { Troca } from '@/types';
 import { ehUrlSegura } from '@/utils/links';
+import { mensagemIndisponivel } from '@/utils/resposta';
 
 type TrocaConversaProps = {
   troca: Troca;
@@ -75,8 +76,8 @@ export function TrocaConversa({ troca, nomesDosServicos, exemplo, aoVerFontes }:
         <>
           <Notice
             tom="warning"
-            titulo="Não encontrei informação suficiente"
-            mensagem="A base deste município não tem dados confiáveis sobre isso. Para não passar uma orientação errada, consulte o canal oficial."
+            titulo="Orientação indisponível"
+            mensagem={mensagemIndisponivel(troca.resposta)}
           />
           {ehUrlSegura(troca.canalOficialUrl) ? (
             <Button
