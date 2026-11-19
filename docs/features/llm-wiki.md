@@ -1,6 +1,6 @@
 # LLM Wiki e Azure OpenAI
 
-- Status: integração implementada e suíte unitária aprovada; o smoke Azure via SDK falha com HTTP 404 `DeploymentNotFound` para o nome configurado, então a aceitação de inferência ao vivo permanece pendente.
+- Status: integração Azure implementada, suíte unitária aprovada e smoke do SDK aprovado com a configuração validada; a validação ponta a ponta pela API com fonte oficial e bancos reais permanece pendente.
 - Backlog: A4, B5, B6 (integração da API), D2 e D3.
 - Componentes: API ASP.NET Core, `ILlmWiki`, Azure OpenAI.
 
@@ -41,7 +41,7 @@ O comando usa uma fonte e um serviço fictícios, faz uma chamada de extração 
 
 Em 17/11/2026, uma chamada HTTP direta a `/chat/completions`, usando `gpt-5-mini` e um esquema JSON sintético, retornou HTTP 200 e o campo esperado. Em 18/11/2026, a suíte `dotnet test tests/Api.Tests/Api.Tests.csproj --filter 'FullyQualifiedName!~IntegrationTests' --verbosity minimal` passou: 109 testes aprovados com .NET SDK 10.0.404. Os testes cobrem extração como proposta revisável, validação de evidências, resposta insuficiente, falhas do provedor e cancelamento; usam transporte simulado e não fazem inferência externa.
 
-O smoke pelo SDK foi executado em 18/11/2026. A primeira execução apresentou `SocketException` no sandbox; a repetição fora dele alcançou o Azure e falhou na extração com HTTP 404 e código `DeploymentNotFound`. A saída segura não exibiu endpoint, chave ou conteúdo da fonte. O arquivo `.env` não define `LLM_AZURE_DEPLOYMENT`, então o código enviou `gpt-5-mini` como nome do deployment. Uma chamada GET a `/openai/v1/models` retornou HTTP 200, mas lista modelos disponíveis e não confirma um deployment ativo ([referência da API Azure OpenAI Models](https://learn.microsoft.com/en-us/rest/api/aifoundry/azureopenai/models)). Na sessão atual, a Azure CLI não conseguiu consultar a assinatura ou listar deployments. O nome de deployment e o recurso associados à requisição permanecem sem confirmação. Consulte o deployment no portal/gerenciamento Azure, configure seu nome exato e repita o smoke antes de aceitar a inferência ao vivo ([API de listagem de deployments](https://learn.microsoft.com/en-us/rest/api/aifoundry/accountmanagement/deployments/list?view=rest-aifoundry-accountmanagement-2025-06-01)).
+O smoke pela SDK foi executado em 18/11/2026. A tentativa com o `.env` local deste repositório falhou com HTTP 404 `DeploymentNotFound`, pois ele não define `LLM_AZURE_DEPLOYMENT` e o código usa `gpt-5-mini` por padrão. Depois, usando somente nas variáveis de ambiente do processo a configuração local indicada pelo usuário como válida — endpoint `https://city-wiki.services.ai.azure.com/openai/v1`, deployment `gpt-5-mini` e a chave correspondente — o comando terminou com código 0. O código só retorna 0 após validar extração estruturada não vazia e resposta fundamentada com evidência, serviço correspondente e texto não vazio. A chave não foi exibida, gravada ou commitada; o `.env` deste repositório permaneceu inalterado e sua configuração não foi validada. A fonte desse smoke é sintética: ele não substitui a validação da extração de fonte oficial de Poá, revisão humana, insuficiência de evidência, isolamento municipal ou fluxo HTTP com os bancos reais.
 
 ## Limites
 
