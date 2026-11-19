@@ -34,7 +34,7 @@ Proteger as fronteiras do produto e atender à atividade: parsing de PII, taint 
 | Resposta da LLM / resposta pública (resposta, serviços, fontes, canal) | Bloquear | Resposta segura (`informacaoSuficiente:false`); evento `Bloqueado`, destino `RespostaPublica` |
 | Fontes (título, texto, URL) e rascunhos (todos os campos textuais) | Rejeitar antes de persistir | HTTP 422 com mensagem segura; evento `Bloqueado`, destino `Persistencia` |
 | Publicação no grafo | Rejeitar antes de gravar | `ApiException` 422 antes de qualquer escrita; evento destino `Grafo` |
-| Extração por LLM (texto da fonte) | Sanitizar | Evento `Sanitizado`, destino `Llm` |
+| Extração por LLM (texto da fonte) | Sanitizar e verificar o texto antes do envio | Evento `Sanitizado`; se valor marcado ou dado detectável permanecer, bloqueio com HTTP 422 e evento `Bloqueado`, destino `Llm` |
 | Login | **Sem substituição**: a senha original só é usada em `VerifyHashedPassword` | Nenhum evento, nada em log |
 | Cadastro de usuário | **Sem substituição**: a senha original só vira hash | Idem; e-mail administrativo legítimo não é tratado como PII |
 

@@ -287,6 +287,33 @@ public class SecurityTests
     // ---------- Persistência / publicação ----------
 
     [Fact]
+    public async Task Extraction_BlocksPreviouslyMarkedCpfInLegacySourceBeforeCallingLlm()
+    {
+        await using var f = new SecurityFactory(); await f.SeedAsync();
+        var source = new Fonte
+        {
+            MunicipioId = SecurityFactory.CityA,
+            Titulo = "Fonte fictícia anterior à proteção",
+            Url = "https://example.org/fonte",
+            Texto = "CPF 123.456.789-00; repetido como 12345678900",
+            DataConsulta = new DateOnly(2026, 1, 1)
+        };
+        await f.WithDb(async db => { db.Fontes.Add(source); await db.SaveChangesAsync(); return 0; });
+        using var admin = f.Client("ADMIN", SecurityFactory.CityA);
+        var response = await admin.PostAsync($"/api/v1/fontes/{source.Id}/extracoes", null);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal(0, f.Llm.ExtractionCalls);
+        Assert.Empty(await f.WithDb(db => db.Rascunhos.ToListAsync()));
+        var events = await f.WithDb(db => db.EventosSeguranca.ToListAsync());
+        Assert.Contains(events, e => e.Categoria == PiiCategory.Cpf && e.Destino == SinkDestino.Llm
+            && e.Acao == AcaoProtecao.Bloqueado && e.Codigo == "SINK_BLOQUEADO");
+        var responseText = await response.Content.ReadAsStringAsync();
+        Assert.DoesNotContain("12345678900", responseText);
+        Assert.DoesNotContain("12345678900", JsonSerializer.Serialize(events));
+        Assert.DoesNotContain("12345678900", f.Logs.All);
+    }
+
+    [Fact]
     public async Task AdminRejectsPersonalDataInSourcesAndDraftsBeforePersistence()
     {
         await using var f = new SecurityFactory(); await f.SeedAsync();

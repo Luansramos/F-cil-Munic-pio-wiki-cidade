@@ -86,8 +86,12 @@ public class FakeGraph : IKnowledgeGraph
 /// <summary>Dublê de teste da LLM municipal: registra o que recebeu e devolve o texto configurado.</summary>
 public class FakeLlm : ILlmWiki
 {
-    public TimeSpan Delay; public string? Reply; public string Question = ""; public TrocaResumida[] History = []; public int Calls;
-    public Task<ServicoRevisado> ExtrairAsync(string texto, CancellationToken ct) => throw new LlmUnavailableException();
+    public TimeSpan Delay; public string? Reply; public string Question = ""; public TrocaResumida[] History = []; public int Calls; public int ExtractionCalls;
+    public Task<ServicoRevisado> ExtrairAsync(string texto, CancellationToken ct)
+    {
+        ExtractionCalls++;
+        throw new LlmUnavailableException();
+    }
     public async Task<ResultadoLlm> ResponderAsync(string pergunta, TrocaResumida[] historico, IReadOnlyList<Conhecimento> contexto, CancellationToken ct)
     {
         Calls++; Question = pergunta; History = historico;

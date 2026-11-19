@@ -59,7 +59,10 @@ public class AdminController(AppDbContext db, CurrentUser user, IPasswordHasher<
         using var budget = CancellationTokenSource.CreateLinkedTokenSource(ct);
         budget.CancelAfter(TimeSpan.FromSeconds(12));
         var text = guard.Sanitize(f.MunicipioId, f.Texto, "fonte.texto", SinkDestino.Llm);
+        // Fontes antigas podem conter valores marcados reapresentados em outros formatos.
+        var safe = guard.Verify(f.MunicipioId, SinkDestino.Llm, ("fonte.texto", text));
         await guard.FlushAsync(ct);
+        if (!safe) throw new ApiException(422, SinkGuard.RejectionMessage);
         var proposal = await llm.ExtrairAsync(text, budget.Token);
         var errors = new List<ValidationResult>();
         if (!Validator.TryValidateObject(proposal, new(proposal), errors, true)) return StatusCode(503);
